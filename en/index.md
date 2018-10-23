@@ -5,6 +5,7 @@
 
 Well this is the first section.
 
+### heading 3
 
 ## Section 2
 
