@@ -16,6 +16,7 @@ why is this not showing up yet?
   - subitem
     - 1
     - 2
+    - 3
 
 ## Section 2
 
