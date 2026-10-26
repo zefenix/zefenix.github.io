@@ -746,6 +746,10 @@ a.toc-item { text-decoration: none; }
 .lib-found .x { display: block; font-family: var(--f-book); font-size: 13.5px; line-height: 1.4; color: var(--ink-soft); }
 .lib-found mark { background: var(--sel); color: var(--sel-ink); border-radius: 2px; padding: 0 1px; }
 
+.lib-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; margin-bottom: 12px; }
+.lib-sec-head h3 { margin: 0; }
+#clearBox { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 12.5px; color: var(--ink); }
+#clearBox .reset.danger { color: #a33f3f; }
 .lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
 .lib-card h3 { margin: 0; }
@@ -1085,7 +1089,7 @@ a.toc-item { text-decoration: none; }
         <div class="lib-books" id="shelfList"></div>
       </section>
       <section class="lib-sec" id="openedSec" hidden>
-        <h3>Opened in this browser</h3>
+        <div class="lib-sec-head"><h3>Opened in this browser</h3><span id="clearBox"><button type="button" class="reset" id="clearAll">Remove all</button></span></div>
         <div class="lib-books" id="openedList"></div>
       </section>
       <section class="lib-add">
@@ -1680,7 +1684,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 // browser's IndexedDB under ?opened=KEY. The site takes no address from a link. Without either, the reader's own book stays.
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
-  window.bookTools = { checkBook, saveBook, listBooks, deleteBook, prepare };
+  window.bookTools = { checkBook, saveBook, listBooks, deleteBook, deleteAll, prepare };
   const LIMIT = 80000;   // characters in a part, some 55 pages; see prepare()
   // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
   const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/" };
@@ -1850,6 +1854,10 @@ window.bookReady = (async () => {
   async function deleteBook(key) {
     const d = await db();
     await new Promise((resolve, reject) => { const t = d.transaction("books", "readwrite"); t.objectStore("books").delete(key); t.oncomplete = resolve; t.onerror = () => reject(t.error); });
+  }
+  async function deleteAll() {
+    const d = await db();
+    await new Promise((resolve, reject) => { const t = d.transaction("books", "readwrite"); t.objectStore("books").clear(); t.oncomplete = resolve; t.onerror = () => reject(t.error); });
   }
   async function loadBook(key) {
     if (!/^[0-9a-f]{12}$/.test(key)) return null;
@@ -4738,6 +4746,7 @@ window.bookReady = (async () => {
     let opened = [];
     try { opened = await window.bookTools.listBooks(); } catch {}
     $("openedSec").hidden = !opened.length;
+    askClear(false, opened.length);
     $("openedList").replaceChildren(...opened.map(b => {
       const from = b.from === "files" ? "your files" : (() => { try { return new URL(b.url).hostname; } catch { return ""; } })();
       return libItem({ href: `?opened=${b.key}`, title: b.title, site: from, sub: `${b.chapters} ${b.chapters === 1 ? "page" : "pages"} · ${from} · ${new Date(b.at).toLocaleDateString()}`,
@@ -4745,6 +4754,28 @@ window.bookReady = (async () => {
         onRemove: async () => { await window.bookTools.deleteBook(b.key); if (info.key === b.key && !info.own) location.href = location.pathname; else renderShelf(); } });
     }));
     filterShelf();
+  }
+
+  // Remove all asks first, in the page, since nothing brings the books back.
+  function askClear(asking, count) {
+    const box = $("clearBox");
+    if (!asking) {
+      const b = elt("button", { type: "button", className: "reset", id: "clearAll" }, "Remove all");
+      b.addEventListener("click", () => askClear(true, count));
+      box.replaceChildren(b);
+      return;
+    }
+    const yes = elt("button", { type: "button", className: "reset danger" }, "Remove");
+    const no = elt("button", { type: "button", className: "reset" }, "Keep them");
+    yes.addEventListener("click", async () => {
+      try { await window.bookTools.deleteAll(); } catch (err) { toast(String(err.message || err), 2400); return; }
+      toast(`Removed ${count} ${count === 1 ? "book" : "books"} from this browser.`, 2000);
+      if (!info.own && info.from !== "shelf") location.href = location.pathname;
+      else renderShelf();
+    });
+    no.addEventListener("click", () => askClear(false, count));
+    box.replaceChildren(elt("span", {}, `Remove all ${count} ${count === 1 ? "book" : "books"} from this browser? This can’t be undone.`), yes, no);
+    no.focus();
   }
 
   // Now reading: the book, where you are in it, and its parts by the site's own sections.
