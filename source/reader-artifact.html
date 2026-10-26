@@ -923,9 +923,9 @@ a.toc-item { text-decoration: none; }
     </div>
     <div class="find" id="ctlFind">
       <button type="button" class="tog" id="searchBtn" aria-label="Search" aria-haspopup="dialog" aria-controls="searchBox"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span>Search</span><kbd>/</kbd></button>
-      <button type="button" class="tog icon" id="listenPrev" hidden aria-label="Previous sentence" title="Previous sentence (()"><svg viewBox="0 0 16 16"><path d="M11 3.5 6 8l5 4.5M4.5 3.5v9"/></svg></button>
+      <button type="button" class="tog icon" id="listenPrev" hidden aria-label="Previous sentence" title="Previous sentence ([)"><svg viewBox="0 0 16 16"><path d="M11 3.5 6 8l5 4.5M4.5 3.5v9"/></svg></button>
       <button type="button" class="tog" id="listenBtn" aria-pressed="false" title="Read aloud (a)"><svg viewBox="0 0 16 16"><path d="M3 6.2h2.3L8.5 3.5v9L5.3 9.8H3z"/><path d="M10.6 5.6a3.2 3.2 0 0 1 0 4.8M12.4 3.9a5.6 5.6 0 0 1 0 8.2"/></svg><span id="listenLabel">Listen</span></button>
-      <button type="button" class="tog icon" id="listenNext" hidden aria-label="Next sentence" title="Next sentence ())"><svg viewBox="0 0 16 16"><path d="M5 3.5 10 8l-5 4.5M11.5 3.5v9"/></svg></button>
+      <button type="button" class="tog icon" id="listenNext" hidden aria-label="Next sentence" title="Next sentence (])"><svg viewBox="0 0 16 16"><path d="M5 3.5 10 8l-5 4.5M11.5 3.5v9"/></svg></button>
       <button type="button" class="tog icon listen-back" id="listenBack" aria-label="Back to Listen's place" title="Back to Listen's place (r)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.4"/></svg></button>
       <span class="screen-tools">
       <button type="button" class="tog icon" id="fsBtn" hidden aria-pressed="false" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 16 16"><path class="fs-out" d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/><path class="fs-in" d="M6 2.5V6H2.5M13.5 6H10V2.5M10 13.5V10h3.5M2.5 10H6v3.5"/></svg></button>
@@ -1065,7 +1065,7 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Contents side</span>
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
-    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · b books · c peek at contents · cc contents or topics · C sidebar · CC full outline · m minimap · a listen · q w or ( ) sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · b books · c peek at contents · cc contents or topics · C sidebar · CC full outline · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
     <button type="button" class="reset" id="booksFromOpts">Library</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
@@ -1330,10 +1330,10 @@ a.toc-item { text-decoration: none; }
 <p id="back">After any jump, whether a search, a topic, <code>gg</code>, <code>G</code> or a drag along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes back. Try <code>G</code> now, then <code>r</code>.</p>
 
 <h2 id="topics" data-n="7">Topics</h2>
-<p id="notes-what">Topics are the other way in. Press <code>c</code>, or Topics in the top bar, and each chapter in the contents opens into a few topics, a word or two each, linked to their passages. Short beats complete: a report might list its subheadings, an essay needs a few words per idea. The topics in this book were picked by Claude.</p>
+<p id="notes-what">Topics are the other way in. Press <code>cc</code>, or Topics in the top bar, and each chapter in the contents opens into a few topics, a word or two each, linked to their passages. Short beats complete: a report might list its subheadings, an essay needs a few words per idea. The topics in this book were picked by Claude.</p>
 
 <h2 id="listen" data-n="8">Listening</h2>
-<p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>q</code>/<code>Q</code> and <code>w</code>/<code>W</code> step by sentence or paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
+<p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>[</code> and <code>]</code>, or <code>q</code> and <code>w</code>, step by sentence, and <code>Q</code> and <code>W</code> by paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
 <p id="listen-stay">You can read elsewhere while Listen carries on: the page stays where you scroll, and <code>r</code> brings you back to the sentence being read. Options can make the page follow Listen instead.</p>
 <p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
 
@@ -1394,7 +1394,7 @@ a.toc-item { text-decoration: none; }
 </figure>
 <ol id="screen-parts">
   <li>Top bar: title and chapter in the middle; the contents button, Contents/Topics control and All pages button in that order on the left; search, Listen, full screen, Theme and the minimap button on the right. Each panel’s button sits above its panel. On a phone, Contents and Topics shorten to C and T, and Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
-  <li>Contents. <code>c</code> switches between contents and topics; <code>C</code> shows or hides the panel.</li>
+  <li>Contents. <code>c</code> peeks at the panel and <code>cc</code> switches between contents and topics; <code>C</code> shows or hides it, and <code>CC</code> lists every section.</li>
   <li>The desk: the current page, with the pages in Flow on either side.</li>
   <li>Minimap: the book drawn small, as a column of little pages in the page views and as the text itself in plain text. Click or drag on it to move. A faint percentage in its box shows how far through you are; Options sets how faint, or turns it off. <code>m</code> hides or shows the minimap.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
@@ -1457,7 +1457,7 @@ a.toc-item { text-decoration: none; }
 <table id="keys-listen">
   <thead><tr><th>Key</th> <th>While Listen reads</th></tr></thead>
   <tbody>
-    <tr><td><code>q</code> <code>w</code>, <code>(</code> <code>)</code></td> <td>Previous, next sentence</td></tr>
+    <tr><td><code>[</code> <code>]</code>, <code>q</code> <code>w</code></td> <td>Previous, next sentence</td></tr>
     <tr><td><code>Q</code> <code>W</code>, <code>{</code> <code>}</code></td> <td>Previous, next paragraph; back goes first to the start of this one</td></tr>
     <tr><td><code>[[</code> <code>]]</code></td> <td>Previous, next page, from the first sentence that starts there</td></tr>
   </tbody>
@@ -4205,7 +4205,7 @@ window.bookReady = (async () => {
   phoneMQ.addEventListener("change", placeChip);
   placeChip();
   // Listen's steps: in the phone's row under the top bar, or in the top bar beside Listen, two each side.
-  const STEPS = [["rowParaPrev", "Previous paragraph (Q)"], ["rowSentPrev", "Previous sentence (q)"], ["rowSentNext", "Next sentence (w)"], ["rowParaNext", "Next paragraph (W)"]];
+  const STEPS = [["rowParaPrev", "Previous paragraph (Q)"], ["rowSentPrev", "Previous sentence ([ or q)"], ["rowSentNext", "Next sentence (] or w)"], ["rowParaNext", "Next paragraph (W)"]];
   const placeSteps = () => {
     const btns = STEPS.map(([id, title]) => { const b = $(id); b.title = phoneMQ.matches ? "" : title; b.classList.toggle("step", phoneMQ.matches); b.classList.toggle("tog", !phoneMQ.matches); b.classList.toggle("icon", !phoneMQ.matches); b.classList.toggle("lstep", !phoneMQ.matches); return b; });
     if (phoneMQ.matches) { $("rowStop").before(btns[0], btns[1]); $("rowStop").after(btns[2], btns[3]); }
@@ -4391,15 +4391,15 @@ window.bookReady = (async () => {
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
     const toggles = { V: nextPalette, b: () => toggleBooks(), t: openGrid, c: cKey, C: CKey, m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && reading) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
-    if ((k === "(" || k === ")") && reading) { e.preventDefault(); skipSentence(k === ")" ? 1 : -1); return; }
     // the same steps for the left hand alone: q and w a sentence back and on, Q and W a paragraph
     if ((k === "q" || k === "w") && reading) { e.preventDefault(); skipSentence(k === "w" ? 1 : -1); return; }
     if ((k === "Q" || k === "W") && reading) { e.preventDefault(); skipParagraph(k === "W" ? 1 : -1); return; }
+    // [ and ] step a sentence back and on; pressed twice quickly, [[ and ]] go a page back and on.
     if ((k === "[" || k === "]") && reading) {
       const now = performance.now();
       e.preventDefault();
       if (armedPageKey && armedPageKey.key === k && now - armedPageKey.at <= 500) skipPage(k === "]" ? 1 : -1);
-      else if (!armedPageKey || armedPageKey.key === k) pageKey = { key: k, at: now };
+      else { skipSentence(k === "]" ? 1 : -1); pageKey = { key: k, at: now }; }
       return;
     }
     if (k === "-" || k === "=" || k === "+" || k === "0") {

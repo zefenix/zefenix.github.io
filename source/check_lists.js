@@ -573,7 +573,7 @@ async function listenParagraphs(page, browserName, width) {
   const number = await startAt('#why-place', 'A page does.');
   await spoken('A page does.', 'start mid-paragraph');
   await page.keyboard.press('}'); await spoken(next, '} next paragraph first sentence');
-  await page.keyboard.press(')'); await spoken('Turn them with the arrow keys, or vim-style with h j k l.', ') next sentence');
+  await page.keyboard.press(']'); await spoken('Turn them with the arrow keys, or vim-style with h j k l.', '] next sentence');
   await page.keyboard.press('{'); await spoken(next, '{ current paragraph first sentence');
   await page.keyboard.press('{'); await spoken(first, 'second { previous paragraph first sentence');
   await page.evaluate(() => window.testSpeech.finish()); await spoken('A page does.', 'speech end advances automatically');
@@ -585,7 +585,7 @@ async function listenParagraphs(page, browserName, width) {
   await page.screenshot({ path: path.join(evidence, `${browserName}-${width}-listen-paragraph.png`) });
   await startAt('#screen-parts > li', 'Each panel’s button');
   await spoken('Each panel’s button sits above its panel.', 'list item second sentence');
-  await page.keyboard.press('}'); await spoken('Contents. c switches between contents and topics; C shows or hides the panel.', '} next list item');
+  await page.keyboard.press('}'); await spoken('Contents. c peeks at the panel and cc switches between contents and topics; C shows or hides it, and CC lists every section.', '} next list item');
   await page.keyboard.press('{'); await spoken('Top bar: title and chapter in the middle; the contents button, Contents/Topics control and All pages button in that order on the left; search, Listen, full screen, Theme and the minimap button on the right.', '{ previous list item start');
   assert((await page.evaluate(() => window.testBraceEvents.filter(e => e.prevented))).length >= 5, 'Active Listen handles braces');
   await page.keyboard.press('Escape');
@@ -594,9 +594,9 @@ async function listenParagraphs(page, browserName, width) {
   assert.deepEqual(await page.evaluate(() => window.testBraceEvents.slice(-2).map(e => e.prevented)), [false, false], 'Stopped Listen leaves braces alone');
   await startAt('#why-place', 'A page does.');
   await spoken('A page does.', 'sentence key setup');
-  await page.keyboard.press(')');
+  await page.keyboard.press(']');
   await spoken('Once you turn it, its words stay put, so you remember that a sentence sat near the top, just after the figure, and you can find it again by that shape.', ') advances a sentence');
-  await page.keyboard.press('('); await spoken('A page does.', '( returns a sentence');
+  await page.keyboard.press('['); await spoken('A page does.', '[ returns a sentence');
   const historySize = () => page.evaluate(() => window.testSpeech.history.length);
   const unchanged = async (action, label, delay = 120) => {
     const before = await historySize();
@@ -699,9 +699,9 @@ async function listenParagraphs(page, browserName, width) {
   await page.waitForSelector('#app:not(.loading)'); await page.keyboard.press('Escape');
   await startAt('.colophon', 'Set in Literata');
   await spoken('Set in Literata, by TypeTogether.', 'colophon first line');
-  await page.keyboard.press(')'); await spoken('Paginated in the browser by paged.js.', 'colophon second line');
-  await page.keyboard.press(')'); await spoken('Made with Claude and Codex.', 'colophon third line');
-  await page.keyboard.press(')'); await spoken('Imagined by zefenix.', 'last line reached by )');
+  await page.keyboard.press('w'); await spoken('Paginated in the browser by paged.js.', 'colophon second line');
+  await page.keyboard.press('w'); await spoken('Made with Claude and Codex.', 'colophon third line');
+  await page.keyboard.press('w'); await spoken('Imagined by zefenix.', 'last line reached by w');
   const beforeLast = await historySize();
   await page.keyboard.press(']'); await page.keyboard.press(']'); await page.waitForTimeout(120);
   assert.equal(await historySize(), beforeLast, ']] stays at the last sentence page');
