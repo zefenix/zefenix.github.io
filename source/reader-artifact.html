@@ -4,7 +4,7 @@
 <style data-pagedjs-ignore>
 /* phone browsers keep the reader's sizes: Firefox for Android otherwise enlarges some text inside the set pages */
 html { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: none; text-size-adjust: none; }
-/* Layout: one-screen reader. Title bar with search; minimap panel | stage | contents-or-notes panel
+/* Layout: one-screen reader. Title bar with search; minimap panel | stage | contents panel
    (sides swappable); footer dock with view switch + options, page ticks between prev/next, editable page box.
    The stage shows one text two ways: paged.js pages on a desk, or a scroll column. */
 :root {
@@ -170,20 +170,11 @@ a.toc-item { text-decoration: none; }
 .toc-item .p { font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .toc-item[aria-current="true"] { background: var(--surface); }
 .toc-item[aria-current="true"] .t { color: var(--ink); }
-.toc-notes { display: none; list-style: none; margin: 2px 0 10px; padding: 0 8px 0 38px; }
-.toc-panel.with-notes .toc-notes { display: block; }
-.toc-notes li { position: relative; margin: 0 0 3px; font-family: var(--f-book); font-size: 13px; line-height: 1.38; }
-.toc-notes li::before { content: ""; position: absolute; left: -11px; top: .58em; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); opacity: .75; }
-.toc-notes a { color: var(--ink-soft); text-decoration: none; }
-.toc-notes a:hover { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
-.toc-list > li.cur .toc-notes a { color: var(--ink); }
 /* the full outline: every chapter's sections under it, numbered, with their pages */
 .toc-outline { display: none; list-style: none; margin: 0 0 6px; padding: 0 0 0 30px; }
 .toc-panel.with-outline .toc-outline { display: block; }
-.toc-panel.with-notes .toc-outline { display: none; }   /* Topics shows the topics alone */
 /* at the foot of Contents: chapters alone, or with their headings */
 .toc-foot { flex: none; display: flex; justify-content: center; padding: 8px 0 max(10px, env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--hair); }
-.toc-panel.with-notes .toc-foot { display: none; }
 .toc-outline a { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 3px 8px; border-radius: 5px; color: var(--ink-soft); text-decoration: none; font-family: var(--f-book); font-size: 13px; line-height: 1.32; }
 .toc-outline a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
 .toc-outline .n { font: 600 10.5px var(--f-ui); color: var(--accent); }
@@ -764,7 +755,17 @@ a.toc-item { text-decoration: none; }
 .lib-outline a .n { font: 600 11px var(--f-ui); color: var(--accent); }
 .lib-outline .sub a { padding-left: 22px; font-size: 13px; }
 .lib-outline .empty { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
-@media (max-width: 860px) { .lib-cols { grid-template-columns: 1fr; } .lib-outline { position: static; max-height: 60vh; order: 0; } }
+.lib-outline.chapters-only li.sub { display: none; }
+.lib-outline .o-close, .narrow-only { display: none; }
+/* on a phone or a narrow window the outline is a sheet, opened by Chapters in the panel or by L */
+@media (max-width: 860px) {
+  .lib-cols { grid-template-columns: 1fr; }
+  .lib-outline { display: none; }
+  .lib-outline.sheet { display: block; position: fixed; z-index: 35; left: 0; right: 0; bottom: 0; top: 22vh; max-height: none; border-radius: 14px 14px 0 0;
+    padding: 14px max(16px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); box-shadow: 0 -18px 50px -12px var(--shadow); }
+  .lib-outline.sheet .o-close { display: grid; position: absolute; top: 10px; right: max(12px, env(safe-area-inset-right, 0px)); }
+  .narrow-only { display: inline-flex; }
+}
 .lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
 .lib-card h3 { margin: 0; }
@@ -931,10 +932,6 @@ a.toc-item { text-decoration: none; }
   <div hidden>
     <div class="ctl" id="ctlToc">
       <button type="button" class="tog icon" id="tocBtn" aria-pressed="true" aria-controls="tocPanel" aria-label="Show contents panel"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M6 3v10"/></svg></button>
-      <div class="seg small" role="group" aria-label="Contents panel shows" data-setting="notes">
-        <button type="button" data-value="0" aria-label="Contents" title="Contents"><span class="contents-full">Contents</span><span class="contents-short" aria-hidden="true">C</span></button>
-        <button type="button" data-value="1" aria-label="Topics" title="Topics"><span class="contents-full">Topics</span><span class="contents-short" aria-hidden="true">T</span></button>
-      </div>
       <button type="button" class="tog icon" id="thumbsBtn" disabled aria-pressed="false" aria-controls="grid" aria-label="All pages" title="All pages (t)"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="4.5" height="5" rx=".7"/><rect x="9.5" y="2" width="4.5" height="5" rx=".7"/><rect x="2" y="9" width="4.5" height="5" rx=".7"/><rect x="9.5" y="9" width="4.5" height="5" rx=".7"/></svg></button>
     </div>
     <div class="find" id="ctlFind">
@@ -965,7 +962,7 @@ a.toc-item { text-decoration: none; }
       <div class="toc-pane" id="tocPane"><ol class="toc-list" id="tocList"></ol></div>
       <div class="toc-foot">
         <div class="seg small" role="group" aria-label="Contents shows" id="outlineSeg">
-          <button type="button" data-o="off" title="Chapters only (CC)">Chapters</button><button type="button" data-o="on" title="Chapters and their headings (CC)">With headings</button>
+          <button type="button" data-o="off" title="Chapters only (cc)">Chapters</button><button type="button" data-o="on" title="Chapters and their headings (cc)">With headings</button>
         </div>
       </div>
     </aside>
@@ -1072,8 +1069,6 @@ a.toc-item { text-decoration: none; }
       <h3>Panels</h3>
       <div class="row"><span>Contents</span>
         <div class="seg" data-setting="toc"><button type="button" data-value="1">Show</button><button type="button" data-value="0">Hide</button></div></div>
-      <div class="row topics-opt"><span>Chapter topics</span>
-        <div class="seg" data-setting="notes"><button type="button" data-value="1">Show</button><button type="button" data-value="0">Hide</button></div></div>
       <div class="row"><span>Minimap</span>
         <div class="seg" data-setting="map"><button type="button" data-value="1">Show</button><button type="button" data-value="0">Hide</button></div></div>
       <div class="row"><span>Minimap mark</span>
@@ -1086,7 +1081,7 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Contents side</span>
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
-    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · b books · c peek at contents · cc contents or topics · C sidebar · CC full outline · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · b library · c peek at contents · cc chapters or headings · C sidebar · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
     <button type="button" class="reset" id="booksFromOpts">Library</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
@@ -1176,12 +1171,11 @@ a.toc-item { text-decoration: none; }
     <li><a href="#scroll"><span class="n">4</span><span class="t">Scroll</span></a></li>
     <li><a href="#thumbs"><span class="n">5</span><span class="t">Thumbnails</span></a></li>
     <li><a href="#find"><span class="n">6</span><span class="t">Search</span></a></li>
-    <li><a href="#topics"><span class="n">7</span><span class="t">Topics</span></a></li>
-    <li><a href="#listen"><span class="n">8</span><span class="t">Listening</span></a></li>
-    <li><a href="#screen"><span class="n">9</span><span class="t">The screen</span></a></li>
-    <li><a href="#keys"><span class="n">10</span><span class="t">Keys</span></a></li>
-    <li><a href="#built"><span class="n">11</span><span class="t">How it is built</span></a></li>
-    <li><a href="#open"><span class="n">12</span><span class="t">Open questions</span></a></li>
+    <li><a href="#listen"><span class="n">7</span><span class="t">Listening</span></a></li>
+    <li><a href="#screen"><span class="n">8</span><span class="t">The screen</span></a></li>
+    <li><a href="#keys"><span class="n">9</span><span class="t">Keys</span></a></li>
+    <li><a href="#built"><span class="n">10</span><span class="t">How it is built</span></a></li>
+    <li><a href="#open"><span class="n">11</span><span class="t">Open questions</span></a></li>
   </ol>
   <p class="note">paged.js filled in these page numbers after laying out the book. Click a line to go there, or press <code>l</code> or → to turn the page.</p>
 </section>
@@ -1353,24 +1347,21 @@ a.toc-item { text-decoration: none; }
   </tbody>
 </table>
 <h3 id="going-back">Going back</h3>
-<p id="back">After any jump, whether a search, a topic, <code>gg</code>, <code>G</code> or a drag along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes back. Try <code>G</code> now, then <code>r</code>.</p>
+<p id="back">After any jump, whether a search, <code>gg</code>, <code>G</code> or a drag along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes back. Try <code>G</code> now, then <code>r</code>.</p>
 
-<h2 id="topics" data-n="7">Topics</h2>
-<p id="notes-what">Topics are the other way in. Press <code>cc</code>, or Topics in the top bar, and each chapter in the contents opens into a few topics, a word or two each, linked to their passages. Short beats complete: a report might list its subheadings, an essay needs a few words per idea. The topics in this book were picked by Claude.</p>
-
-<h2 id="listen" data-n="8">Listening</h2>
+<h2 id="listen" data-n="7">Listening</h2>
 <p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>[</code> and <code>]</code>, or <code>q</code> and <code>w</code>, step by sentence, and <code>Q</code> and <code>W</code> by paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
 <p id="listen-stay">You can read elsewhere while Listen carries on: the page stays where you scroll, and <code>r</code> brings you back to the sentence being read. Options can make the page follow Listen instead.</p>
 <p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
 
-<h2 id="screen" data-n="9">The screen</h2>
+<h2 id="screen" data-n="8">The screen</h2>
 <h3 id="parts">The parts</h3>
 <figure class="fig" id="fig-screen">
-  <svg viewBox="0 0 320 204" role="img" aria-label="Diagram of the reader: the contents button, Contents/Topics control and All pages at the top left; the title and chapter in the middle; Search, Listen, Full screen, Theme and the minimap button at the top right; contents panel on the left; pages in the middle with a strip below them; the minimap on the right as a column of little pages with a faint percentage; bottom bar with the view switch, page slider, page box, Expand, Focus and Options.">
+  <svg viewBox="0 0 320 204" role="img" aria-label="Diagram of the reader: the contents button and All pages at the top left; the title and chapter in the middle; Search, Listen, Full screen, Theme and the minimap button at the top right; contents panel on the left; pages in the middle with a strip below them; the minimap on the right as a column of little pages with a faint percentage; bottom bar with the view switch, page slider, page box, Expand, Focus and Options.">
     <rect class="d-desk" x="0" y="0" width="320" height="204"/>
     <rect class="d-bar" x="0" y="0" width="320" height="18"/>
     <circle class="d-pill" cx="10" cy="9" r="5.5"/><path class="d-ln thin" d="M7.2 6.6h5.6v4.8h-5.6zM9 6.6v4.8"/>
-    <text class="d-t" x="19" y="12">Contents · Topics</text>
+    <text class="d-t" x="19" y="12">Contents</text>
     <path class="d-ln" d="M91 4h3v3h-3zM96 4h3v3h-3zM91 9h3v3h-3zM96 9h3v3h-3z"/>
     <text class="d-t d-title" x="160" y="12" text-anchor="middle">Pages, Piled · The screen</text>
     <text class="d-t" x="256" y="12" text-anchor="end">Search · Listen</text>
@@ -1419,13 +1410,13 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 6. The parts of the reader, numbered as in the list below.</figcaption>
 </figure>
 <ol id="screen-parts">
-  <li>Top bar: title and chapter in the middle; the contents button, Contents/Topics control and All pages button in that order on the left; search, Listen, full screen, Theme and the minimap button on the right. Each panel’s button sits above its panel. On a phone, Contents and Topics shorten to C and T, and Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
-  <li>Contents. <code>c</code> peeks at the panel and <code>cc</code> switches between contents and topics; <code>C</code> shows or hides it, and <code>CC</code> lists every section.</li>
+  <li>Top bar: title and chapter in the middle; the contents button and All pages button on the left; search, Listen, full screen, Theme and the minimap button on the right. Each panel’s button sits above its panel. On a phone, Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
+  <li>Contents. <code>c</code> peeks at the panel, and <code>cc</code> or the switch at its foot shows chapters alone or with their headings; <code>C</code> shows or hides it.</li>
   <li>The desk: the current page, with the pages in Flow on either side.</li>
   <li>Minimap: the book drawn small, as a column of little pages in the page views and as the text itself in plain text. Click or drag on it to move. A faint percentage in its box shows how far through you are; Options sets how faint, or turns it off. <code>m</code> hides or shows the minimap.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Flow or Pile.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents or Topics, whichever you chose last; just right of it, a tap opens All pages and another closes it.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>
@@ -1436,7 +1427,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="look-options">Theme and Options</h3>
 <p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, the default; Sepia; Paper, a soft cream; and Gray, after Firefox’s Reader View. On a phone its settings are grouped in tabs: All, Look &amp; Pages, Listen &amp; Scroll, and Panels.</p>
 
-<h2 id="keys" data-n="10">Keys</h2>
+<h2 id="keys" data-n="9">Keys</h2>
 <h3 id="keys-moving">Moving</h3>
 <table id="keys-table">
   <thead><tr><th>Key</th> <th>In pages</th> <th>In Scroll</th></tr></thead>
@@ -1461,11 +1452,10 @@ a.toc-item { text-decoration: none; }
 <table id="keys-tools">
   <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
   <tbody>
-    <tr><td><code>c</code></td> <td>Peek at <b>c</b>ontents or topics; again to put it away</td></tr>
-    <tr><td><code>cc</code></td> <td>Switch between <b>c</b>ontents and topics</td></tr>
+    <tr><td><code>c</code></td> <td>Peek at <b>c</b>ontents; again to put it away</td></tr>
+    <tr><td><code>cc</code></td> <td><b>C</b>ontents as chapters alone, or with their headings; in the Library, its outline the same way</td></tr>
     <tr><td><code>C</code></td> <td><b>C</b>ontents sidebar on, off</td></tr>
-    <tr><td><code>CC</code></td> <td><b>C</b>ontents as a full outline, every section under its chapter; again for chapters only</td></tr>
-    <tr><td><code>b</code></td> <td><b>B</b>ooks: the shelf, your own files and the bookmarklet</td></tr>
+    <tr><td><code>b</code></td> <td>The Library: the shelf, your own files and the bookmarklet</td></tr>
     <tr><td><code>m</code></td> <td><b>M</b>inimap on, off</td></tr>
     <tr><td><code>z</code></td> <td><b>Z</b>en: hide the menus, keep the page slider</td></tr>
     <tr><td><code>F</code></td> <td><b>F</b>ocus: fade the bars and panels</td></tr>
@@ -1491,17 +1481,17 @@ a.toc-item { text-decoration: none; }
 <h3 id="keys-touch">Mouse and touch</h3>
 <p id="keys-mouse">With a mouse, the wheel turns pages, or scrolls in Scroll. Drag along the page slider to move quickly, and click a page beside the current one to bring it forward. On a touch screen, swipe.</p>
 
-<h2 id="built" data-n="11">How it is built</h2>
+<h2 id="built" data-n="10">How it is built</h2>
 <p id="built-passes">The text is plain HTML. paged.js, an open-source implementation of CSS Paged Media, flows it into pages from <code>@page</code> rules, with running heads, page numbers, a page break before each chapter and a contents page whose numbers come from <code>target-counter()</code>. A short script then stacks those pages and gives each a 3D transform from its distance to the current page.</p>
 <pre>d = index - current
 x = side * (edge + (|d| - 1) * step)
 transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
-<p id="built-blocks">The same HTML also becomes the Scroll column. Every block carries a number in both, which is how page numbers, topics, search, Listen and the minimap agree on where a sentence is.</p>
+<p id="built-blocks">The same HTML also becomes the Scroll column. Every block carries a number in both, which is how page numbers, search, Listen and the minimap agree on where a sentence is.</p>
 <p id="page-size">Page size, under Options, sets the book again as Pocket, A5, Trade, B5, A4 or US Letter. The margins grow with the sheet and the type a little less, so a bigger page holds longer lines rather than just bigger letters.</p>
 <p id="print">Printing gives those pages and nothing else: no panels, no piles, light colours. That works wherever the reader is the page being printed, as on your own website; a viewer that shows it inside a frame prints a picture of the screen instead.</p>
 <p id="site-weight">On a website the cost is mostly paged.js, about 95 KB compressed. The reader adds about 23 KB: 16 KB of script and 7 KB of styles. Any static host will do.</p>
 
-<h2 id="open" data-n="12">Open questions</h2>
+<h2 id="open" data-n="11">Open questions</h2>
 <ul id="open-list">
   <li><em>Length.</em> paged.js sets the whole book before you can read; a few hundred pages would need setting on demand.</li>
   <li><em>Selection.</em> Text can’t be selected across a page break.</li>
@@ -1519,80 +1509,6 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 </template>
 
 <!-- Note cards: one summary card, then one per chapter. Written by Claude; each bullet links to its passage. -->
-<template id="notes-tpl">
-  <div class="note" data-for="summary"><ul>
-    <li><a href="#why-place">Pages give text a place</a></li>
-    <li><a href="#pile-idea">One page centred, piles beside</a></li>
-    <li><a href="#flow-what">Flow, the default</a></li>
-    <li><a href="#keys-table">Keys</a></li>
-    <li><a href="#built-passes">HTML plus paged.js</a></li>
-  </ul></div>
-  <div class="note" data-for="why"><ul>
-    <li><a href="#why-place">Text as a place</a></li>
-    <li><a href="#why-edges">Edges and page numbers</a></li>
-  </ul></div>
-  <div class="note" data-for="pile"><ul>
-    <li><a href="#spreads-cost">Spreads pull the eyes sideways</a></li>
-    <li><a href="#pile-idea">Two piles</a></li>
-    <li><a href="#fig-pile">Figure 1</a></li>
-    <li><a href="#pile-history">Xbox 360 blades</a></li>
-    <li><a href="#facing">Facing pages</a></li>
-  </ul></div>
-  <div class="note" data-for="flow"><ul>
-    <li><a href="#flow-what">Pages turned inward</a></li>
-    <li><a href="#flow-history">Cover Flow</a></li>
-    <li><a href="#flow-tune">Spread</a></li>
-    <li><a href="#flow-motion">How pages move</a></li>
-  </ul></div>
-  <div class="note" data-for="scroll"><ul>
-    <li><a href="#scroll-why">Reading straight ahead</a></li>
-    <li><a href="#scroll-how">Two styles</a></li>
-    <li><a href="#scroll-pages">Switching</a></li>
-    <li><a href="#scroll-glide">Smooth gliding</a></li>
-    <li><a href="#scroll-zone">Reading zone</a></li>
-    <li><a href="#scroll-cost">What Scroll gives up</a></li>
-  </ul></div>
-  <div class="note" data-for="thumbs"><ul>
-    <li><a href="#thumbs-why">The whole book at once</a></li>
-    <li><a href="#thumbs-spreads">Spreads</a></li>
-  </ul></div>
-  <div class="note" data-for="find"><ul>
-    <li><a href="#find-list">Results and preview</a></li>
-    <li><a href="#find-syntax">What to type</a></li>
-    <li><a href="#back">r goes back</a></li>
-  </ul></div>
-  <div class="note" data-for="topics"><ul>
-    <li><a href="#notes-what">Chapters in a few words</a></li>
-  </ul></div>
-  <div class="note" data-for="listen"><ul>
-    <li><a href="#listen-aloud">Listen</a></li>
-    <li><a href="#listen-stay">Reading elsewhere</a></li>
-    <li><a href="#listen-voices">Voices</a></li>
-  </ul></div>
-  <div class="note" data-for="screen"><ul>
-    <li><a href="#fig-screen">Figure 6</a></li>
-    <li><a href="#screen-parts">The parts</a></li>
-    <li><a href="#expand">Expand and full screen</a></li>
-    <li><a href="#focus">Focus and Zen</a></li>
-    <li><a href="#look">Theme and Options</a></li>
-  </ul></div>
-  <div class="note" data-for="keys"><ul>
-    <li><a href="#keys-table">Moving</a></li>
-    <li><a href="#keys-tools">Panels and tools</a></li>
-    <li><a href="#keys-listen">Listening</a></li>
-    <li><a href="#keys-mouse">Mouse and touch</a></li>
-  </ul></div>
-  <div class="note" data-for="built"><ul>
-    <li><a href="#built-passes">Two passes</a></li>
-    <li><a href="#built-blocks">Numbered blocks</a></li>
-    <li><a href="#page-size">Page sizes</a></li>
-    <li><a href="#print">Printing</a></li>
-    <li><a href="#site-weight">Weight: 95 KB + 23 KB</a></li>
-  </ul></div>
-  <div class="note" data-for="open"><ul>
-    <li><a href="#open-list">Unsolved</a></li>
-  </ul></div>
-</template>
 
 <script type="text/plain" id="bookmarklet-src">
 (() => {
@@ -2087,7 +2003,7 @@ window.bookReady = (async () => {
     }
     bk.append(contents);
 
-    // Chapters, their sections numbered by the reader. An opened book brings no topics; Contents shows its outline.
+    // Chapters, their sections numbered by the reader.
     for (const ch of here) {
       // A book with its own numbering (the Rust book's 5.1, Appendix A) shows it; others are numbered by the reader.
       const h2 = el("h2", { id: ch.id, "data-n": String(ch.n) }, ch.cont ? `${ch.title}, continued` : ch.title);
@@ -2136,7 +2052,6 @@ window.bookReady = (async () => {
 
     const tpl = $("book");
     tpl.content.replaceChildren(document.importNode(bk, true));
-    $("notes-tpl").content.replaceChildren();
     const css = $("book-css");
     css.textContent = css.textContent.replace('content: "Pages, Piled";', `content: ${JSON.stringify(book.title.slice(0, 80))};`);
     document.title = `${book.title} · Pages, Piled`;
@@ -2231,8 +2146,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, notes: 0, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "auto", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["auto", "on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -2265,7 +2180,8 @@ window.bookReady = (async () => {
     s.guideLines = Number.isFinite(Number(s.guideLines)) ? clamp(Math.round(Number(s.guideLines)), 0, 5) : DEFAULTS.guideLines;
     for (const [k, list] of Object.entries(CHOICES)) if (!list.includes(s[k])) s[k] = DEFAULTS[k];
     delete s.listenStay;   // the old Follow-first switch; Stay is the default now
-    for (const k of ["facing", "pagedSpread", "guide", "mapMark", "toc", "notes", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
+    for (const k of ["facing", "pagedSpread", "guide", "mapMark", "toc", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
+    delete s.notes;   // Topics are gone
     return s;
   }
   let S = loadSettings();
@@ -2274,7 +2190,7 @@ window.bookReady = (async () => {
   const textScroll = () => S.view === "scroll" && S.scrollStyle !== "pages";
   const linear = () => S.view === "scroll" && S.scrollStyle === "pages";
 
-  // The source text. Every top-level block gets a number; pages, the scroll column, notes and search all refer to blocks.
+  // The source text. Every top-level block gets a number; pages, the scroll column and search all refer to blocks.
   const tplBk = $("book").content.querySelector(".bk");
   [...tplBk.children].forEach((el, i) => { el.dataset.b = i; });
   const nBlocks = tplBk.children.length;
@@ -2607,13 +2523,10 @@ window.bookReady = (async () => {
 
   /* ---------- contents ---------- */
 
-  // Each chapter row carries its topics (picked by Claude) underneath; they show when Topics is on.
+  // Each chapter row can carry its headings underneath, shown when Contents lists them (cc, or the switch at its foot).
   let tocItems = [], curChapter = -1, places = [];
-  // Topics come only with books that bring their own; any other book shows its outline in Contents instead.
-  const hasTopics = !!$("notes-tpl").content.querySelector(".note");
-  const outlineOn = () => S.outline === "on" || (S.outline === "auto" && !hasTopics);
+  const outlineOn = () => S.outline === "on";
   function buildToc() {
-    const notesFor = id => $("notes-tpl").content.querySelector(`.note[data-for="${id}"] ul`);
     const entries = [{ b: 0, n: "", title: "Cover", id: "summary" }, ...chapters];
     tocItems = entries.map(c => {
       const li = document.createElement("li");
@@ -2642,12 +2555,6 @@ window.bookReady = (async () => {
           li.appendChild(a);
           ul.appendChild(li);
         }
-        li.appendChild(ul);
-      }
-      const src = hasTopics && notesFor(c.id);
-      if (src) {
-        const ul = document.importNode(src, true);
-        ul.className = "toc-notes";
         li.appendChild(ul);
       }
       return { b: c.b, btn, li, title: c.title, id: c.id };
@@ -2684,10 +2591,10 @@ window.bookReady = (async () => {
     }));
   }
   tocList.addEventListener("click", e => {
-    const a = e.target.closest(".toc-notes a[href^='#'], .toc-outline a[data-b]");
+    const a = e.target.closest(".toc-outline a[data-b]");
     if (!a) return;
     e.preventDefault();
-    const b = a.dataset.b ? +a.dataset.b : blockOfId(decodeURIComponent(a.getAttribute("href").slice(1)));
+    const b = +a.dataset.b;
     if (b < 0) return;
     markPlace();
     closeGrid(true);
@@ -2707,7 +2614,7 @@ window.bookReady = (async () => {
     const chapter = ci < 0 ? 0 : chapters[ci].n, relative = page - from + 1;
     return { chapter, relative, from, to, name: `c${chapter}.${relative}` };
   }
-  // Keep the chapter you are in visible in the contents, which gets long when notes are open.
+  // Keep the chapter you are in visible in the contents, which gets long when it lists headings.
   function keepInView(el) {
     if (tocPanel.hidden) return;
     const pr = tocPane.getBoundingClientRect(), er = el.getBoundingClientRect();
@@ -3183,10 +3090,8 @@ window.bookReady = (async () => {
     tocPanel.classList.toggle("peeking", peekSide === "toc");
     mapPanel.classList.toggle("peeking", peekSide === "map");
     mapPanel.classList.toggle("peek", !narrow && !S.map && peekSide === "map");
-    tocPanel.classList.toggle("with-notes", !!S.notes && hasTopics);
     tocPanel.classList.toggle("with-outline", outlineOn());
     document.querySelectorAll("#outlineSeg button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.o === "on") === outlineOn())));
-    document.querySelectorAll("#ctlToc .seg.small, .topics-opt").forEach(el => { el.hidden = !hasTopics; });
     tocBtn.setAttribute("aria-pressed", String(!tocPanel.hidden));
     mapBtn.setAttribute("aria-pressed", String(!mapPanel.hidden));
     $("expandBtn").setAttribute("aria-pressed", String(!!S.expand));
@@ -3252,12 +3157,6 @@ window.bookReady = (async () => {
       if (reading) { clearTimeout(rateTimer); rateTimer = setTimeout(sayAgain, key === "rate" ? 300 : 0); }
       return;
     }
-    if (key === "notes") {
-      // Choosing Contents or Topics also opens the panel if it was closed.
-      if (!tocPanel.hidden) { applySettings(); if (curChapter >= 0) keepInView(tocItems[curChapter].li); armPeek(); return; }
-      peek("toc");
-      return;
-    }
     relayoutAll(a, true);
   }
 
@@ -3276,14 +3175,11 @@ window.bookReady = (async () => {
   }).observe(docEl, { attributes: true, attributeFilter: ["data-theme"] });
 
   const coerce = (key, v) => (typeof DEFAULTS[key] === "number" ? Number(v) : v);
-  const tocSeg = document.querySelector("#ctlToc .seg");
   document.querySelectorAll(".seg[data-setting]").forEach(seg => {
     seg.addEventListener("click", e => {
       const b = e.target.closest("button[data-value]");
       if (!b) return;
       const v = coerce(seg.dataset.setting, b.dataset.value);
-      // Contents or Topics above the panel: tapping the one already chosen shows or hides the panel
-      if (seg === tocSeg && v === S.notes) { if (tocPanel.hidden) peek("toc"); else showPanel("toc"); return; }
       setSetting(seg.dataset.setting, v);
     });
   });
@@ -3333,7 +3229,7 @@ window.bookReady = (async () => {
   }
   mapBtn.addEventListener("click", () => showPanel("map"));
 
-  // A peek shows a put-away panel for a moment: from Contents or Topics, or the slider's ends (the left end the
+  // A peek shows a put-away panel for a moment: from Contents, or the slider's ends (the left end the
   // panel on the left, the right end the one on the right). It stays while touched, pointed at or focused, and
   // hides PEEK_MS after the last of those, at once when an entry is picked, or at a tap outside it.
   function armPeek() {
@@ -3458,7 +3354,7 @@ window.bookReady = (async () => {
     optsBtn.setAttribute("aria-expanded", String(open));
   }
   optsBtn.addEventListener("click", () => setOptions(opts.hidden));
-  // Left of the slider: a peek at the panel on Contents or Topics, whichever was chosen last; again puts the peek away.
+  // Left of the slider: a peek at Contents; again puts the peek away.
   // Right of it: All pages, and back.
   statL.addEventListener("click", () => {
     if (!ready) return;
@@ -4360,7 +4256,6 @@ window.bookReady = (async () => {
     pageWheel(e);
   }, { passive: false });
 
-  // c switches the panel between contents and topics (opening it if needed); C shows or hides it.
   // V steps through the colours: Slate, Sepia, Paper and Gray.
   const PALETTE_NAMES = { slate: "Slate", sepia: "Sepia", paper: "Paper", gray: "Gray" };
   function nextPalette() {
@@ -4368,13 +4263,8 @@ window.bookReady = (async () => {
     setSetting("palette", list[(list.indexOf(S.palette) + 1) % list.length]);
     toast(`Colours: ${PALETTE_NAMES[S.palette] || S.palette}`, 1000);
   }
-  const switchNotes = () => {
-    if (!hasTopics) { toast("This book has no topics; its outline is in Contents", 1800); return; }
-    setSetting("notes", S.notes ? 0 : 1);
-    toast(S.notes ? "Topics" : "Contents", 1000);
-  };
-  // c peeks at the panel and again puts it away; cc, pressed twice quickly, switches Contents and Topics.
-  // C pins the panel or puts it away; CC turns the full outline in Contents on or off.
+  // c peeks at Contents and again puts it away; cc, pressed twice quickly, shows chapters alone or with their headings.
+  // C pins the panel or puts it away.
   function peekToc() {
     if (peekSide === "toc" || (app.classList.contains("narrow") && overlay.toc)) { closeOverlays(); return; }
     if (!tocPanel.hidden) { toast("Contents is pinned open; C puts it away", 1600); return; }
@@ -4392,7 +4282,7 @@ window.bookReady = (async () => {
     toast(outlineOn() ? "Contents: every heading" : "Contents: chapters", 1200);
   }
   const twice = (once, again) => { let t = 0; return () => { if (t) { clearTimeout(t); t = 0; again(); return; } t = setTimeout(() => { t = 0; once(); }, 300); }; };
-  const cKey = twice(peekToc, switchNotes), CKey = twice(() => showPanel("toc"), toggleOutline);
+  const cKey = twice(peekToc, toggleOutline);
   // v changes the view within the current mode: Flow or Pile in pages, text or pages in Scroll.
   function switchView() {
     if (S.view === "scroll") setSetting("scrollStyle", S.scrollStyle === "pages" ? "text" : "pages");
@@ -4447,7 +4337,7 @@ window.bookReady = (async () => {
     }
     if (k === "G") { e.preventDefault(); goEdge(1); return; }
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
-    const toggles = { V: nextPalette, b: () => toggleBooks(), t: openGrid, c: cKey, C: CKey, m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
+    const toggles = { V: nextPalette, b: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && reading) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
     // the same steps for the left hand alone: q and w a sentence back and on, Q and W a paragraph
     if ((k === "q" || k === "w") && reading) { e.preventDefault(); skipSentence(k === "w" ? 1 : -1); return; }
@@ -4922,6 +4812,7 @@ window.bookReady = (async () => {
     const open = elt("button", { type: "button", className: "bm-copy primary" }, b.kind === "card" ? "Show the bookmarklet" : "Open");
     open.addEventListener("click", () => openBook(b));
     acts.append(open);
+    if (b.kind !== "card") acts.append(chaptersButton());
     if (b.kind === "shelf") acts.append(copyLink(`${readerUrl}?book=${b.id}`));
     if (b.kind === "opened") {
       const rm = elt("button", { type: "button", className: "bm-copy" }, "Remove from this browser");
@@ -4930,6 +4821,11 @@ window.bookReady = (async () => {
     }
     d.append(acts, elt("p", { className: "hint" }, matchMedia("(pointer: coarse)").matches ? "Tap Open to read it" : "Double-click or Enter opens · Esc lets go"));
     booksNow.replaceChildren(cover(b.title, b.site, b.colour, b.ghost), d);
+  }
+  function chaptersButton() {
+    const b = elt("button", { type: "button", className: "bm-copy narrow-only" }, "Chapters");
+    b.addEventListener("click", () => openSheet(true));
+    return b;
   }
   // A shelf book's link names the book, never an address.
   function copyLink(share) {
@@ -4957,7 +4853,7 @@ window.bookReady = (async () => {
         : elt("p", { className: "src" }, ...(info.from === "files" ? ["From your files, kept in this browser"] : ["From ", elt("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.from === "shelf" && bd.site ? bd.site : info.url)])),
       bd.byline ? elt("p", { className: "by" }, bd.byline) : null,
       elt("div", { className: "prog" }, elt("span", { className: "pbar" }, Object.assign(document.createElement("i"), { style: `width:${Math.round(p.pct * 100)}%` })), `${p.text} · ${Math.round(p.pct * 100)}%`));
-    const acts = elt("div", { className: "acts" });
+    const acts = elt("div", { className: "acts" }, chaptersButton());
     if (isSelected) {
       const back = elt("button", { type: "button", className: "bm-copy primary" }, "Back to reading");
       back.addEventListener("click", () => { setBooks(false); focusReader(); });
@@ -4992,14 +4888,18 @@ window.bookReady = (async () => {
       const toc = b.toc || [], ids = window.bookTools.chapterIds(toc.map(t => t.title));
       entries = toc.map((t, i) => ({ title: t.title, shown: typeof t.shown === "string" ? t.shown : String(i + 1), group: t.group, href: `${b.href}#${ids[i]}` }));
     }
-    const box = [elt("span", { className: "kick", title: "L moves the keys here and back" }, "Outline · L"), elt("p", { className: "o-title" }, title)];
+    const close = elt("button", { type: "button", className: "tog icon o-close", ariaLabel: "Close the outline" });
+    close.innerHTML = '<svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
+    close.addEventListener("click", () => openSheet(false));
+    const box = [close, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts" }, "Outline · L"), elt("p", { className: "o-title" }, title)];
     if (!entries.length) box.push(elt("p", { className: "empty" }, b && b.kind === "card" ? "Open the docs with the bookmarklet to see their outline here." : "No chapters to show."));
     let group = null, ol = null;
     for (const e of entries) {
       if (e.group !== group || !ol) {
         group = e.group;
         ol = elt("ol");
-        if (group) box.push(elt("div", { className: "grp" }, group));
+        // A group named like its first chapter, as each of the Rust book's, would say the same thing twice.
+        if (group && group !== e.title) box.push(elt("div", { className: "grp" }, group));
         box.push(ol);
       }
       const a = elt("a", { href: e.href }, elt("span", { className: "n" }, e.shown && e.shown !== "" ? e.shown : ""), elt("span", { className: "t" }, e.title));
@@ -5013,6 +4913,7 @@ window.bookReady = (async () => {
       ol.append(elt("li", { className: /\./.test(e.shown || "") ? "sub" : "" }, a));
     }
     outlineEl.replaceChildren(...box);
+    outlineEl.classList.toggle("chapters-only", !outlineOn());
     if (inOutline) enterOutline(true);
     requestAnimationFrame(() => { const c = outlineEl.querySelector('[aria-current="true"]'); if (c) outlineEl.scrollTop = c.offsetTop - outlineEl.offsetTop - 60; });
   }
@@ -5049,8 +4950,13 @@ window.bookReady = (async () => {
   const KEYMOVE = { j: "j", ArrowDown: "j", k: "k", ArrowUp: "k", h: "h", ArrowLeft: "h", l: "l", ArrowRight: "l" };
   // L moves the keys between the books and the outline; there j and k (or the arrows) move, g and G go to the first
   // and last chapter, Enter opens, and L or Esc goes back to the books.
-  let inOutline = false, oSel = -1;
-  const oLinks = () => [...outlineEl.querySelectorAll("a")];
+  let inOutline = false, oSel = -1, libLastC = 0;
+  const oLinks = () => [...outlineEl.querySelectorAll("a")].filter(a => a.offsetParent !== null);
+  const narrowLib = () => matchMedia("(max-width: 860px)").matches;
+  function openSheet(on) {
+    outlineEl.classList.toggle("sheet", on);
+    if (!on && inOutline) enterOutline(false);
+  }
   function outlineSelect(i) {
     const links = oLinks();
     links.forEach(a => a.classList.remove("o-sel"));
@@ -5061,6 +4967,7 @@ window.bookReady = (async () => {
     links[oSel].scrollIntoView({ block: "nearest" });
   }
   function enterOutline(on) {
+    if (on && narrowLib()) openSheet(true);
     inOutline = on && oLinks().length > 0;
     outlineEl.classList.toggle("active", inOutline);
     if (inOutline) {
@@ -5068,6 +4975,7 @@ window.bookReady = (async () => {
       outlineSelect(cur >= 0 ? cur : 0);
     } else {
       oLinks().forEach(a => a.classList.remove("o-sel"));
+      if (outlineEl.classList.contains("sheet")) outlineEl.classList.remove("sheet");
       if (selected) selected.focus({ preventScroll: true });
     }
   }
@@ -5088,20 +4996,34 @@ window.bookReady = (async () => {
     }
     if (KEYMOVE[e.key]) { e.preventDefault(); move(KEYMOVE[e.key], e.key); return; }
     if (e.key === "Enter" && selected) { e.preventDefault(); openBook(selected._book); return; }
-    if (e.key === "v") { e.preventDefault(); setLibView(libView === "shelf" ? "list" : "shelf"); toast(libView === "shelf" ? "Shelf" : "List", 900); return; }
+    if (e.key === "v" || e.key === "B") { e.preventDefault(); setLibView(libView === "shelf" ? "list" : "shelf"); toast(libView === "shelf" ? "Shelf" : "List", 900); return; }
+    if (e.key === "c") {
+      // cc, as in the reader: the outline shows chapters alone or with their parts, and Contents follows.
+      e.preventDefault();
+      const now = performance.now();
+      if (now - libLastC < 300) {
+        libLastC = 0;
+        setSetting("outline", outlineOn() ? "off" : "on");
+        applySettings();
+        outlineEl.classList.toggle("chapters-only", !outlineOn());
+        if (inOutline) outlineSelect(Math.min(oSel, oLinks().length - 1));
+        toast(outlineOn() ? "Outline: chapters and their parts" : "Outline: chapters", 1200);
+      } else libLastC = now;
+      return;
+    }
     if (e.key === "b") { e.preventDefault(); setBooks(false); focusReader(); }
   }
   // Esc: first a pending Remove all, then the selection, then the Library itself.
   function libEsc() {
     if (askingClear) { askClear(false); return; }
-    if (inOutline) { enterOutline(false); return; }
+    if (inOutline || outlineEl.classList.contains("sheet")) { enterOutline(false); openSheet(false); return; }
     if (selected) { select(-1); return; }
     setBooks(false);
     focusReader();
   }
 
   function setBooks(open) {
-    if (open) { selected = null; askingClear = false; inOutline = false; outlineEl.classList.remove("active"); renderShelf(); renderPanel(); setOptions(false); closeSearch(true); }
+    if (open) { selected = null; askingClear = false; inOutline = false; outlineEl.classList.remove("active", "sheet"); renderShelf(); renderPanel(); setOptions(false); closeSearch(true); }
     booksEl.hidden = !open;
     app.classList.toggle("lib-on", open);
   }
