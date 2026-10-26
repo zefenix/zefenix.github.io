@@ -1,6 +1,6 @@
 [
  {
-  "id": "rust",
+  "id": "rust-book",
   "title": "The Rust Programming Language",
   "byline": "Steve Klabnik, Carol Nichols and Chris Krycho, with contributions from the Rust Community",
   "site": "github.com/rust-lang/book",
@@ -15,7 +15,7 @@
   "chapters": 111
  },
  {
-  "id": "cookbooks",
+  "id": "claude-cookbooks",
   "title": "Claude Cookbooks, a selection",
   "byline": "Eight notebooks from anthropics/claude-cookbooks, as Markdown",
   "site": "github.com/anthropics/claude-cookbooks",

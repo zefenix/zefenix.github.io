@@ -655,7 +655,6 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .books .bk-nums { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
 .books .bk-nums a { min-width: 30px; padding: 4px 6px; text-align: center; font-variant-numeric: tabular-nums; }
 .books .bk-act { align-self: flex-start; padding: 7px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
-.books .bk-msg.bk-err { color: var(--ink); padding: 8px 10px; border-left: 2px solid var(--accent); background: var(--bar); border-radius: 0 6px 6px 0; }
 .books .bk-msg { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
 .bm-row { display: flex; align-items: center; gap: 10px; }
 .bm-link { padding: 7px 12px; border: 1px dashed var(--accent); border-radius: 7px; font-family: var(--f-book); font-style: italic; font-size: 15px; text-decoration: none !important; cursor: grab; }
@@ -668,6 +667,7 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .shelf a[aria-current="true"] { background: var(--bar); }
 .shelf .t { font-family: var(--f-book); font-size: 15px; line-height: 1.3; color: var(--ink); }
 .shelf .s { font-size: 12px; line-height: 1.35; color: var(--ink-soft); overflow-wrap: anywhere; }
+.shelf .card > div { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border: 1px dashed var(--line); border-radius: 6px; }
 .shelf .x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 6px; background: none; color: var(--ink-soft); font-size: 15px; cursor: pointer; }
 .shelf .x:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
 .app.dropping::after { content: "Drop Markdown files or a folder to read them as a book"; position: fixed; inset: 12px; z-index: 40; display: grid; place-items: center; border: 2px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); font-family: var(--f-book); font-size: 20px; color: var(--ink); pointer-events: none; }
@@ -976,18 +976,10 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
       <p class="bm-help">Or drop files or a folder anywhere on the page. A folder becomes one book, its files the chapters, in the order of its SUMMARY.md if it has one. Files are read here and never uploaded.</p>
     </section>
     <section>
-      <h3>Open a link</h3>
-      <form class="link-row" id="linkForm">
-        <input id="linkBox" type="url" inputmode="url" placeholder="Markdown, llms.txt, GitHub, SUMMARY.md" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Link to open">
-        <button type="submit" class="bm-copy">Open</button>
-      </form>
-      <p class="bm-help">A Markdown file, a docs site’s llms.txt, a GitHub file or folder, or an mdBook’s SUMMARY.md. Your browser fetches it; some sites don’t allow that, and the reader says so.</p>
-    </section>
-    <section>
       <h3>Read any docs page</h3>
-      <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a><button type="button" class="bm-copy" id="bmCopy">Copy</button></div>
-      <p class="bm-help">On a computer, drag the link to your bookmarks bar. Then, on any documentation page, click it: the page opens here as a book, and the site’s other pages can follow.</p>
-      <p class="bm-help">On a phone, tap Copy and bookmark any page. Edit that bookmark, name it “Pages, Piled” and paste over its address. On a docs page, choose the bookmark from Bookmarks in Safari, or type its name in Chrome’s address bar and tap it.</p>
+      <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a></div>
+      <p class="bm-help">Drag the link to your bookmarks bar. Then, on any documentation page, click it: the page opens here as a book, and the site’s other pages can follow.</p>
+      <p class="bm-help">The bookmarklet is for computers. On a phone, read the shelf’s books or open a file.</p>
       <p class="bm-help">Your browser fetches the page as it does when you read it. Nothing is sent to a server, and the book stays in this browser.</p>
     </section>
   </div>
@@ -1534,14 +1526,17 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 </script>
 <script>
 // Other books. Before the reader starts, this fills the book template from a book the reader was handed or opened:
-// a docs page sent by the bookmarklet, kept in this browser's IndexedDB under ?book=KEY. Without one, the reader's own book stays.
+// one of the shelf's books by name (?book=rust-book), or a page sent by the bookmarklet or files you opened, kept in this
+// browser's IndexedDB under ?opened=KEY. The site takes no address from a link. Without either, the reader's own book stays.
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
   window.bookTools = { checkBook, saveBook, listBooks, deleteBook };
   const LIMIT = 50000;   // characters in a part; see prepare()
+  // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
+  const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/" };
   const P = new URLSearchParams(location.search);
   const BM = P.get("from") === "bookmarklet";
-  if (!BM && !P.has("book") && !P.has("src") && !P.has("shelf")) return { own: true };
+  if (!BM && !P.has("book") && !P.has("opened")) return { own: true };
   const status = $("status");
   const say = (text, back = true) => {
     status.textContent = text;
@@ -1554,43 +1549,33 @@ window.bookReady = (async () => {
   };
   try {
     let book, key, ref;
-    if (P.has("shelf")) {
-      key = P.get("shelf");
+    if (P.has("book")) {
+      key = P.get("book");
       book = await fromShelf(key);
-      ref = `shelf=${key}`;
+      ref = `book=${key}`;
     } else if (BM) {
       say("Waiting for the page you opened this from…", false);
       book = await receiveBook();
       key = await saveBook(book);
-      history.replaceState(null, "", `${location.pathname}?book=${key}${location.hash}`);
-    } else if (P.has("src")) {
-      book = await fromLink(P.get("src"));
-      key = await saveBook(book);
-      history.replaceState(null, "", `${location.pathname}?book=${key}${location.hash}`);
+      history.replaceState(null, "", `${location.pathname}?opened=${key}${location.hash}`);
     } else {
-      key = P.get("book");
+      key = P.get("opened");
       book = await loadBook(key);
       if (!book) { say("This book is no longer kept in this browser. Open it again from its page."); return null; }
     }
-    ref = ref || `book=${key}`;
+    ref = ref || `opened=${key}`;
     say("Setting the text into pages…", false);
     await loadScripts(["vendor/marked.umd.js", "vendor/purify.min.js"]);
     const part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
     fillBook(book, ref, part);
     const { list, parts } = prepare(book);
     window.bookInfo = {
-      key, ref, from: book.from, title: book.title, url: book.url, site: book.site, src: book.src || "", part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
+      key, ref, from: book.from, title: book.title, url: book.url, site: book.site, part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
       parts: parts.map(p => ({ from: list[p.units[0].i].title, to: list[p.units[p.units.length - 1].i].title, count: new Set(p.units.map(u => u.i)).size }))
     };
     return window.bookInfo;
   } catch (err) {
     console.error(err);
-    // A link that can't be opened leaves the reader on its own book, with Books showing why and the link to edit.
-    if (P.has("src") && !BM) {
-      history.replaceState(null, "", location.pathname);
-      say("Setting the text into pages…", false);
-      return (window.bookInfo = { own: true, error: String(err && err.message || err), src: P.get("src") });
-    }
     say(String(err && err.message || err));
     return null;
   }
@@ -1650,10 +1635,10 @@ window.bookReady = (async () => {
 
   /* ---------- the shelf's own books ---------- */
 
-  // A hosted book: its chapters' Markdown in one file beside its licences, served with the reader.
+  // A hosted book: its chapters' Markdown in one file beside its licences, served with the reader; see SHELF.
   async function fromShelf(id) {
-    if (!/^[a-z0-9-]{1,40}$/.test(id)) throw new Error("There is no such book on the shelf.");
-    const base = new URL(`books/${id}/`, location.href);
+    if (!Object.hasOwn(SHELF, id)) throw new Error("There is no such book on the shelf.");
+    const base = new URL(SHELF[id], location.href);
     let r;
     try { r = await fetch(new URL("book.json", base)); } catch { throw new Error("The book couldn’t be loaded. Check your connection and reload."); }
     if (!r.ok) throw new Error("There is no such book on the shelf.");
@@ -1663,114 +1648,6 @@ window.bookReady = (async () => {
       licenses: (b.licenses || []).map(f => new URL(f, base).href), from: "shelf",
       chapters: b.chapters.map(c => ({ title: c.title, url: new URL(c.path, base).href, source: c.source || "", markdown: c.markdown }))
     };
-  }
-
-  /* ---------- opening a link ---------- */
-
-  // A link the reader fetches itself: a Markdown file, an llms.txt index, an mdBook SUMMARY.md, or a GitHub file,
-  // folder or repository. Every fetch is this browser's own; a site that forbids it is named, with the other ways in.
-  async function fromLink(raw) {
-    let u;
-    try { u = new URL(raw.trim()); } catch { throw new Error("That isn’t a web address. Paste a link that starts with https://"); }
-    if (!/^https?:$/.test(u.protocol)) throw new Error("Only http and https links can be opened.");
-    const src = u.href;
-    const gh = u.hostname === "github.com" && u.pathname.split("/").filter(Boolean);
-    if (gh && gh.length >= 2) {
-      const [owner, repo, kind, ref, ...rest] = gh;
-      if (kind === "blob" && ref && rest.length) u = new URL(`https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${rest.join("/")}`);
-      else if (!kind || kind === "tree") return fromGitHubFolder(owner, repo, kind ? ref : "", kind ? rest.join("/") : "", src);
-      else throw new Error("That GitHub link isn’t a file or a folder. Open the file on GitHub and paste its address.");
-    }
-    const file = u.pathname.split("/").pop();
-    if (/^llms(-full)?\.txt$/i.test(file)) return fromIndex(u, src);
-    if (/^summary\.md$/i.test(file)) return fromSummary(u, src);
-    let md = await fetchText(u, true).catch(() => null);
-    if (md === null && !/\.(md|markdown|txt)$/i.test(u.pathname)) md = await fetchText(new URL(u.href.replace(/\/?$/, ".md"))).catch(() => null);
-    if (md === null) md = await fetchText(u);   // says why it failed
-    const title = (/^#{1,6}\s+(.+)$/m.exec(md) || [])[1] || decodeURIComponent(file || u.hostname).replace(/\.(md|markdown)$/i, "");
-    return linkBook(src, u, title.trim(), [{ title: title.trim(), url: u.href, markdown: md }]);
-  }
-  function linkBook(src, u, title, chapters) {
-    const shown = new URL(src);
-    return { v: 1, title: title.slice(0, 300), site: shown.hostname, url: shown.href, src, copyright: "", from: "link", at: new Date().toISOString(), chapters, index: null };
-  }
-  // Fetch text the browser is allowed to read. With markdownOnly, an HTML page counts as no answer.
-  async function fetchText(u, markdownOnly) {
-    let r;
-    try { r = await fetch(u.href, { credentials: "omit", headers: { Accept: "text/markdown, text/plain;q=0.9, */*;q=0.1" } }); }
-    catch { throw new Error(`Your browser wasn’t allowed to read ${u.hostname}: the site doesn’t let other sites read its pages. Open the page and click the bookmarklet (Books has it), or save the file and open it here.`); }
-    if (!r.ok) throw new Error(`${u.hostname} answered ${r.status}${r.status === 404 ? ": nothing is at that address" : ""}. Check the link.`);
-    const t = await r.text();
-    if (/html/i.test(r.headers.get("content-type") || "") || /^\s*<(!doctype|html)/i.test(t)) {
-      if (markdownOnly) return null;
-      throw new Error(`${u.hostname} sent a web page, not Markdown. Open it and click the bookmarklet (Books has it) to read it here.`);
-    }
-    return t;
-  }
-  async function gather(list, progress) {
-    const out = new Array(list.length);
-    let next = 0, done = 0, firstError = null;
-    await Promise.all([1, 2, 3, 4, 5, 6].map(async () => {
-      while (next < list.length) {
-        const i = next++;
-        try { out[i] = { ...list[i], markdown: await fetchText(new URL(list[i].url)) }; }
-        catch (e) { firstError = firstError || e; }
-        progress(++done, list.length);
-      }
-    }));
-    const got = out.filter(Boolean);
-    if (!got.length) throw firstError || new Error("None of the pages could be read.");
-    return got;
-  }
-  function progress(what) { return (done, total) => say(`${what}: ${done} of ${total}…`, false); }
-  async function fromIndex(u, src) {
-    const t = await fetchText(u);
-    const list = [];
-    for (const line of t.split("\n")) {
-      const m = /^\s*[-*]\s*\[([^\]]+)\]\(([^)\s]+)\)/.exec(line);
-      if (!m) continue;
-      try { const url = new URL(m[2], u).href; if (/^https?:/.test(url) && !list.some(c => c.url === url)) list.push({ title: m[1].trim(), url }); } catch {}
-    }
-    if (!list.length) throw new Error("That llms.txt lists no pages.");
-    const chapters = await gather(list, progress("Reading the pages it lists"));
-    return linkBook(src, u, ((/^#\s+(.+)$/m.exec(t) || [])[1] || u.hostname).trim(), chapters);
-  }
-  // An mdBook's SUMMARY.md lists its chapters in order; drafts, written with empty links, are left out.
-  async function fromSummary(u, src, name) {
-    const t = await fetchText(u);
-    const list = [];
-    for (const m of t.matchAll(/\[([^\]]+)\]\(([^)\s]+\.md)\)/g)) {
-      try { const url = new URL(m[2], u).href; if (!list.some(c => c.url === url)) list.push({ title: m[1].trim(), url }); } catch {}
-    }
-    if (!list.length) throw new Error("That SUMMARY.md lists no chapters.");
-    const chapters = await gather(list, progress("Reading the book’s chapters"));
-    for (const c of chapters) c.markdown = c.markdown.replace(/^[ \t]*\{\{#(?:rustdoc_)?include [^}]*\}\}[ \t]*$/gm, "*A listing from the book’s source files goes here; this copy can’t include it.*");
-    const head = (/^#\s+(.+)$/m.exec(t) || [])[1];
-    return linkBook(src, u, ((head && !/^(summary|table of contents)$/i.test(head.trim()) ? head : "") || name || u.pathname.split("/").filter(Boolean)[1] || u.hostname).trim(), chapters);
-  }
-  // A GitHub folder through GitHub's API, which allows 60 requests an hour to a reader who isn't signed in.
-  async function fromGitHubFolder(owner, repo, ref, path, src) {
-    const api = async p => {
-      let r;
-      try { r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${p}${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`, { headers: { Accept: "application/vnd.github+json" } }); }
-      catch { throw new Error("Your browser couldn’t reach GitHub’s API."); }
-      if (r.status === 403 || r.status === 429) throw new Error("GitHub allows 60 folder listings an hour to readers who aren’t signed in, and this browser has used them. Try again later, or open a single file’s link.");
-      if (!r.ok) throw new Error(`GitHub answered ${r.status} for that folder. Check the link; private repositories can’t be opened.`);
-      return r.json();
-    };
-    let items = await api(path);
-    if (!Array.isArray(items)) throw new Error("That GitHub link is a file. Paste its address as it shows on GitHub, with /blob/ in it.");
-    const raw = p => new URL(`https://raw.githubusercontent.com/${owner}/${repo}/${ref || "HEAD"}/${p}`);
-    // An mdBook: its book.toml beside a src folder, or a SUMMARY.md here.
-    if (items.some(i => i.name === "book.toml") && items.some(i => i.name === "src" && i.type === "dir")) return fromSummary(raw(`${path ? path + "/" : ""}src/SUMMARY.md`), src, repo);
-    const summary = items.find(i => /^summary\.md$/i.test(i.name));
-    if (summary) return fromSummary(raw(summary.path), src, repo);
-    const mds = items.filter(i => i.type === "file" && /\.(md|markdown)$/i.test(i.name));
-    if (!mds.length) throw new Error("That GitHub folder has no Markdown files in it.");
-    mds.sort((a, b) => (/^readme\./i.test(b.name) - /^readme\./i.test(a.name)) || a.name.localeCompare(b.name, undefined, { numeric: true }));
-    const list = mds.map(i => ({ title: i.name.replace(/\.(md|markdown)$/i, "").replace(/[-_]+/g, " "), url: raw(i.path).href }));
-    const chapters = await gather(list, progress("Reading the folder’s files"));
-    return linkBook(src, raw(path || ""), `${repo}${path ? " / " + path : ""}`, chapters);
   }
 
   /* ---------- keeping books in this browser ---------- */
@@ -4457,15 +4334,6 @@ window.bookReady = (async () => {
   const bmLink = $("bmLink");
   bmLink.href = bmHref;
   bmLink.addEventListener("click", e => { e.preventDefault(); toast("Drag this link to your bookmarks bar, then click it on a docs page.", 2600); });
-  $("bmCopy").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(bmHref); toast("Copied. Paste it as a bookmark’s address.", 2200); }
-    catch { toast("This browser wouldn’t copy it. Drag the link instead.", 2200); }
-  });
-  $("linkForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const v = $("linkBox").value.trim();
-    if (v) location.href = `${location.pathname}?src=${encodeURIComponent(v)}`;
-  });
   // The shelf: the reader's own book and the hosted ones, then the books opened in this browser.
   let shelfData = null;
   async function renderShelf() {
@@ -4476,7 +4344,12 @@ window.bookReady = (async () => {
     }
     $("shelfList").replaceChildren(
       el("li", {}, row(location.pathname, "Pages, Piled", "The reader’s own book, about how it works", info.own)),
-      ...shelfData.map(b => el("li", {}, row(`?shelf=${b.id}`, b.title, `${b.chapters} chapters · ${b.site}`, info.ref === `shelf=${b.id}`))));
+      ...shelfData.map(b => el("li", {}, row(`?book=${b.id}`, b.title, `${b.chapters} chapters · ${b.site}`, info.ref === `book=${b.id}`))),
+      el("li", { className: "card" }, el("div", {},
+        el("span", { className: "t" }, "Claude Code’s documentation"),
+        el("span", { className: "s" }, "Not hosted here. On a computer, drag “Read in Pages, Piled” below to your bookmarks bar, open ",
+          el("a", { href: "https://code.claude.com/docs", target: "_blank", rel: "noopener noreferrer" }, "code.claude.com/docs"),
+          " and click it. The site lets no other site read its pages, so the bookmarklet is the way in."))));
     let opened = [];
     try { opened = await window.bookTools.listBooks(); } catch {}
     $("openedSec").hidden = !opened.length;
@@ -4484,7 +4357,7 @@ window.bookReady = (async () => {
       const x = el("button", { type: "button", className: "x", title: "Remove from this browser", ariaLabel: `Remove ${b.title} from this browser` }, "×");
       x.addEventListener("click", async () => { await window.bookTools.deleteBook(b.key); if (info.key === b.key) location.href = location.pathname; else renderShelf(); });
       const from = b.from === "files" ? "your files" : (() => { try { return new URL(b.url).hostname; } catch { return ""; } })();
-      return el("li", {}, row(`?book=${b.key}`, b.title, `${b.chapters} ${b.chapters === 1 ? "page" : "pages"} · ${from} · ${new Date(b.at).toLocaleDateString()}`, info.key === b.key && !info.own), x);
+      return el("li", {}, row(`?opened=${b.key}`, b.title, `${b.chapters} ${b.chapters === 1 ? "page" : "pages"} · ${from} · ${new Date(b.at).toLocaleDateString()}`, info.key === b.key && !info.own), x);
     }));
   }
 
@@ -4511,7 +4384,7 @@ window.bookReady = (async () => {
     const book = { v: 1, title: title.slice(0, 300), site: "your files", url: url(folder || files[0].path), copyright: "", from: "files", at: new Date().toISOString(), chapters, index: null };
     try {
       const key = await window.bookTools.saveBook(book);
-      location.href = `${location.pathname}?book=${key}`;
+      location.href = `${location.pathname}?opened=${key}`;
     } catch (err) { toast(String(err.message || err), 3000); }
   }
   $("pickFiles").addEventListener("click", () => $("fileIn").click());
@@ -4563,12 +4436,12 @@ window.bookReady = (async () => {
       return;
     }
     booksNow.append(el("p", { className: "bk-title" }, info.title), el("p", { className: "bk-src" }, ...(info.from === "files" ? ["From your files, kept in this browser"] : ["From ", el("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.url)])));
-    if (info.src) {
-      // A share link opens the same source as a book for anyone; the reader fetches it in their browser.
-      const share = `${readerUrl}?src=${encodeURIComponent(info.src)}`;
+    if (info.from === "shelf") {
+      // A shelf book's link names the book, never an address.
+      const share = `${readerUrl}?${info.ref}`;
       const btn = el("button", { type: "button", className: "bm-copy" }, "Copy a link to this book");
       btn.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(share); toast("Copied. Anyone with the link reads this source as a book.", 2400); }
+        try { await navigator.clipboard.writeText(share); toast("Copied a link to this book.", 2000); }
         catch { toast(share, 6000); }
       });
       booksNow.append(btn);
@@ -4623,18 +4496,13 @@ window.bookReady = (async () => {
         const missed = Math.max(0, (+e.data.missing || 0));
         msg.textContent = `Setting the first part${missed ? `; ${missed} pages couldn’t be read` : ""}…`;
         const key = await window.bookTools.saveBook(book);
-        location.href = `${location.pathname}?book=${key}`;
+        location.href = `${location.pathname}?opened=${key}`;
       } catch (err) { msg.textContent = String(err.message || err); btn.disabled = false; }
     };
     addEventListener("message", onMessage);
     from.postMessage({ type: "pages-piled/want-site", v: 1 }, origin);
   }
   $("booksFromOpts").addEventListener("click", () => setBooks(true));
-  if (info.error) {
-    $("linkBox").value = info.src || "";
-    $("linkForm").after(Object.assign(document.createElement("p"), { className: "bk-msg bk-err", textContent: info.error }));
-    setTimeout(() => setBooks(true), 300);
-  }
   if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "Options, then Books," : "Books (b)"} reads them all.`, 3600), 1800);
 
   build();

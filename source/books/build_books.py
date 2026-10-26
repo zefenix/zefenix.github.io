@@ -111,7 +111,7 @@ def rust_chapter(path, src):
 def build_rust(clone, out):
     head(clone, RUST_COMMIT)
     src = os.path.join(clone, "src")
-    dest = os.path.join(out, "rust")
+    dest = os.path.join(out, "rust-book")
     shutil.rmtree(dest, ignore_errors=True)
     os.makedirs(dest)
     chapters, used = [], set()
@@ -126,7 +126,7 @@ def build_rust(clone, out):
     for f in ["LICENSE-MIT", "LICENSE-APACHE", "COPYRIGHT"]:
         shutil.copyfile(os.path.join(clone, f), os.path.join(dest, f))
     book = {
-        "v": 1, "id": "rust", "title": "The Rust Programming Language", "byline": "Steve Klabnik, Carol Nichols and Chris Krycho, with contributions from the Rust Community",
+        "v": 1, "id": "rust-book", "title": "The Rust Programming Language", "byline": "Steve Klabnik, Carol Nichols and Chris Krycho, with contributions from the Rust Community",
         "site": "github.com/rust-lang/book", "url": f"https://github.com/rust-lang/book/tree/{RUST_COMMIT}",
         "copyright": "Copyright (c) 2010 The Rust Project Developers. Licensed under the MIT license or the Apache License, Version 2.0, at your option.",
         "notice": "Shown here unchanged apart from layout, from the book's source at commit " + RUST_COMMIT[:12] + ". Not affiliated with or endorsed by the Rust Project.",
@@ -173,7 +173,7 @@ def notebook_md(path, repo_path):
 
 def build_cookbooks(clone, out):
     head(clone, COOKBOOKS_COMMIT)
-    dest = os.path.join(out, "cookbooks")
+    dest = os.path.join(out, "claude-cookbooks")
     shutil.rmtree(dest, ignore_errors=True)
     os.makedirs(dest)
     registry = open(os.path.join(clone, "registry.yaml"), encoding="utf-8").read()
@@ -190,7 +190,7 @@ def build_cookbooks(clone, out):
                          "source": f"https://github.com/anthropics/claude-cookbooks/blob/{COOKBOOKS_COMMIT}/{p}"})
     shutil.copyfile(os.path.join(clone, "LICENSE"), os.path.join(dest, "LICENSE"))
     book = {
-        "v": 1, "id": "cookbooks", "title": "Claude Cookbooks, a selection", "byline": "Eight notebooks from anthropics/claude-cookbooks, as Markdown",
+        "v": 1, "id": "claude-cookbooks", "title": "Claude Cookbooks, a selection", "byline": "Eight notebooks from anthropics/claude-cookbooks, as Markdown",
         "site": "github.com/anthropics/claude-cookbooks", "url": f"https://github.com/anthropics/claude-cookbooks/tree/{COOKBOOKS_COMMIT}",
         "copyright": "Copyright (c) 2023 Anthropic. MIT License.",
         "notice": "Selected and converted from notebooks to Markdown for Pages, Piled, from commit " + COOKBOOKS_COMMIT[:12] + "; long outputs are shortened. Not affiliated with or endorsed by Anthropic.",
