@@ -217,6 +217,17 @@ a.toc-item { text-decoration: none; }
 .map-page { position: absolute; left: 0; overflow: hidden; background: var(--paper); border-radius: 1px; box-shadow: 0 0 0 1px var(--hair); opacity: .85; }
 .map-page > .pagedjs_page { position: absolute; left: 0; top: 0; margin: 0; transform-origin: 0 0; transform: scale(var(--ms)); }
 .map-page > .pagedjs_cover_page { background: var(--cover); }
+/* The minimap at the top: a row of little pages under the top bar, over the stage and Contents. */
+.app.map-top .body { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); }
+.app.map-top .toc-panel { grid-area: 2 / 1; }
+.app.map-top.swap .toc-panel { grid-area: 2 / 3; }
+.app.map-top .stage { grid-area: 2 / 2; }
+.app.map-top .map-panel { grid-area: 1 / 1 / 2 / -1; width: auto; height: 104px; border: 0; border-bottom: 1px solid var(--hair); padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); }
+.app.narrow.map-top .map-panel { position: relative; inset: auto; width: auto; height: 80px; box-shadow: none; touch-action: none; }
+.app.map-top .map-panel.peek { position: absolute; inset: 0 0 auto 0; box-shadow: 0 0 40px var(--shadow); }
+.app.map-top .map-track { right: auto; bottom: 0; }
+.app.map-top .map-band { left: auto; right: auto; top: 0; bottom: 0; }
+.app.map-top .map-hit { left: auto; top: -2px; width: 3px; height: 5px; }
 
 /* ---------- views ---------- */
 .view { position: absolute; inset: 0; visibility: hidden; opacity: 0; transition: opacity .25s ease, visibility 0s linear .25s; }
@@ -1083,6 +1094,8 @@ a.toc-item { text-decoration: none; }
         <div class="seg" data-setting="toc"><button type="button" data-value="1">Show</button><button type="button" data-value="0">Hide</button></div></div>
       <div class="row"><span>Minimap</span>
         <div class="seg" data-setting="map"><button type="button" data-value="1">Show</button><button type="button" data-value="0">Hide</button></div></div>
+      <div class="row"><span>Minimap sits</span>
+        <div class="seg" data-setting="mapAt"><button type="button" data-value="side">Side</button><button type="button" data-value="top">Top</button></div></div>
       <div class="row"><span>Minimap mark</span>
         <div class="seg" data-setting="mapMark"><button type="button" data-value="1">Show</button><button type="button" data-value="0">Hide</button></div></div>
       <div class="row mark-opt"><label for="mapMarkOp">Mark strength</label><input type="range" id="mapMarkOp" data-setting="mapMarkOp" min="5" max="100" step="5"><output for="mapMarkOp"></output></div>
@@ -1471,6 +1484,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>L</code></td> <td>Move the keys into Contents, or in the Library its outline: <code>j</code> <code>k</code> move, Enter goes there, <code>L</code> or Esc comes back</td></tr>
     <tr><td><code>B</code> <code>o</code></td> <td>The Library: the shelf, your own files and the bookmarklet; in it, <code>b</code> or <code>v</code> switches Shelf and List</td></tr>
     <tr><td><code>m</code></td> <td><b>M</b>inimap on, off</td></tr>
+    <tr><td><code>M</code></td> <td><b>M</b>inimap at the side or across the top</td></tr>
     <tr><td><code>z</code></td> <td><b>Z</b>en: hide the menus, keep the page slider</td></tr>
     <tr><td><code>F</code></td> <td><b>F</b>ocus: fade the bars and panels</td></tr>
     <tr><td><code>FF</code></td> <td><b>F</b>ull screen on, off</td></tr>
@@ -2160,8 +2174,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile", "strip"], stripDir: ["across", "down"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -2202,6 +2216,8 @@ window.bookReady = (async () => {
   const saveSettings = () => store.set("settings", S);
   // Scroll comes in two styles: the reflowed text column, or the pages themselves in one long column.
   const textScroll = () => S.view === "scroll" && S.scrollStyle !== "pages";
+  // The minimap runs across the top in the page views when chosen; plain text keeps it at the side, as a column of text.
+  const topMap = () => S.mapAt === "top" && !textScroll();
   const linear = () => S.view === "scroll" && S.scrollStyle === "pages";
 
   // The source text. Every top-level block gets a number; pages, the scroll column and search all refer to blocks.
@@ -2349,7 +2365,11 @@ window.bookReady = (async () => {
   mapTrack.prepend(mapPagesEl);
   let mapPagesOf = null, mapPh = 0;
   const pagesMap = () => !textScroll() && pages.length > 0;
-  const mapStep = () => mapPh + MAP_GAP;
+  const mapStep = () => mapPh + MAP_GAP;   // mapPh is a little page's length along the minimap, down or across
+  const across = () => app.classList.contains("map-top");
+  const along = e => (across() ? e.clientX : e.clientY);
+  const mapRoom = () => Math.max(0, across() ? mapTrack.offsetWidth - mapEl.clientWidth : mapTrack.offsetHeight - mapEl.clientHeight);
+  const mapShift = () => { mapTrack.style.transform = across() ? `translateX(${-mapOff}px)` : `translateY(${-mapOff}px)`; };
   function buildMapPages() {
     mapPagesOf = pages;
     mapPagesEl.replaceChildren(...pages.map(p => {
@@ -2365,17 +2385,21 @@ window.bookReady = (async () => {
     }));
   }
   function sizeMapPages() {
-    const mw = mapEl.clientWidth;
-    if (!mw || !W) return;
+    const x = across(), mw = mapEl.clientWidth, mh = mapEl.clientHeight;
+    if (!(x ? mh : mw) || !W) return;
     if (mapPagesOf !== pages) buildMapPages();
-    mapPh = mw * H / W;
-    mapPagesEl.style.setProperty("--ms", String(mw / W));
+    const ms = x ? mh / H : mw / W;
+    mapPh = x ? mh * W / H : mw * H / W;
+    mapPagesEl.style.setProperty("--ms", String(ms));
     [...mapPagesEl.children].forEach((box, i) => {
-      box.style.top = i * mapStep() + "px";
-      box.style.width = mw + "px";
-      box.style.height = mapPh + "px";
+      box.style.top = x ? "0" : i * mapStep() + "px";
+      box.style.left = x ? i * mapStep() + "px" : "0";
+      box.style.width = W * ms + "px";
+      box.style.height = H * ms + "px";
     });
-    mapTrack.style.height = pages.length * mapStep() - MAP_GAP + "px";
+    const len = pages.length * mapStep() - MAP_GAP + "px";
+    mapTrack.style.height = x ? "" : len;
+    mapTrack.style.width = x ? len : "";
     drawMapOverlay();
   }
   // Where a point on the screen falls in the column: in scrolled pages measured from the pages as they lie,
@@ -2396,6 +2420,7 @@ window.bookReady = (async () => {
   function sizeMap() {
     mapEl.classList.toggle("pages", pagesMap());
     if (pagesMap()) return sizeMapPages();
+    mapTrack.style.width = "";
     const aw = article.offsetWidth, mw = mapEl.clientWidth;
     if (!aw || !mw) return;
     mapScale = mw / aw;
@@ -2415,7 +2440,8 @@ window.bookReady = (async () => {
         if (!box) return;
         const m = document.createElement("div");
         m.className = "map-hit";
-        m.style.top = box.offsetTop + box.offsetHeight / 2 + "px";
+        if (across()) m.style.left = box.offsetLeft + box.offsetWidth / 2 + "px";
+        else m.style.top = box.offsetTop + box.offsetHeight / 2 + "px";
         frag.appendChild(m);
       });
     } else if (hlOn && results.length) {
@@ -2441,15 +2467,17 @@ window.bookReady = (async () => {
     if (!ready || mapPanel.hidden) return;
     if (pagesMap() !== mapEl.classList.contains("pages") || (pagesMap() && (mapPagesOf !== pages || !mapPh))) sizeMap();
     if (pagesMap()) {
-      const mapH = mapTrack.offsetHeight, panelH = mapEl.clientHeight;
+      const x = across(), mapH = x ? mapTrack.offsetWidth : mapTrack.offsetHeight, panelH = x ? mapEl.clientWidth : mapEl.clientHeight;
       let y0, y1;
       if (linear()) { const dr = desk.getBoundingClientRect(); y0 = mapYAtScreen(dr.top); y1 = mapYAtScreen(dr.bottom); }
       else { const on = centerPages(); y0 = on[0] * mapStep(); y1 = on[on.length - 1] * mapStep() + mapPh; }
       y0 = clamp(y0, 0, mapH); y1 = clamp(y1, y0, mapH);
       if (performance.now() > mapPanUntil) mapOff = mapH > panelH ? clamp((y0 + y1) / 2 - panelH / 2, 0, mapH - panelH) : 0;
-      mapTrack.style.transform = `translateY(${-mapOff}px)`;
-      mapBand.style.top = y0 + "px";
-      mapBand.style.height = Math.max(4, y1 - y0) + "px";
+      mapShift();
+      mapBand.style.top = x ? "" : y0 + "px";
+      mapBand.style.height = x ? "" : Math.max(4, y1 - y0) + "px";
+      mapBand.style.left = x ? y0 + "px" : "";
+      mapBand.style.width = x ? Math.max(4, y1 - y0) + "px" : "";
       return;
     }
     const total = article.offsetHeight;
@@ -2457,7 +2485,8 @@ window.bookReady = (async () => {
     y0 = clamp(y0, 0, total); y1 = clamp(y1, y0, total);
     const mapH = total * mapScale, panelH = mapEl.clientHeight;
     if (performance.now() > mapPanUntil) mapOff = mapH > panelH ? clamp(((y0 + y1) / 2) * mapScale - panelH / 2, 0, mapH - panelH) : 0;
-    mapTrack.style.transform = `translateY(${-mapOff}px)`;
+    mapShift();
+    mapBand.style.left = mapBand.style.width = "";
     mapBand.style.top = y0 * mapScale + "px";
     mapBand.style.height = Math.max(4, (y1 - y0) * mapScale) + "px";
   }
@@ -2466,7 +2495,7 @@ window.bookReady = (async () => {
     closeGrid(true);
     const r = mapEl.getBoundingClientRect();
     if (pagesMap()) {
-      const y = e.clientY - r.top + mapOff, i = clamp(Math.floor(y / mapStep()), 0, pages.length - 1);
+      const y = along(e) - (across() ? r.left : r.top) + mapOff, i = clamp(Math.floor(y / mapStep()), 0, pages.length - 1);
       if (!linear()) { if (!shownPages().includes(i)) goUnit(i, true); return; }
       const f = clamp((y - i * mapStep()) / mapPh, 0, 1), pr = pages[i].getBoundingClientRect(), dr = desk.getBoundingClientRect();
       desk.scrollTop += pr.top + f * pr.height - (dr.top + desk.clientHeight / 2);
@@ -2482,12 +2511,12 @@ window.bookReady = (async () => {
   // A flick keeps the column moving and lets it slow to a stop, as a list does under a finger.
   function glideMap(v) {
     let last = performance.now();
-    const room = Math.max(0, mapTrack.offsetHeight - mapEl.clientHeight);
+    const room = mapRoom();
     const frame = now => {
       const dt = Math.min(48, now - last);
       last = now;
       mapOff = clamp(mapOff - v * dt, 0, room);
-      mapTrack.style.transform = `translateY(${-mapOff}px)`;
+      mapShift();
       mapPanUntil = now + MAP_HOLD_MS;
       v *= Math.pow(0.95, dt / 16);
       if (Math.abs(v) > 0.02 && mapOff > 0 && mapOff < room) mapGlide = requestAnimationFrame(frame);
@@ -2499,20 +2528,19 @@ window.bookReady = (async () => {
     cancelAnimationFrame(mapGlide);
     mapEl.setPointerCapture(e.pointerId);
     if (e.pointerType === "mouse") { markPlace(); mapDrag = true; mapGo(e); return; }
-    mapTouch = { x: e.clientX, y: e.clientY, off: mapOff, panned: false, id: e.pointerId, trail: [[performance.now(), e.clientY]] };
+    mapTouch = { x: e.clientX, y: e.clientY, off: mapOff, panned: false, id: e.pointerId, trail: [[performance.now(), along(e)]] };
   });
   mapEl.addEventListener("pointermove", e => {
     if (mapDrag) { mapGo(e); return; }
     if (!mapTouch || e.pointerId !== mapTouch.id) return;
-    const dy = e.clientY - mapTouch.y;
+    const dy = along(e) - (across() ? mapTouch.x : mapTouch.y);
     if (!mapTouch.panned && Math.abs(dy) < 8) return;
     mapTouch.panned = true;
-    mapTouch.trail.push([performance.now(), e.clientY]);
+    mapTouch.trail.push([performance.now(), along(e)]);
     if (mapTouch.trail.length > 6) mapTouch.trail.shift();
-    const room = Math.max(0, mapTrack.offsetHeight - mapEl.clientHeight);
-    mapOff = clamp(mapTouch.off - dy, 0, room);
+    mapOff = clamp(mapTouch.off - dy, 0, mapRoom());
     mapPanUntil = performance.now() + MAP_HOLD_MS;
-    mapTrack.style.transform = `translateY(${-mapOff}px)`;
+    mapShift();
   });
   mapEl.addEventListener("pointerup", e => {
     mapDrag = false;
@@ -2528,7 +2556,7 @@ window.bookReady = (async () => {
       }
       return;
     }
-    if (Math.abs(e.clientX - t.x) > 16) return;   // a sideways swipe puts the panel away and moves nothing
+    if (across() ? Math.abs(e.clientY - t.y) > 16 : Math.abs(e.clientX - t.x) > 16) return;   // a swipe across the minimap puts the panel away and moves nothing
     markPlace();
     mapPanUntil = performance.now() + MAP_HOLD_MS;   // the page moves under the tap; the minimap holds still
     mapGo(e);
@@ -3110,11 +3138,12 @@ window.bookReady = (async () => {
     app.classList.toggle("focus", focusMode);
     $("focusBtn").setAttribute("aria-pressed", String(focusMode));
     tocPanel.hidden = narrow ? !overlay.toc : !(S.toc || peekSide === "toc");
-    mapPanel.hidden = narrow ? !overlay.map : !(S.map || peekSide === "map");
+    app.classList.toggle("map-top", topMap());
+    mapPanel.hidden = narrow && !topMap() ? !overlay.map : !(S.map || peekSide === "map");
     tocPanel.classList.toggle("peek", !narrow && !S.toc && peekSide === "toc");
     tocPanel.classList.toggle("peeking", peekSide === "toc");
     mapPanel.classList.toggle("peeking", peekSide === "map");
-    mapPanel.classList.toggle("peek", !narrow && !S.map && peekSide === "map");
+    mapPanel.classList.toggle("peek", (!narrow || topMap()) && !S.map && peekSide === "map");
     tocPanel.classList.toggle("with-outline", outlineOn());
     $("outlineBtn").setAttribute("aria-pressed", String(outlineOn()));
     tocBtn.setAttribute("aria-pressed", String(!tocPanel.hidden));
@@ -3260,7 +3289,8 @@ window.bookReady = (async () => {
     peekSide = null;
     clearTimeout(peekTimer);
     // the panel's own button pins a peek on a wide screen, and closes it on a narrow one
-    if (!app.classList.contains("narrow")) { setSetting(which, S[which] && peeked !== which ? 0 : 1); return; }
+    // at the top the minimap covers nothing, so on a phone too it stays until put away
+    if (!app.classList.contains("narrow") || (which === "map" && topMap())) { setSetting(which, S[which] && peeked !== which ? 0 : 1); return; }
     overlay[which] = !overlay[which];
     if (overlay[which]) overlay[which === "toc" ? "map" : "toc"] = false;
     applySettings();
@@ -3268,6 +3298,12 @@ window.bookReady = (async () => {
     updateMap();
   }
   mapBtn.addEventListener("click", () => showPanel("map"));
+  // M moves the minimap between the side and the top, and shows it if it was put away.
+  function mapSides() {
+    setSetting("mapAt", S.mapAt === "top" ? "side" : "top");
+    if (mapPanel.hidden) showPanel("map");
+    toast(textScroll() ? "Minimap: " + S.mapAt + " in the page views; plain text keeps it at the side" : S.mapAt === "top" ? "Minimap at the top" : "Minimap at the side", 1400);
+  }
 
   // A peek shows a put-away panel for a moment: from Contents, or the slider's ends (the left end the
   // panel on the left, the right end the one on the right). It stays while touched, pointed at or focused, and
@@ -3333,7 +3369,7 @@ window.bookReady = (async () => {
   let panelSwipe = null;
   [["toc", tocPanel], ["map", mapPanel]].forEach(([which, panel]) => {
     panel.addEventListener("pointerdown", e => {
-      panelSwipe = e.pointerType !== "mouse" && e.isPrimary && (app.classList.contains("narrow") || peekSide === which) ? { which, x: e.clientX, y: e.clientY, id: e.pointerId } : null;
+      panelSwipe = e.pointerType !== "mouse" && e.isPrimary && !(which === "map" && topMap()) && (app.classList.contains("narrow") || peekSide === which) ? { which, x: e.clientX, y: e.clientY, id: e.pointerId } : null;
     }, true);
   });
   document.addEventListener("pointerup", e => {
@@ -4426,7 +4462,7 @@ window.bookReady = (async () => {
     }
     if (k === "G") { e.preventDefault(); goEdge(1); return; }
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
-    const toggles = { L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), o: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
+    const toggles = { L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), o: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), M: mapSides, a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && reading) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
     // the same steps for the left hand alone: q and w a sentence back and on, Q and W a paragraph
     if ((k === "q" || k === "w") && reading) { e.preventDefault(); skipSentence(k === "w" ? 1 : -1); return; }
