@@ -9,6 +9,8 @@
 <style>body { margin: 0; } [hidden] { display: none !important; }</style>
 <link id="fonts" rel="stylesheet" data-pagedjs-ignore href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style data-pagedjs-ignore>
+/* phone browsers keep the reader's sizes: Firefox for Android otherwise enlarges some text inside the set pages */
+html { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: none; text-size-adjust: none; }
 /* Layout: one-screen reader. Title bar with search; minimap panel | stage | contents-or-notes panel
    (sides swappable); footer dock with view switch + options, page ticks between prev/next, editable page box.
    The stage shows one text two ways: paged.js pages on a desk, or a scroll column. */
@@ -162,10 +164,14 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 
 .toc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .toc-item {
-  width: 100%; display: grid; grid-template-columns: 22px 1fr auto; align-items: baseline; gap: 4px;
+  width: 100%; display: grid; grid-template-columns: minmax(22px, auto) 1fr auto; align-items: baseline; gap: 4px 6px;
   padding: 7px 8px; border: 0; border-radius: 6px; background: none; cursor: pointer; text-align: left;
 }
 .toc-item:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+a.toc-item { text-decoration: none; }
+.toc-item.toc-away .t { color: color-mix(in srgb, var(--ink-soft) 80%, transparent); }
+.toc-item.toc-away .p::after { content: "›"; color: var(--ink-soft); }
+.toc-group { margin: 12px 8px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 .toc-item .n { font-size: 11px; font-weight: 600; color: var(--accent); }
 .toc-item .t { font-family: var(--f-book); font-size: 14.5px; line-height: 1.3; color: var(--ink-soft); }
 .toc-item .p { font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
@@ -871,6 +877,8 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .bk.ext blockquote[data-alert="warning"] { --alert: #9a6a1f; --alert-bg: rgba(154, 106, 31, .09); }
 .bk.ext blockquote[data-alert="caution"] { --alert: #a33f3f; --alert-bg: rgba(163, 63, 63, .08); }
 .bk.ext .cover { overflow: hidden; }
+.bk.ext h2[data-label]::before { content: attr(data-label); }
+.bk.ext h2[data-label=""]::before { content: none; }
 .bk.ext .cover h1 { overflow-wrap: anywhere; }
 .bk.ext .cover h1.long { font-size: 32pt; }
 .bk.ext .cover h1.longer { font-size: 23pt; line-height: 1.08; }
@@ -1020,6 +1028,7 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
       <div class="row"><label for="paperSel">Page size</label><select id="paperSel">
         <option value="pocket">Pocket, 108 × 175 mm</option><option value="a5">A5, 148 × 210 mm</option><option value="trade">Trade, 6 × 9 in</option>
         <option value="b5">B5, 176 × 250 mm</option><option value="a4">A4, 210 × 297 mm</option><option value="letter">US Letter, 8.5 × 11 in</option></select></div>
+      <div class="row"><label for="textSize">Text size</label><input type="range" id="textSize" data-setting="textSize" min="80" max="150" step="5"><output for="textSize"></output></div>
     </section>
     <section>
       <h3>Listen</h3>
@@ -1671,7 +1680,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
   window.bookTools = { checkBook, saveBook, listBooks, deleteBook, prepare };
-  const LIMIT = 50000;   // characters in a part; see prepare()
+  const LIMIT = 80000;   // characters in a part, some 55 pages; see prepare()
   // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
   const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/" };
   const P = new URLSearchParams(location.search);
@@ -1707,13 +1716,14 @@ window.bookReady = (async () => {
     say("Setting the text into pages…", false);
     await loadScripts(["vendor/marked.umd.js", "vendor/purify.min.js"]);
     const part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
-    fillBook(book, ref, part);
+    const toc = fillBook(book, ref, part);
     window.bookData = book;   // for the Library's search through every part
     const { list, parts } = prepare(book);
     window.bookInfo = {
       key, ref, from: book.from, title: book.title, url: book.url, site: book.site, part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
       parts: parts.map(p => ({ group: p.group, titles: [...new Set(p.units.map(u => list[u.i].title))], from: list[p.units[0].i].title, to: list[p.units[p.units.length - 1].i].title,
-        count: new Set(p.units.map(u => u.i)).size, piece: p.units[0].k, size: p.size }))
+        count: new Set(p.units.map(u => u.i)).size, piece: p.units[0].k, size: p.size })),
+      toc
     };
     return window.bookInfo;
   } catch (err) {
@@ -1788,7 +1798,7 @@ window.bookReady = (async () => {
     return {
       v: 1, title: b.title, site: b.site, url: b.url, byline: b.byline, copyright: b.copyright, notice: b.notice,
       licenses: (b.licenses || []).map(f => new URL(f, base).href), from: "shelf",
-      chapters: b.chapters.map(c => ({ title: c.title, url: new URL(c.path, base).href, source: c.source || "", markdown: c.markdown }))
+      chapters: b.chapters.map(c => ({ title: c.title, url: new URL(c.path, base).href, source: c.source || "", markdown: c.markdown, group: c.group || "", shown: c.shown, label: c.label }))
     };
   }
 
@@ -1903,7 +1913,7 @@ window.bookReady = (async () => {
   }
 
   // The book's chapters, and its parts. A single page becomes chapters at its ## headings. paged.js slows as a book grows,
-  // so a long book is set in parts of about 50,000 characters, some 50 pages,, and a chapter longer than that is cut at its own ## headings.
+  // so a long book is set in parts of about 80,000 characters, some 55 pages, and a chapter longer than that is cut at its own ## headings.
   function prepare(book) {
     let list = book.chapters.map(c => typeof c.markdown === "string" ? { ...c, markdown: clean(c.markdown) } : { ...c });
     if (list.length === 1 && typeof list[0].markdown === "string") {
@@ -1975,7 +1985,7 @@ window.bookReady = (async () => {
     };
 
     // This part's pieces of each chapter. A page's # is its chapter's title, and its ## its sections.
-    const chapters = list.map((c, i) => ({ title: c.title, name: c.title, url: c.url, i, part: partOf(i), blocks: [], here: false, cont: false }));
+    const chapters = list.map((c, i) => ({ title: c.title, name: c.title, url: c.url, i, part: partOf(i), blocks: [], here: false, cont: false, shown: c.shown, label: c.label }));
     for (const u of parts[part - 1].units) {
       const ch = chapters[u.i];
       const blocks = toBlocks(u.html ? { url: ch.url, html: u.text } : { url: ch.url, markdown: u.text }, doc);
@@ -2008,20 +2018,23 @@ window.bookReady = (async () => {
 
     // Contents: this part's chapters, with the other parts named.
     const toc = el("ol", { class: "toc" });
-    for (const ch of here) toc.append(el("li", {}, el("a", { href: `#${ch.id}` }, el("span", { class: "n" }, String(ch.n)), el("span", { class: "t" }, ch.title))));
+    for (const ch of here) toc.append(el("li", {}, el("a", { href: `#${ch.id}` }, el("span", { class: "n" }, typeof ch.shown === "string" ? ch.shown : String(ch.n)), el("span", { class: "t" }, ch.title))));
     const contents = el("section", { class: "contents", "data-label": "Contents" }, el("h3", {}, "Contents"), toc);
     if (parts.length > 1) {
       const others = el("p", { class: "note" }, `This is part ${part} of ${parts.length}, chapters ${here[0].n} to ${here[here.length - 1].n} of ${chapters.length}. `);
       if (part > 1) others.append(el("a", { href: `?${ref}${part - 1 > 1 ? `&part=${part - 1}` : ""}` }, "Previous part"), " · ");
       if (part < parts.length) others.append(el("a", { href: `?${ref}&part=${part + 1}` }, "Next part"), " · ");
-      others.append("All parts: Books (b).");
+      others.append("All parts: the Library (b).");
       contents.append(others);
     }
     bk.append(contents);
 
     // Chapters, their sections numbered by the reader. An opened book brings no topics; Contents shows its outline.
     for (const ch of here) {
-      bk.append(el("h2", { id: ch.id, "data-n": String(ch.n) }, ch.cont ? `${ch.title}, continued` : ch.title));
+      // A book with its own numbering (the Rust book's 5.1, Appendix A) shows it; others are numbered by the reader.
+      const h2 = el("h2", { id: ch.id, "data-n": String(ch.n) }, ch.cont ? `${ch.title}, continued` : ch.title);
+      if (typeof ch.shown === "string") { h2.dataset.shown = ch.shown; h2.dataset.label = ch.label || ""; }
+      bk.append(h2);
       for (const b of ch.blocks) {
         b.querySelectorAll("a[href]").forEach(a => fixLink(a, ch.url));
         if (b.tagName === "A") fixLink(b, ch.url);
@@ -2069,8 +2082,10 @@ window.bookReady = (async () => {
     const css = $("book-css");
     css.textContent = css.textContent.replace('content: "Pages, Piled";', `content: ${JSON.stringify(book.title.slice(0, 80))};`);
     document.title = `${book.title} · Pages, Piled`;
+    const wholeToc = chapters.map(ch => ({ title: ch.title, id: ch.id, part: ch.part, group: list[ch.i].group || "", shown: typeof ch.shown === "string" ? ch.shown : String(ch.n) }));
     const name = document.querySelector(".top-mid .name");
     if (name) name.textContent = book.title;
+    return wholeToc;
   }
 
   // Markdown or a page's HTML, made safe, then cut into the flat run of blocks the reader numbers.
@@ -2159,7 +2174,7 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, notes: 0, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "auto" };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, notes: 0, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "auto", textSize: 100 };
   const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["auto", "on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
@@ -2189,6 +2204,7 @@ window.bookReady = (async () => {
     s.voice = typeof s.voice === "string" ? s.voice : "";
     s.guideAt = Number.isFinite(Number(s.guideAt)) ? clamp(Math.round(Number(s.guideAt)), 0, 100) : DEFAULTS.guideAt;
     s.mapMarkOp = Number.isFinite(Number(s.mapMarkOp)) ? clamp(Math.round(Number(s.mapMarkOp)), 5, 100) : DEFAULTS.mapMarkOp;
+    s.textSize = Number.isFinite(Number(s.textSize)) ? clamp(Math.round(Number(s.textSize) / 5) * 5, 80, 150) : DEFAULTS.textSize;
     s.guideLines = Number.isFinite(Number(s.guideLines)) ? clamp(Math.round(Number(s.guideLines)), 0, 5) : DEFAULTS.guideLines;
     for (const [k, list] of Object.entries(CHOICES)) if (!list.includes(s[k])) s[k] = DEFAULTS[k];
     delete s.listenStay;   // the old Follow-first switch; Stay is the default now
@@ -2205,15 +2221,15 @@ window.bookReady = (async () => {
   const tplBk = $("book").content.querySelector(".bk");
   [...tplBk.children].forEach((el, i) => { el.dataset.b = i; });
   const nBlocks = tplBk.children.length;
-  const chapters = [...tplBk.querySelectorAll(":scope > h2")].map(h => ({ b: +h.dataset.b, n: +h.dataset.n, id: h.id, title: h.textContent.trim() }));
+  const chapters = [...tplBk.querySelectorAll(":scope > h2")].map(h => ({ b: +h.dataset.b, n: +h.dataset.n, shown: h.dataset.shown ?? h.dataset.n, id: h.id, title: h.textContent.trim() }));
   // Sections are written without numbers; each takes its chapter's number and its place in the chapter, 4.1, 4.2 and so on,
   // before the book is cut into pages, so the numbers, s4.2 and #links hold at every page size.
   const sections = [];
   {
-    let n = 0, k = 0;
+    let n = 0, k = 0, shown = "";
     for (const el of tplBk.children) {
-      if (el.tagName === "H2") { n = +el.dataset.n; k = 0; }
-      else if (el.tagName === "H3" && n) { el.dataset.s = `${n}.${++k}`; sections.push({ b: +el.dataset.b, n, k, id: el.id, title: el.textContent.trim() }); }
+      if (el.tagName === "H2") { n = +el.dataset.n; shown = el.dataset.shown ?? el.dataset.n; k = 0; }
+      else if (el.tagName === "H3" && n) { ++k; el.dataset.s = shown ? `${shown}.${k}` : ""; sections.push({ b: +el.dataset.b, n, k, s: el.dataset.s, id: el.id, title: el.textContent.trim() }); }
     }
   }
 
@@ -2548,7 +2564,7 @@ window.bookReady = (async () => {
       btn.type = "button";
       btn.className = "toc-item";
       btn.innerHTML = '<span class="n"></span><span class="t"></span><span class="p"></span>';
-      btn.querySelector(".n").textContent = c.n;
+      btn.querySelector(".n").textContent = c.shown ?? c.n;
       btn.querySelector(".t").textContent = c.title;
       btn.querySelector(".p").textContent = String(unitAt(pageByBlock, { b: c.b, f: 0 }) + 1);
       btn.addEventListener("click", () => { markPlace(); closeGrid(true); jump({ b: c.b, f: 0 }); closeOverlays(); });
@@ -2562,7 +2578,7 @@ window.bookReady = (async () => {
           a.href = "#";
           a.dataset.b = s.b;
           a.innerHTML = '<span class="n"></span><span class="t"></span><span class="p"></span>';
-          a.querySelector(".n").textContent = `${s.n}.${s.k}`;
+          a.querySelector(".n").textContent = s.s;
           a.querySelector(".t").textContent = s.title;
           a.querySelector(".p").textContent = String(unitAt(pageByBlock, { b: s.b, f: 0 }) + 1);
           const li = document.createElement("li");
@@ -2577,9 +2593,35 @@ window.bookReady = (async () => {
         ul.className = "toc-notes";
         li.appendChild(ul);
       }
-      tocList.appendChild(li);
-      return { b: c.b, btn, li, title: c.title };
+      return { b: c.b, btn, li, title: c.title, id: c.id };
     });
+    // A book in parts lists every chapter, under its own groups; one in another part opens that part there.
+    const whole = window.bookInfo && window.bookInfo.toc && window.bookInfo.parts && window.bookInfo.parts.length > 1 ? window.bookInfo.toc : null;
+    const groups = whole && whole.some(t => t.group);
+    if (!whole) tocItems.forEach(t => tocList.appendChild(t.li));
+    else {
+      tocList.appendChild(tocItems[0].li);
+      const here = new Map(tocItems.slice(1).map(t => [t.id, t]));
+      let group = null;
+      for (const t of whole) {
+        if (groups && t.group !== group) {
+          group = t.group;
+          if (group) tocList.appendChild(Object.assign(document.createElement("li"), { className: "toc-group", textContent: group }));
+        }
+        if (here.has(t.id)) { tocList.appendChild(here.get(t.id).li); continue; }
+        const a = document.createElement("a");
+        a.className = "toc-item toc-away";
+        a.href = `?${window.bookInfo.ref}${t.part > 1 ? `&part=${t.part}` : ""}#${t.id}`;
+        a.innerHTML = '<span class="n"></span><span class="t"></span><span class="p"></span>';
+        a.querySelector(".n").textContent = t.shown;
+        a.querySelector(".t").textContent = t.title;
+        a.title = `In part ${t.part}`;
+        const li = document.createElement("li");
+        li.appendChild(a);
+        tocList.appendChild(li);
+      }
+      requestAnimationFrame(() => { if (tocItems[1]) keepInView(tocItems[1].li); });
+    }
     places = [{ b: 0, n: "", title: "Cover" }, { b: 1, n: "", title: "Contents" }, ...chapters].map(c => ({
       ...c, page: unitAt(pageByBlock, { b: c.b, f: 0 }), words: `${c.n} ${c.title}`.toLowerCase().split(/\s+/).filter(Boolean)
     }));
@@ -3145,6 +3187,7 @@ window.bookReady = (async () => {
     if (key === "expand") { if (linear()) relayoutAll(a, true); else layoutPages(false); return; }
     if (key === "stat" || key === "pct") { updateChrome(); return; }
     if (key === "paper") { repaginate(a); return; }
+    if (key === "textSize") { repaginate(a, `Text size: ${val}%`); return; }
     if (key === "scrollStyle") { relayoutAll(a, true); focusReader(); return; }
     if (key === "rate" || key === "voice") {
       // a dragged speed slider restarts the sentence once, when it comes to rest
@@ -3187,6 +3230,12 @@ window.bookReady = (async () => {
     });
   });
   document.querySelectorAll("input[type=range][data-setting]").forEach(inp => {
+    // Text size sets the pages again, so it waits for the slider to come to rest; while dragging, only its readout moves.
+    if (inp.id === "textSize") {
+      inp.addEventListener("input", () => { inp.nextElementSibling.textContent = inp.value + "%"; });
+      inp.addEventListener("change", () => setSetting("textSize", Number(inp.value)));
+      return;
+    }
     inp.addEventListener("input", () => {
       let v = Number(inp.value);
       if (inp.id === "guideAt" && Math.abs(v - 50) <= 3) { v = 50; inp.value = "50"; }   // the middle holds the thumb a little, so it is easy to find again
@@ -3196,11 +3245,11 @@ window.bookReady = (async () => {
   // the place's readout puts the zone back in the middle
   $("guideAtOut").addEventListener("click", () => setSetting("guideAt", 50));
   $("reset").addEventListener("click", () => {
-    const a = currentAnchor(), paper = S.paper;
+    const a = currentAnchor(), paper = S.paper, size = S.textSize;
     S = Object.assign({}, DEFAULTS);
     saveSettings();
     applySettings();
-    if (ready) (S.paper !== paper ? repaginate(a) : relayoutAll(a, true));
+    if (ready) (S.paper !== paper || S.textSize !== size ? repaginate(a) : relayoutAll(a, true));
   });
   $("paperSel").addEventListener("change", e => setSetting("paper", e.target.value));
 
@@ -4205,7 +4254,7 @@ window.bookReady = (async () => {
   });
   window.addEventListener("wheel", e => {
     if (!ready || gridOpen) return;
-    if (S.view === "scroll" || e.target.closest(".panel, .popover, .search")) return;
+    if (S.view === "scroll" || e.target.closest(".panel, .popover, .search, .library")) return;   // these scroll themselves
     e.preventDefault();
     pageWheel(e);
   }, { passive: false });
@@ -4451,7 +4500,7 @@ window.bookReady = (async () => {
 
   // The book's CSS at the chosen page size: the page and its margins in proportion, every other length by √(width / A5 width).
   function bookCss(paper) {
-    const k = Math.sqrt(paper.w / 148), fx = paper.w / 148, fy = paper.h / 210;
+    const k = Math.sqrt(paper.w / 148) * (S.textSize || 100) / 100, fx = paper.w / 148, fy = paper.h / 210;   // the type, with the chosen text size
     const mm = v => +v.toFixed(2) + "MM";     // placeholder unit, left alone by the scaling below
     return $("book-css").textContent
       .replace("size: A5;", `size: ${mm(paper.w)} ${mm(paper.h)};`)
@@ -4491,7 +4540,7 @@ window.bookReady = (async () => {
   }
 
   // A new page size sets the whole book again, then everything that counts pages is rebuilt and you return to the same words.
-  async function repaginate(a) {
+  async function repaginate(a, said) {
     if (!ready) return;
     ready = false;
     thumbsBtn.disabled = true;
@@ -4520,7 +4569,7 @@ window.bookReady = (async () => {
     if (lastQuery && results.length) { const was = hlOn; runSearch(lastQuery); if (!was) setHl(false); }
     relayoutAll(a, true);
     focusReader();
-    toast(`Page size: ${(PAPER[S.paper] || PAPER.a5).label}`, 1600);
+    toast(said || `Page size: ${(PAPER[S.paper] || PAPER.a5).label}`, 1600);
   }
 
   async function build() {

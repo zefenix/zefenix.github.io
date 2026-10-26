@@ -114,12 +114,34 @@ def build_rust(clone, out):
     dest = os.path.join(out, "rust-book")
     shutil.rmtree(dest, ignore_errors=True)
     os.makedirs(dest)
+    # The book's own structure: front matter unnumbered, chapters 1 to 21 with their subchapters as 5.1, 5.2,
+    # and appendices A to G. Each chapter and its subchapters are one group, which the reader keeps in one part.
     chapters, used = [], set()
-    for m in re.finditer(r"\[([^\]]+)\]\(([^)\s]+\.md)\)", open(os.path.join(src, "SUMMARY.md"), encoding="utf-8").read()):
-        title, file = m.group(1), m.group(2)
+    top, sub, group = 0, 0, "Front matter"
+    for line in open(os.path.join(src, "SUMMARY.md"), encoding="utf-8").read().split("\n"):
+        m = re.match(r"^(\s*)(?:-\s*)?\[([^\]]+)\]\(([^)\s]+\.md)\)", line)
+        if not m:
+            continue
+        indent, title, file = len(m.group(1)), m.group(2), m.group(3)
+        bullet = line.lstrip().startswith("-")
+        if not bullet:
+            shown, label = "", ""
+        elif indent == 0 and title == "Appendix":
+            group, shown, label = "Appendix", "", ""
+        elif indent == 0:
+            top, sub, group = top + 1, 0, title
+            shown, label = str(top), f"Chapter {top}"
+        elif group == "Appendix":
+            letter = re.match(r"^([A-Z])\s*-\s*", title)
+            shown, label = (letter.group(1), f"Appendix {letter.group(1)}") if letter else ("", "Appendix")
+            if letter:
+                title = title[letter.end():]
+        else:
+            sub += 1
+            shown, label = f"{top}.{sub}", f"{top}.{sub}"
         md = rust_chapter(os.path.join(src, file), src)
         used.update(re.findall(r'(?:src="|\]\()(img/[^")\s]+)', md))
-        chapters.append({"title": title, "path": file, "markdown": md})
+        chapters.append({"title": title, "path": file, "group": group, "shown": shown, "label": label, "markdown": md})
     for img in sorted(used):
         os.makedirs(os.path.join(dest, os.path.dirname(img)), exist_ok=True)
         shutil.copyfile(os.path.join(src, img), os.path.join(dest, img))
