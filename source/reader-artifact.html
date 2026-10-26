@@ -4313,14 +4313,25 @@ window.bookReady = (async () => {
     focusReader();
   }
   function tocKey(e) {
-    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return false;
     const step = { j: 1, ArrowDown: 1, k: -1, ArrowUp: -1 }[e.key];
-    if (step) { e.preventDefault(); tocSelect(tSel + step); return; }
-    if (e.key === "g" || e.key === "G") { e.preventDefault(); tocSelect(e.key === "g" ? 0 : tocLinks().length - 1); return; }
-    if (e.key === "Enter") { e.preventDefault(); const el = tocLinks()[tSel]; tocNav = false; tocLinks().forEach(x => x.classList.remove("k-sel")); if (el) el.click(); if (tocPeeked) closeOverlays(); tocPeeked = false; return; }
-    if (e.key === "L") { e.preventDefault(); enterToc(false); return; }
-    if (e.key === "/") { e.preventDefault(); enterToc(false); openSearch(); }
+    if (step) { e.preventDefault(); tocSelect(tSel + step); return true; }
+    if (e.key === "g" || e.key === "G") { e.preventDefault(); tocSelect(e.key === "g" ? 0 : tocLinks().length - 1); return true; }
+    if (e.key === "Enter") { e.preventDefault(); const el = tocLinks()[tSel]; tocNav = false; tocLinks().forEach(x => x.classList.remove("k-sel")); if (el) el.click(); if (tocPeeked) closeOverlays(); tocPeeked = false; return true; }
+    if (e.key === "L") { e.preventDefault(); enterToc(false); return true; }
+    if (e.key === "h" || e.key === "l" || e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); return true; }
+    if (e.key.length > 1 && e.key !== "/") return true;   // Shift and the like change nothing
+    // Any other key, o or / or a, leaves Contents and does what it always does.
+    enterToc(false);
+    return false;
   }
+  // A click outside Contents gives the keys back to the page.
+  document.addEventListener("pointerdown", e => {
+    if (!tocNav || tocPanel.contains(e.target)) return;
+    tocNav = false;
+    tocLinks().forEach(x => x.classList.remove("k-sel"));
+    tocPeeked = false;
+  }, true);
   function toggleOutline() {
     setSetting("outline", outlineOn() ? "off" : "on");
     applySettings();
@@ -4347,7 +4358,7 @@ window.bookReady = (async () => {
     const typing = !!(t.closest && t.closest("input, textarea, select")) && t.offsetParent !== null;   // a hidden search box doesn't count
     // In the Library, / and Ctrl+F find a book or words in this one; b and Esc close it; other keys wait.
     if (!booksEl.hidden && !isEsc(e)) { libKey(e, typing); return; }
-    if (tocNav && !isEsc(e)) { tocKey(e); return; }
+    if (tocNav && !isEsc(e) && tocKey(e)) return;
     if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "f") {
       if (t === q) return;                       // a second Ctrl+F reaches the browser's own find bar
       e.preventDefault();
@@ -4938,7 +4949,7 @@ window.bookReady = (async () => {
     const close = elt("button", { type: "button", className: "tog icon o-close", ariaLabel: "Close the outline" });
     close.innerHTML = '<svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
     close.addEventListener("click", () => openSheet(false));
-    const box = [close, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts" }, "Outline · L"), elt("p", { className: "o-title" }, title)];
+    const box = [close, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts" }, "Outline"), elt("p", { className: "o-title" }, title)];
     if (!entries.length) box.push(elt("p", { className: "empty" }, b && b.kind === "card" ? "Open the docs with the bookmarklet to see their outline here." : "No chapters to show."));
     let group = null, ol = null;
     for (const e of entries) {
@@ -5040,6 +5051,7 @@ window.bookReady = (async () => {
       if (step) { e.preventDefault(); outlineSelect(oSel + step); return; }
       if (e.key === "g" || e.key === "G") { e.preventDefault(); outlineSelect(e.key === "g" ? 0 : oLinks().length - 1); return; }
       if (e.key === "Enter") { e.preventDefault(); const a = oLinks()[oSel]; if (a) a.click(); return; }
+      if (["h", "l", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); return; }   // the books stay as they are
     }
     if (KEYMOVE[e.key]) { e.preventDefault(); move(KEYMOVE[e.key], e.key); return; }
     if (e.key === "Enter" && selected) { e.preventDefault(); openBook(selected._book); return; }
