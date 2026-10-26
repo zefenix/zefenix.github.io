@@ -729,7 +729,12 @@ a.toc-item { text-decoration: none; }
 /* Now reading */
 .lib-now { display: flex; gap: 22px; align-items: flex-start; padding: 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
 .lib-now .bcover { --cw: 132px; }
-.lib-now .d { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.lib-now .d { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; align-self: stretch; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+/* the panel keeps one height whatever it shows, so the shelves below never move */
+.lib-now { height: 225px; box-sizing: border-box; }
+.lib-now :is(.src, .by) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lib-outline a.o-sel { background: var(--bar); color: var(--ink); box-shadow: inset 0 0 0 2px var(--accent); }
+.lib-outline.active { border-color: var(--accent); }
 .lib-now .kick { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .lib-now .title { margin: 0; font: 400 22px/1.2 var(--f-book); color: var(--ink); text-wrap: balance; }
 .lib-now .src, .lib-now .by { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere; }
@@ -749,6 +754,7 @@ a.toc-item { text-decoration: none; }
 .lib-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 26px; align-items: start; }
 .lib-main { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
 .lib-outline { position: sticky; top: 64px; max-height: calc(100vh - 96px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 10px 14px 14px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
+.lib-outline .kick { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .lib-outline .o-title { margin: 2px 0 10px; font: 400 16px/1.25 var(--f-book); color: var(--ink); }
 .lib-outline .grp { margin: 12px 0 3px; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 .lib-outline ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
@@ -770,9 +776,9 @@ a.toc-item { text-decoration: none; }
 .bm-help { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
 .app.dropping::after { content: "Drop Markdown files or a folder to read them as a book"; position: fixed; inset: 12px; z-index: 40; display: grid; place-items: center; border: 2px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); font-family: var(--f-book); font-size: 20px; color: var(--ink); pointer-events: none; }
 @media (max-width: 600px) {
-  .lib-now { flex-direction: column; align-items: center; text-align: center; padding: 16px; }
-  .lib-now .prog, .lib-now .acts { justify-content: center; }
-  .lib-now .bcover { --cw: 112px; }
+  .lib-now { gap: 14px; padding: 14px; height: 200px; }
+  .lib-now .bcover { --cw: 96px; }
+  .lib-now .title { font-size: 18px; }
   .lib-books { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 20px 12px; }
   .lib-book .bcover { --cw: 100px; }
   .library.v-shelf .lib-books { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); grid-auto-rows: 186px;
@@ -4986,7 +4992,7 @@ window.bookReady = (async () => {
       const toc = b.toc || [], ids = window.bookTools.chapterIds(toc.map(t => t.title));
       entries = toc.map((t, i) => ({ title: t.title, shown: typeof t.shown === "string" ? t.shown : String(i + 1), group: t.group, href: `${b.href}#${ids[i]}` }));
     }
-    const box = [elt("span", { className: "kick" }, "Outline"), elt("p", { className: "o-title" }, title)];
+    const box = [elt("span", { className: "kick", title: "L moves the keys here and back" }, "Outline · L"), elt("p", { className: "o-title" }, title)];
     if (!entries.length) box.push(elt("p", { className: "empty" }, b && b.kind === "card" ? "Open the docs with the bookmarklet to see their outline here." : "No chapters to show."));
     let group = null, ol = null;
     for (const e of entries) {
@@ -5007,6 +5013,7 @@ window.bookReady = (async () => {
       ol.append(elt("li", { className: /\./.test(e.shown || "") ? "sub" : "" }, a));
     }
     outlineEl.replaceChildren(...box);
+    if (inOutline) enterOutline(true);
     requestAnimationFrame(() => { const c = outlineEl.querySelector('[aria-current="true"]'); if (c) outlineEl.scrollTop = c.offsetTop - outlineEl.offsetTop - 60; });
   }
 
@@ -5040,6 +5047,30 @@ window.bookReady = (async () => {
     select(items.indexOf(best.el), true);
   }
   const KEYMOVE = { j: "j", ArrowDown: "j", k: "k", ArrowUp: "k", h: "h", ArrowLeft: "h", l: "l", ArrowRight: "l" };
+  // L moves the keys between the books and the outline; there j and k (or the arrows) move, g and G go to the first
+  // and last chapter, Enter opens, and L or Esc goes back to the books.
+  let inOutline = false, oSel = -1;
+  const oLinks = () => [...outlineEl.querySelectorAll("a")];
+  function outlineSelect(i) {
+    const links = oLinks();
+    links.forEach(a => a.classList.remove("o-sel"));
+    if (!links.length) return;
+    oSel = Math.max(0, Math.min(links.length - 1, i));
+    links[oSel].classList.add("o-sel");
+    links[oSel].focus({ preventScroll: true });
+    links[oSel].scrollIntoView({ block: "nearest" });
+  }
+  function enterOutline(on) {
+    inOutline = on && oLinks().length > 0;
+    outlineEl.classList.toggle("active", inOutline);
+    if (inOutline) {
+      const cur = oLinks().findIndex(a => a.getAttribute("aria-current") === "true");
+      outlineSelect(cur >= 0 ? cur : 0);
+    } else {
+      oLinks().forEach(a => a.classList.remove("o-sel"));
+      if (selected) selected.focus({ preventScroll: true });
+    }
+  }
   function libKey(e, typing) {
     if (e.altKey) return;
     if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") || (e.key === "/" && !typing)) { e.preventDefault(); libFind.focus(); libFind.select(); return; }
@@ -5047,6 +5078,13 @@ window.bookReady = (async () => {
     if (typing) {
       if (e.target === libFind && (e.key === "ArrowDown" || e.key === "Enter")) { e.preventDefault(); select(0, true); }
       return;
+    }
+    if (e.key === "L") { e.preventDefault(); enterOutline(!inOutline); return; }
+    if (inOutline) {
+      const step = { j: 1, ArrowDown: 1, k: -1, ArrowUp: -1 }[e.key];
+      if (step) { e.preventDefault(); outlineSelect(oSel + step); return; }
+      if (e.key === "g" || e.key === "G") { e.preventDefault(); outlineSelect(e.key === "g" ? 0 : oLinks().length - 1); return; }
+      if (e.key === "Enter") { e.preventDefault(); const a = oLinks()[oSel]; if (a) a.click(); return; }
     }
     if (KEYMOVE[e.key]) { e.preventDefault(); move(KEYMOVE[e.key], e.key); return; }
     if (e.key === "Enter" && selected) { e.preventDefault(); openBook(selected._book); return; }
@@ -5056,13 +5094,14 @@ window.bookReady = (async () => {
   // Esc: first a pending Remove all, then the selection, then the Library itself.
   function libEsc() {
     if (askingClear) { askClear(false); return; }
+    if (inOutline) { enterOutline(false); return; }
     if (selected) { select(-1); return; }
     setBooks(false);
     focusReader();
   }
 
   function setBooks(open) {
-    if (open) { selected = null; askingClear = false; renderShelf(); renderPanel(); setOptions(false); closeSearch(true); }
+    if (open) { selected = null; askingClear = false; inOutline = false; outlineEl.classList.remove("active"); renderShelf(); renderPanel(); setOptions(false); closeSearch(true); }
     booksEl.hidden = !open;
     app.classList.toggle("lib-on", open);
   }
