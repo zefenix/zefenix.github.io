@@ -561,19 +561,13 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 /* Zen (z, the strip at the top, a swipe on a bar): the menus hidden, the slider kept */
 .app.tucked .top, .app.tucked .dock-ctl, .app.tucked .dock-page { display: none; }
 @media (min-width: 861px) { .app.tucked .dock .nav { grid-column: 2; } }   /* the slider stays in the middle when the controls beside it go */
-.app.tucked.listening .top { display: grid; }   /* Listen's row stays in Zen, as on a phone */
-.app.tucked.listening .top > :not(#tray) { display: none; }
 /* ---------- phones: the same bars, regrouped; Options in tabs; Listen adds a row ---------- */
 .opt-tabs, .tray, .tray-listen, .menu-strip { display: none; }
-/* One Listen row on every screen: Listen's steps by sentence and paragraph, stop and the way back drop down from
-   the top bar as a row of their own, as on a phone. */
-.app.listening .tray, .app.listening .tray-listen { display: flex; }
-.tray { grid-column: 1 / -1; justify-content: center; align-items: center; gap: 8px; }
-.tray-listen { gap: 4px; }
-.tray .step { width: 28px; height: 28px; }
-.tray .step svg { width: 12px; height: 12px; stroke-width: 1.9; }
-.tray .step[data-on] { background: var(--sel); color: var(--sel-ink); border-color: transparent; }
-#listenPrev, #listenNext, #listenBack { display: none !important; }
+/* One set of Listen's steps on every screen: the phone's, by sentence and paragraph. On a wider screen they sit in
+   the top bar's own row, a pair each side of Listen, styled like its other icon buttons, while Listen plays. */
+#listenPrev, #listenNext { display: none !important; }
+#ctlFind > .lstep { display: none; }
+.app.listening #ctlFind > .lstep { display: inline-flex; }
 @media (max-width: 960px) {
   #topR > .ctl { margin-left: 0; }
   #searchBtn { margin-left: auto; }   /* search, Listen, full screen and theme sit right, beside the right panel's toggle */
@@ -3955,6 +3949,15 @@ window.bookReady = (async () => {
   };
   phoneMQ.addEventListener("change", placeChip);
   placeChip();
+  // Listen's steps: in the phone's row under the top bar, or in the top bar beside Listen, two each side.
+  const STEPS = [["rowParaPrev", "Previous paragraph (Q)"], ["rowSentPrev", "Previous sentence (q)"], ["rowSentNext", "Next sentence (w)"], ["rowParaNext", "Next paragraph (W)"]];
+  const placeSteps = () => {
+    const btns = STEPS.map(([id, title]) => { const b = $(id); b.title = phoneMQ.matches ? "" : title; b.classList.toggle("step", phoneMQ.matches); b.classList.toggle("tog", !phoneMQ.matches); b.classList.toggle("icon", !phoneMQ.matches); b.classList.toggle("lstep", !phoneMQ.matches); return b; });
+    if (phoneMQ.matches) { $("rowStop").before(btns[0], btns[1]); $("rowStop").after(btns[2], btns[3]); }
+    else { $("listenBtn").before(btns[0], btns[1]); $("listenBtn").after(btns[2], btns[3]); }
+  };
+  phoneMQ.addEventListener("change", placeSteps);
+  placeSteps();
 
   // The strip above the page brings the menus back or tucks them, as the strip below it opens All pages.
   function setTucked(on) {
