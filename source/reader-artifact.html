@@ -639,6 +639,24 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
   .tick::before, .view { transition: none; }
   .flash { animation-duration: .01s; }
 }
+/* the Books sheet: what you are reading, its parts, and the bookmarklet */
+.top-mid .name { border: 0; padding: 0; background: none; color: inherit; cursor: pointer; text-overflow: ellipsis; overflow: hidden; max-width: 30vw; }
+.top-mid .name:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.books { right: auto; left: 50%; translate: -50% 0; width: min(380px, calc(100vw - 32px)); }
+.books .bk-title { margin: 0; font-family: var(--f-book); font-size: 17px; line-height: 1.3; color: var(--ink); }
+.books .bk-src { margin: 0; font-size: 12.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
+.books a { color: var(--accent); text-underline-offset: 3px; }
+.books .bk-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 40vh; overflow-y: auto; }
+.books .bk-parts a { display: block; padding: 6px 8px; border-radius: 6px; font-size: 13px; line-height: 1.35; color: var(--ink-soft); text-decoration: none; }
+.books .bk-parts a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.books .bk-parts a[aria-current="true"] { background: var(--bar); color: var(--ink); }
+.books .bk-parts b { font-weight: 600; color: var(--accent); margin-right: 6px; }
+.books .bk-act { align-self: flex-start; padding: 7px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
+.books .bk-msg { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
+.bm-row { display: flex; align-items: center; gap: 10px; }
+.bm-link { padding: 7px 12px; border: 1px dashed var(--accent); border-radius: 7px; font-family: var(--f-book); font-style: italic; font-size: 15px; text-decoration: none !important; cursor: grab; }
+.bm-copy { padding: 6px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; }
+.bm-help { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
 </style>
 
 <!-- The book's own print styles. paged.js reads this text; the browser never applies it directly. -->
@@ -728,12 +746,26 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 
 .bk .colophon { margin-top: 14mm; text-align: center; font-style: italic; font-size: 8.6pt; color: var(--ink-soft); }
 .bk .colophon p { margin: 0; text-indent: 0; text-align: center; }
+/* books opened from elsewhere: their own headings, images, long code and tables */
+.bk.ext h4 { margin: 4.5mm 0 1.8mm; font-size: 10.4pt; font-weight: 600; line-height: 1.3; break-after: avoid; }
+.bk.ext h5, .bk.ext h6 { margin: 3.5mm 0 1.4mm; font-size: 9.6pt; font-weight: 600; font-style: italic; line-height: 1.3; break-after: avoid; }
+.bk.ext h4 + p, .bk.ext h5 + p, .bk.ext h6 + p, .bk.ext blockquote + p, .bk.ext table + p { text-indent: 0; }
+.bk.ext img { max-width: 100%; height: auto; }
+.bk.ext pre { break-inside: auto; overflow-wrap: anywhere; }
+.bk.ext table { break-inside: auto; table-layout: fixed; }
+.bk.ext td:first-child { white-space: normal; }
+.bk.ext td, .bk.ext th { overflow-wrap: anywhere; }
+.bk.ext blockquote { margin: 3mm 0; padding-left: 4mm; border-left: .8pt solid var(--line); color: var(--ink-soft); }
+.bk.ext blockquote p { text-indent: 0; }
+.bk.ext hr { border: 0; border-top: .5pt solid var(--hair); margin: 5mm 20%; }
+.bk.ext .cover a { color: inherit; text-decoration-color: currentColor; }
+.bk.ext .next-part { margin-top: 10mm; text-indent: 0; text-align: center; font-style: italic; }
 </style>
 
 <div class="app loading" id="app" data-view="paged">
   <header class="bar top" id="top">
     <div class="top-side top-l" id="topL"></div>
-    <div class="top-mid"><span class="name">Pages, Piled</span><span class="chap" id="chap" aria-live="polite"></span></div>
+    <div class="top-mid"><button type="button" class="name" id="nameBtn" title="Books (b)">Pages, Piled</button><span class="chap" id="chap" aria-live="polite"></span></div>
     <div class="top-side top-r" id="topR"></div>
     <div class="tray" id="tray">
     <div class="tray-listen" role="group" aria-label="Listen">
@@ -901,7 +933,19 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
     <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · - = 0 spread · c contents or topics · C sidebar · m minimap · a listen · q w or ( ) sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <button type="button" class="reset" id="booksFromOpts">Books and the bookmarklet</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
+  </div>
+
+  <div class="popover all books" id="books" role="dialog" aria-label="Books" hidden>
+    <section id="booksNow"></section>
+    <section>
+      <h3>Read any docs page</h3>
+      <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a><button type="button" class="bm-copy" id="bmCopy">Copy</button></div>
+      <p class="bm-help">On a computer, drag the link to your bookmarks bar. Then, on any documentation page, click it: the page opens here as a book, and the site’s other pages can follow.</p>
+      <p class="bm-help">On a phone, tap Copy and bookmark any page. Edit that bookmark, name it “Pages, Piled” and paste over its address. On a docs page, choose the bookmark from Bookmarks in Safari, or type its name in Chrome’s address bar and tap it.</p>
+      <p class="bm-help">Your browser fetches the page as it does when you read it. Nothing is sent to a server, and the book stays in this browser.</p>
+    </section>
   </div>
 
   <div class="search" id="searchBox" role="dialog" aria-label="Search the text" hidden>
@@ -1358,9 +1402,492 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
   </ul></div>
 </template>
 
+<script type="text/plain" id="bookmarklet-src">
+(() => {
+  const R = "__READER__", RO = new URL(R).origin, here = location.href.split("#")[0];
+  const w = window.open(R + "?from=bookmarklet", "_blank");
+  if (!w) { alert("Pages, Piled: the browser blocked the new tab. Allow pop-ups for this site, then click the bookmarklet again."); return; }
+  const meta = n => (document.querySelector(`meta[name="${n}"],meta[property="${n}"]`) || {}).content || "";
+  const h1 = document.querySelector("main h1, article h1, h1");
+  const title = ((h1 && h1.textContent) || meta("og:title") || document.title || location.hostname).trim().slice(0, 300);
+  const site = (meta("og:site_name") || location.hostname).trim().slice(0, 150);
+  const foot = [...document.querySelectorAll("footer")].map(f => (f.innerText.match(/(?:©|\(c\)|copyright)[^\n]{0,200}/i) || [""])[0]).find(Boolean);
+  const copyright = (meta("copyright") || foot || "").trim().slice(0, 300);
+  const same = u => { try { return new URL(u, here).origin === location.origin; } catch { return false; } };
+  const get = async (u, md) => {
+    try {
+      const r = await fetch(u, { credentials: "same-origin", headers: { Accept: md ? "text/markdown, text/plain;q=0.9, */*;q=0.1" : "text/html" } });
+      if (!r.ok) return null;
+      const t = await r.text(), html = /html/i.test(r.headers.get("content-type") || "") || /^\s*</.test(t);
+      return md === !html ? t : null;
+    } catch { return null; }
+  };
+  const mdOf = async u => {
+    const x = new URL(u); x.hash = ""; x.search = "";
+    const alt = u === here && document.querySelector('link[rel="alternate"][type="text/markdown"]');
+    const base = x.href.replace(/\/$/, "");
+    for (const t of [alt && new URL(alt.getAttribute("href"), u).href, /\.(md|txt)$/.test(x.pathname) ? x.href : base + ".md"]) {
+      if (t && same(t)) { const m = await get(t, true); if (m) return m; }
+    }
+    return null;
+  };
+  const mainOf = d => (d.querySelector("main article, article, main, [role=main]") || d.body).innerHTML.slice(0, 5e6);
+  const findIndex = async () => {
+    const parts = location.pathname.split("/").filter(Boolean);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const u = location.origin + "/" + parts.slice(0, i).map(p => p + "/").join("") + "llms.txt";
+      const t = await get(u, true);
+      if (t && /\]\(/.test(t)) {
+        let group = "";
+        const list = [];
+        for (const line of t.split("\n")) {
+          const g = /^##\s+(.+)/.exec(line);
+          if (g) { group = g[1].trim(); continue; }
+          const m = /^\s*[-*]\s*\[([^\]]+)\]\(([^)\s]+)\)/.exec(line);
+          if (m && same(m[2]) && !list.some(c => c.url === new URL(m[2], u).href)) list.push({ title: m[1].trim(), url: new URL(m[2], u).href, group });
+        }
+        const name = (/^#\s+(.+)/m.exec(t) || [])[1];
+        if (list.length > 1) return { url: u, list, title: (name || site).trim().slice(0, 300) };
+      }
+    }
+    return null;
+  };
+  let book = null, idx = null, ready = false, sent = false, busy = false;
+  const send = () => { if (book && ready && !sent) { sent = true; w.postMessage(book, RO); } };
+  addEventListener("message", async e => {
+    if (e.source !== w || e.origin !== RO || !e.data) return;
+    if (e.data.type === "pages-piled/ready") { ready = true; send(); }
+    if (e.data.type === "pages-piled/want-site" && idx && !busy) {
+      busy = true;
+      const out = new Array(idx.list.length);
+      let done = 0, next = 0;
+      const work = async () => {
+        while (next < idx.list.length) {
+          const i = next++, c = idx.list[i];
+          const md = await mdOf(c.url);
+          if (md) out[i] = { ...c, markdown: md };
+          else {
+            const h = await get(c.url, false);
+            if (h) out[i] = { ...c, html: mainOf(new DOMParser().parseFromString(h, "text/html")) };
+          }
+          w.postMessage({ type: "pages-piled/progress", done: ++done, total: idx.list.length }, RO);
+        }
+      };
+      await Promise.all([1, 2, 3, 4, 5, 6].map(work));
+      const chapters = out.filter(Boolean);
+      w.postMessage({ type: "pages-piled/book", v: 1, title: idx.title, site, url: idx.url, copyright, chapters, index: { url: idx.url, pages: idx.list.length }, missing: idx.list.length - chapters.length }, RO);
+      busy = false;
+    }
+  });
+  (async () => {
+    const [md, found] = await Promise.all([mdOf(here), findIndex()]);
+    idx = found;
+    const ch = md ? { title, url: here, markdown: md } : { title, url: here, html: mainOf(document) };
+    book = { type: "pages-piled/book", v: 1, title, site, url: here, copyright, chapters: [ch], index: idx ? { url: idx.url, pages: idx.list.length } : null };
+    send();
+  })();
+})();
+</script>
+<script>
+// Other books. Before the reader starts, this fills the book template from a book the reader was handed or opened:
+// a docs page sent by the bookmarklet, kept in this browser's IndexedDB under ?book=KEY. Without one, the reader's own book stays.
+window.bookReady = (async () => {
+  const $ = id => document.getElementById(id);
+  window.bookTools = { checkBook, saveBook };
+  const LIMIT = 80000;   // characters in a part; see prepare()
+  const P = new URLSearchParams(location.search);
+  const BM = P.get("from") === "bookmarklet";
+  if (!BM && !P.has("book")) return { own: true };
+  const status = $("status");
+  const say = (text, back = true) => {
+    status.textContent = text;
+    if (back) {
+      const a = document.createElement("a");
+      a.href = location.pathname;
+      a.textContent = "Open Pages, Piled’s own book";
+      status.append(" ", a);
+    }
+  };
+  try {
+    let book, key;
+    if (BM) {
+      say("Waiting for the page you opened this from…", false);
+      book = await receiveBook();
+      key = await saveBook(book);
+      history.replaceState(null, "", `${location.pathname}?book=${key}${location.hash}`);
+    } else {
+      key = P.get("book");
+      book = await loadBook(key);
+      if (!book) { say("This book is no longer kept in this browser. Open it again from its page."); return null; }
+    }
+    say("Setting the text into pages…", false);
+    await loadScripts(["vendor/marked.umd.js", "vendor/purify.min.js"]);
+    const part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
+    fillBook(book, key, part);
+    const { list, parts } = prepare(book);
+    window.bookInfo = {
+      key, title: book.title, url: book.url, site: book.site, part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
+      parts: parts.map(p => ({ from: list[p.units[0].i].title, to: list[p.units[p.units.length - 1].i].title, count: new Set(p.units.map(u => u.i)).size }))
+    };
+    return window.bookInfo;
+  } catch (err) {
+    console.error(err);
+    say(String(err && err.message || err));
+    return null;
+  }
+
+  /* ---------- receiving ---------- */
+
+  // The bookmarklet's tab opened this one. Say we are ready until a book arrives from that tab; anything else is ignored.
+  function receiveBook() {
+    return new Promise((resolve, reject) => {
+      const opener = window.opener;
+      if (!opener) { reject(new Error("This tab was not opened by the bookmarklet, so no page can reach it. Click the bookmarklet again on the page you want to read.")); return; }
+      let tries = 0;
+      const ping = () => { try { opener.postMessage({ type: "pages-piled/ready", v: 1 }, "*"); } catch {} };
+      const timer = setInterval(() => {
+        if (++tries > 60) { stop(); reject(new Error("Nothing arrived from the page. Click the bookmarklet again on the page you want to read.")); return; }
+        ping();
+      }, 500);
+      const onMessage = e => {
+        if (e.source !== opener) return;
+        const d = e.data;
+        if (d && d.type === "pages-piled/progress") { say(`Gathering the site’s pages: ${+d.done || 0} of ${+d.total || 0}…`, false); return; }
+        let book;
+        try { book = checkBook(d, e.origin); } catch (err) { stop(); reject(err); return; }
+        if (!book) return;
+        stop();
+        resolve(book);
+      };
+      const stop = () => { clearInterval(timer); removeEventListener("message", onMessage); };
+      addEventListener("message", onMessage);
+      ping();
+    });
+  }
+
+  // A book message: its shape, its sizes, and every address on the sending page's own site.
+  function checkBook(d, origin) {
+    if (!d || d.type !== "pages-piled/book") return null;
+    const fail = why => { throw new Error(`The page sent something the reader can’t use: ${why}.`); };
+    if (d.v !== 1) fail("an unknown version");
+    const str = (v, max) => typeof v === "string" && v.length <= max;
+    const sameSite = u => { try { const x = new URL(u); return /^https?:$/.test(x.protocol) && x.origin === origin; } catch { return false; } };
+    if (!sameSite(d.url)) fail("its address is not on the site that sent it");
+    if (!str(d.title, 400) || !str(d.site || "", 200) || !str(d.copyright || "", 400)) fail("a title or notice of the wrong kind");
+    if (!Array.isArray(d.chapters) || !d.chapters.length || d.chapters.length > 2000) fail("no chapters, or too many");
+    let size = 0;
+    const chapters = d.chapters.map(c => {
+      if (!c || !str(c.title, 400) || !sameSite(c.url)) fail("a chapter without a title or from another site");
+      const md = typeof c.markdown === "string", html = typeof c.html === "string";
+      if (md === html) fail("a chapter that is neither Markdown nor HTML");
+      size += (md ? c.markdown : c.html).length;
+      return { title: c.title, url: c.url, group: str(c.group || "", 200) ? c.group || "" : "", ...(md ? { markdown: c.markdown } : { html: c.html }) };
+    });
+    if (size > 40e6) fail("more than 40 million characters");
+    let index = null;
+    if (d.index && sameSite(d.index.url) && Number.isInteger(d.index.pages) && d.index.pages > 0) index = { url: d.index.url, pages: d.index.pages };
+    return { v: 1, title: d.title.trim() || new URL(d.url).hostname, site: (d.site || "").trim() || new URL(d.url).hostname, url: d.url, copyright: (d.copyright || "").trim(), from: "bookmarklet", at: new Date().toISOString(), chapters, index };
+  }
+
+  /* ---------- keeping books in this browser ---------- */
+
+  function db() {
+    return new Promise((resolve, reject) => {
+      const r = indexedDB.open("pages-piled", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("books");
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(new Error("This browser won’t keep the book (its storage is off), so it can’t be opened."));
+    });
+  }
+  async function saveBook(book) {
+    const key = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, "0")).join("");
+    const d = await db();
+    await new Promise((resolve, reject) => {
+      const t = d.transaction("books", "readwrite");
+      const s = t.objectStore("books");
+      s.put(book, key);
+      // Keep the twelve most recent books.
+      const all = s.openCursor();
+      const seen = [];
+      all.onsuccess = () => {
+        const c = all.result;
+        if (c) { seen.push({ k: c.key, at: c.value.at || "" }); c.continue(); return; }
+        seen.sort((a, b) => b.at.localeCompare(a.at)).slice(12).forEach(x => { if (x.k !== key) s.delete(x.k); });
+      };
+      t.oncomplete = resolve;
+      t.onerror = () => reject(t.error);
+    });
+    return key;
+  }
+  async function loadBook(key) {
+    if (!/^[0-9a-f]{12}$/.test(key)) return null;
+    const d = await db();
+    return new Promise((resolve, reject) => {
+      const r = d.transaction("books").objectStore("books").get(key);
+      r.onsuccess = () => resolve(r.result || null);
+      r.onerror = () => reject(r.error);
+    });
+  }
+
+  function loadScripts(list) {
+    return list.reduce((p, src) => p.then(() => new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("The reader couldn’t load its Markdown tools. Check your connection and reload."));
+      document.head.appendChild(s);
+    })), Promise.resolve());
+  }
+
+  /* ---------- the book ---------- */
+
+  // Headings outside code blocks, by line.
+  function headingLines(md) {
+    const out = [];
+    let fence = "";
+    md.split("\n").forEach((line, n) => {
+      const f = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+      if (f) { if (!fence) fence = f[1][0]; else if (f[1][0] === fence) fence = ""; return; }
+      const h = !fence && /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
+      if (h) out.push({ line: n, level: h[1].length, text: h[2] });
+    });
+    return out;
+  }
+  // Cut Markdown before each heading of one level; move every heading up one level.
+  function splitAt(md, level) {
+    const lines = md.split("\n"), cuts = headingLines(md).filter(h => h.level === level).map(h => h.line).filter(n => n > 0);
+    return [0, ...cuts].map((from, k, all) => lines.slice(from, all[k + 1]).join("\n"));
+  }
+  // Cut Markdown at blank lines outside code blocks, for text too long with no headings to cut at.
+  function paragraphs(md) {
+    const out = [];
+    let fence = "", cur = [];
+    for (const line of md.split("\n")) {
+      const f = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+      if (f) fence = !fence ? f[1][0] : f[1][0] === fence ? "" : fence;
+      if (!fence && !f && !line.trim() && cur.length) { out.push(cur.join("\n")); cur = []; continue; }
+      cur.push(line);
+    }
+    if (cur.length) out.push(cur.join("\n"));
+    return out;
+  }
+  function lift(md) {
+    const lines = md.split("\n");
+    for (const h of headingLines(md)) if (h.level > 1) lines[h.line] = lines[h.line].replace(/^#/, "");
+    return lines.join("\n");
+  }
+  function clean(md) {
+    md = md.replace(/^\uFEFF?---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+    return md.replace(/^(?:>[^\n]*\n)*?> ?#+ Documentation Index\n(?:>[^\n]*\n)*\n?/, "");   // the note some docs sites write for agents
+  }
+
+  // The book's chapters, and its parts. A single page becomes chapters at its ## headings. paged.js slows as a book grows,
+  // so a long book is set in parts of about 80,000 characters, and a chapter longer than that is cut at its own ## headings.
+  function prepare(book) {
+    let list = book.chapters.map(c => typeof c.markdown === "string" ? { ...c, markdown: clean(c.markdown) } : { ...c });
+    if (list.length === 1 && typeof list[0].markdown === "string") {
+      const c = list[0], segs = splitAt(c.markdown, 2);
+      const lead = segs[0].split("\n"), h1 = headingLines(segs[0]).find(h => h.level === 1);
+      let title = c.title;
+      if (h1) { title = h1.text || title; lead.splice(h1.line, 1); }
+      list = [];
+      if (lead.join("\n").trim()) list.push({ title, url: c.url, markdown: lift(lead.join("\n")) });
+      for (const seg of segs.slice(1)) {
+        const nl = seg.indexOf("\n");
+        list.push({ title: headingLines(seg)[0].text, url: c.url, markdown: lift(nl < 0 ? "" : seg.slice(nl + 1)) });
+      }
+      if (!list.length) list.push({ title, url: c.url, markdown: "" });
+    }
+    const units = [];
+    list.forEach((c, i) => {
+      const html = typeof c.markdown !== "string", text = html ? c.html : c.markdown;
+      if (html || text.length <= LIMIT) { units.push({ i, k: 0, html, text }); return; }
+      let buf = "", k = 0;
+      for (const seg of splitAt(text, 2).flatMap(seg => seg.length > LIMIT ? paragraphs(seg) : [seg])) {
+        if (buf && buf.length + seg.length > LIMIT) { units.push({ i, k: k++, html, text: buf }); buf = ""; }
+        buf += (buf ? "\n\n" : "") + seg;
+      }
+      if (buf) units.push({ i, k, html, text: buf });
+    });
+    const parts = [];
+    let cur = null;
+    for (const u of units) {
+      if (!cur || (cur.size + u.text.length > LIMIT && cur.units.length)) parts.push(cur = { units: [], size: 0 });
+      cur.units.push(u);
+      cur.size += u.text.length;
+    }
+    return { list, parts };
+  }
+
+  function fillBook(book, key, part) {
+    const { list, parts } = prepare(book);
+    part = Math.min(part, parts.length);
+    const partOf = i => parts.findIndex(p => p.units.some(u => u.i === i)) + 1;
+    const doc = document.implementation.createHTMLDocument("");
+    const el = (tag, attrs = {}, ...kids) => {
+      const e = doc.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+      e.append(...kids);
+      return e;
+    };
+    const bk = el("div", { class: "bk ext", lang: "" });
+    const host = new URL(book.url).hostname;
+
+    // Chapter addresses, so links between chapters stay in the book.
+    const norm = u => { try { const x = new URL(u); x.hash = ""; x.search = ""; return x.href.replace(/\.md$/, "").replace(/\/$/, ""); } catch { return ""; } };
+    const ids = new Set();
+    const idFor = text => {
+      let base = text.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").slice(0, 48) || "s";
+      if (/^\d/.test(base)) base = "s-" + base;
+      let id = base, n = 2;
+      while (ids.has(id) || doc.getElementById(id) || document.getElementById(id)) id = `${base}-${n++}`;
+      ids.add(id);
+      return id;
+    };
+
+    // This part's pieces of each chapter. A page's # is its chapter's title, and its ## its sections.
+    const chapters = list.map((c, i) => ({ title: c.title, name: c.title, url: c.url, i, part: partOf(i), blocks: [], here: false, cont: false }));
+    for (const u of parts[part - 1].units) {
+      const ch = chapters[u.i];
+      const blocks = toBlocks(u.html ? { url: ch.url, html: u.text } : { url: ch.url, markdown: u.text }, doc);
+      const h1 = u.k === 0 && blocks.find(b => b.tagName === "H1");
+      if (h1) { if (h1.textContent.trim()) ch.title = h1.textContent.trim(); blocks.splice(blocks.indexOf(h1), 1); }
+      if (!ch.here) { ch.here = true; ch.cont = u.k > 0; }
+      ch.blocks.push(...blocks.map(shiftHeading(0)));
+    }
+    chapters.forEach((ch, n) => { ch.n = n + 1; ch.id = idFor(ch.name || ch.title); });   // the listed title, so ids agree across parts
+    const here = chapters.filter(ch => ch.here);
+    const byUrl = new Map();
+    if (book.chapters.length > 1) chapters.forEach(ch => byUrl.set(norm(ch.url), ch));
+    const hrefFor = ch => ch.part === part ? `#${ch.id}` : `?book=${key}${ch.part > 1 ? `&part=${ch.part}` : ""}#${ch.id}`;
+
+    // Cover.
+    const glyph = el("div", { class: "glyph", "aria-hidden": "true" });
+    glyph.innerHTML = [".34,.28", ".42,.36", ".52,.46", ".64,.58", ".78,.72", "1,1", ".78,.72", ".64,.58", ".52,.46", ".42,.36", ".34,.28"].map(v => { const [h, o] = v.split(","); return `<i style="--h:${h};--o:${o}"></i>`; }).join("");
+    const src = el("a", { href: book.url }, host + new URL(book.url).pathname.replace(/\/$/, ""));
+    const imprint = el("p", { class: "imprint" }, el("span", { class: "paper" }, "A5 · 148 × 210 mm"), el("br"), "Set in Literata with paged.js", el("br"), `Opened ${new Date(book.at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`);
+    if (parts.length > 1) imprint.append(el("br"), `Part ${part} of ${parts.length}`);
+    bk.append(el("section", { class: "cover", "data-label": "Cover" },
+      el("p", { class: "kicker" }, book.site), el("h1", {}, book.title), el("p", { class: "sub" }, "From ", src), glyph, imprint));
+
+    // Contents: this part's chapters, with the other parts named.
+    const toc = el("ol", { class: "toc" });
+    for (const ch of here) toc.append(el("li", {}, el("a", { href: `#${ch.id}` }, el("span", { class: "n" }, String(ch.n)), el("span", { class: "t" }, ch.title))));
+    const contents = el("section", { class: "contents", "data-label": "Contents" }, el("h3", {}, "Contents"), toc);
+    if (parts.length > 1) {
+      const others = el("p", { class: "note" }, `This is part ${part} of ${parts.length}, chapters ${here[0].n} to ${here[here.length - 1].n} of ${chapters.length}. `);
+      if (part > 1) others.append(el("a", { href: `?book=${key}${part - 1 > 1 ? `&part=${part - 1}` : ""}` }, "Previous part"), " · ");
+      if (part < parts.length) others.append(el("a", { href: `?book=${key}&part=${part + 1}` }, "Next part"), " · ");
+      others.append("All parts: Books (b).");
+      contents.append(others);
+    }
+    bk.append(contents);
+
+    // Chapters, their sections numbered by the reader.
+    const notes = [];
+    for (const ch of here) {
+      bk.append(el("h2", { id: ch.id, "data-n": String(ch.n) }, ch.cont ? `${ch.title}, continued` : ch.title));
+      const secs = [];
+      for (const b of ch.blocks) {
+        b.querySelectorAll("a[href]").forEach(a => fixLink(a, ch.url));
+        if (b.tagName === "A") fixLink(b, ch.url);
+        if (b.tagName === "H3") { b.id = idFor(b.textContent); secs.push(b); }
+        else if (/^H[4-6]$/.test(b.tagName)) b.id = idFor(b.textContent);
+        bk.append(b);
+      }
+      if (secs.length) notes.push(el("div", { class: "note", "data-for": ch.id }, el("ul", {}, ...secs.map(s => el("li", {}, el("a", { href: `#${s.id}` }, s.textContent.trim()))))));
+    }
+    if (parts.length > 1 && part < parts.length) {
+      bk.append(el("p", { class: "next-part" }, el("a", { href: `?book=${key}&part=${part + 1}` }, `Continue with part ${part + 1}: ${list[parts[part].units[0].i].title}`)));
+    }
+
+    // Colophon: where the text came from, and its notice.
+    const colophon = el("div", { class: "colophon" }, el("p", {}, book.title), el("p", {}, "From ", el("a", { href: book.url }, book.url)));
+    colophon.append(el("p", {}, book.copyright || `The text belongs to its authors at ${host}.`));
+    colophon.append(el("p", {}, "Opened in this browser for your own reading. Pages, Piled keeps no copy."));
+    bk.append(colophon);
+
+    function fixLink(a, base) {
+      const raw = a.getAttribute("href") || "";
+      if (raw.startsWith("#")) {
+        a.removeAttribute("href");
+        return;
+      }
+      let u;
+      try { u = new URL(raw, base); } catch { a.removeAttribute("href"); return; }
+      if (!/^https?:$/.test(u.protocol) && u.protocol !== "mailto:") { a.removeAttribute("href"); return; }
+      const ch = byUrl.get(norm(u.href));
+      if (ch) { a.setAttribute("href", u.hash && ch.part === part ? u.hash : hrefFor(ch)); return; }
+      a.setAttribute("href", u.href);
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    }
+
+    const tpl = $("book");
+    tpl.content.replaceChildren(document.importNode(bk, true));
+    $("notes-tpl").content.replaceChildren(...notes.map(n => document.importNode(n, true)));
+    const css = $("book-css");
+    css.textContent = css.textContent.replace('content: "Pages, Piled";', `content: ${JSON.stringify(book.title.slice(0, 80))};`);
+    document.title = `${book.title} · Pages, Piled`;
+    const name = document.querySelector(".top-mid .name");
+    if (name) name.textContent = book.title;
+  }
+
+  // Markdown or a page's HTML, made safe, then cut into the flat run of blocks the reader numbers.
+  function toBlocks(c, doc) {
+    let html;
+    if (typeof c.markdown === "string") {
+      html = marked.parse(c.markdown, { gfm: true, async: false });
+    } else html = c.html;
+    const frag = DOMPurify.sanitize(html, {
+      RETURN_DOM_FRAGMENT: true,
+      FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "option", "iframe", "frame", "object", "embed", "video", "audio", "source", "track", "picture", "svg", "math", "nav", "aside", "dialog", "template", "link", "meta", "base"],
+      FORBID_ATTR: ["id", "name", "class", "style", "srcset", "sizes", "width", "height", "loading", "target", "tabindex", "role"],
+      ALLOW_DATA_ATTR: false
+    });
+    const out = [];
+    const BLOCK = /^(P|H[1-6]|UL|OL|DL|PRE|BLOCKQUOTE|TABLE|FIGURE|HR)$/;
+    const WRAP = /^(DIV|SECTION|ARTICLE|MAIN|HEADER|FOOTER|DETAILS|SUMMARY|CENTER)$/;
+    let loose = null;
+    const flushLoose = () => { if (loose && loose.textContent.trim()) out.push(loose); loose = null; };
+    const walk = parent => {
+      for (const node of [...parent.childNodes]) {
+        if (node.nodeType === 1 && WRAP.test(node.tagName)) { flushLoose(); walk(node); flushLoose(); continue; }
+        if (node.nodeType === 1 && BLOCK.test(node.tagName)) { flushLoose(); out.push(doc.importNode(node, true)); continue; }
+        if (node.nodeType === 3 && !node.textContent.trim() && !loose) continue;
+        if (!loose) loose = doc.createElement("p");
+        loose.append(doc.importNode(node, true));
+      }
+    };
+    walk(frag);
+    flushLoose();
+    for (const b of out) {
+      b.querySelectorAll("img").forEach(img => {
+        try { const u = new URL(img.getAttribute("src") || "", c.url); if (!/^https?:$/.test(u.protocol)) throw 0; img.src = u.href; img.referrerPolicy = "no-referrer"; } catch { img.remove(); }
+      });
+    }
+    return out.filter(b => b.tagName === "HR" || b.textContent.trim() || b.querySelector("img"));
+  }
+
+  // Headings move down a level under the chapter: in a book of pages a page's ## becomes a section;
+  // in a single page split at its ##, its ### does.
+  function shiftHeading(by) {
+    return b => {
+      const m = /^H([1-6])$/.exec(b.tagName);
+      if (!m) return b;
+      const level = Math.min(6, Math.max(3, +m[1] + 1 - by));
+      if (level === +m[1]) return b;
+      const h = b.ownerDocument.createElement("h" + level);
+      h.append(...b.childNodes);
+      return h;
+    };
+  }
+})();
+</script>
 <script src="https://unpkg.com/pagedjs@0.4.3/dist/paged.js"></script>
 <script>
-(() => {
+(async () => {
+  if (!(await window.bookReady)) return;
   const $ = id => document.getElementById(id);
   const app = $("app"), desk = $("desk"), scroller = $("scroller"), article = $("article"), status = $("status");
   const mapPanel = $("mapPanel"), mapEl = $("map"), mapTrack = $("mapTrack"), mapInner = $("mapInner"), mapOver = $("mapOver"), mapBand = $("mapBand");
@@ -1432,7 +1959,8 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
   let ready = false;
   let pages = [], pageSpans = [], pageByBlock = [], W = 0, H = 0, curPage = 0;
   let artBlocks = [];
-  let anchor = store.get("anchor", { b: 0, f: 0 });
+  const ANCHOR = window.bookInfo ? `anchor:${window.bookInfo.key}:${window.bookInfo.part}` : "anchor";   // each book and part keeps its own place
+  let anchor = store.get(ANCHOR, { b: 0, f: 0 });
   if (!(anchor && Number.isFinite(anchor.b) && Number.isFinite(anchor.f))) anchor = { b: 0, f: 0 };
   let scrollTarget = null;
   const overlay = { toc: false, map: false };   // panel state on narrow screens
@@ -1943,7 +2471,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
     updateMap();
     userMoved();
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => store.set("anchor", anchor), 250);
+    saveTimer = setTimeout(() => store.set(ANCHOR, anchor), 250);
   }
 
   function goPage(i, instant) {
@@ -3224,7 +3752,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
     if (hasHL) CSS.highlights.delete("speak");
     setAway(false);
     setListenUI(false);
-    store.set("anchor", anchor);
+    store.set(ANCHOR, anchor);
   }
 
   // While Listen is on, going somewhere else (turning pages, scrolling away, a search result, a thumbnail)
@@ -3417,7 +3945,8 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
     if (isEsc(e)) {
       escAt = performance.now();
       if (e.key === "[") e.preventDefault();
-      if (!opts.hidden) { setOptions(false); if (focusMode) focusReader(); else optsBtn.focus(); }
+      if (!booksEl.hidden) { setBooks(false); focusReader(); }
+      else if (!opts.hidden) { setOptions(false); if (focusMode) focusReader(); else optsBtn.focus(); }
       else if (!searchBox.hidden) closeSearch(false);
       else if (gridOpen) closeGrid();
       else if (reading) stopReading();
@@ -3441,7 +3970,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
     }
     if (k === "G") { e.preventDefault(); goEdge(1); return; }
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
-    const toggles = { t: openGrid, c: switchNotes, C: () => showPanel("toc"), m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
+    const toggles = { b: () => toggleBooks(), t: openGrid, c: switchNotes, C: () => showPanel("toc"), m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && reading) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
     if ((k === "(" || k === ")") && reading) { e.preventDefault(); skipSentence(k === ")" ? 1 : -1); return; }
     // the same steps for the left hand alone: q and w a sentence back and on, Q and W a paragraph
@@ -3706,6 +4235,77 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
     relayoutAll(anchor, true);
     if (textScroll()) scroller.focus({ preventScroll: true });
   }
+
+
+  /* ---------- books ---------- */
+
+  // The Books sheet (b, or the book's name in the top bar): what you are reading, its parts, the whole site, and the bookmarklet.
+  const booksEl = $("books"), booksNow = $("booksNow"), info = window.bookInfo || { own: true };
+  const readerUrl = location.origin + location.pathname.replace(/index\.html$/, "");
+  const bmHref = "javascript:" + encodeURIComponent($("bookmarklet-src").textContent.trim().replace(/\n\s*/g, "\n").replace("__READER__", readerUrl));
+  const bmLink = $("bmLink");
+  bmLink.href = bmHref;
+  bmLink.addEventListener("click", e => { e.preventDefault(); toast("Drag this link to your bookmarks bar, then click it on a docs page.", 2600); });
+  $("bmCopy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(bmHref); toast("Copied. Paste it as a bookmark’s address.", 2200); }
+    catch { toast("This browser wouldn’t copy it. Drag the link instead.", 2200); }
+  });
+  function setBooks(open) {
+    if (open) { renderBooks(); booksEl.style.bottom = dock.offsetHeight + 8 + "px"; setOptions(false); closeSearch(true); }
+    booksEl.hidden = !open;
+  }
+  const toggleBooks = () => setBooks(booksEl.hidden);
+  $("nameBtn").addEventListener("click", toggleBooks);
+  function renderBooks() {
+    const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); e.append(...kids); return e; };
+    booksNow.replaceChildren(el("h3", {}, "Reading"));
+    if (info.own) {
+      booksNow.append(el("p", { className: "bk-title" }, "Pages, Piled"), el("p", { className: "bk-src" }, "The reader’s own book, about how it works."));
+      return;
+    }
+    booksNow.append(el("p", { className: "bk-title" }, info.title), el("p", { className: "bk-src" }, "From ", el("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.url)));
+    if (info.parts.length > 1) {
+      booksNow.append(el("p", { className: "bk-msg" }, `${info.chapters} pages, in ${info.parts.length} parts so each sets quickly.`));
+      const ol = el("ol", { className: "bk-parts" });
+      info.parts.forEach((p, i) => {
+        const a = el("a", { href: `?book=${info.key}${i ? `&part=${i + 1}` : ""}` }, el("b", {}, String(i + 1)), p.count > 1 ? `${p.from} … ${p.to}` : p.from);
+        if (i + 1 === info.part) a.setAttribute("aria-current", "true");
+        ol.append(el("li", {}, a));
+      });
+      booksNow.append(ol);
+    }
+    if (info.index && info.chapters === 1) {
+      const msg = el("p", { className: "bk-msg" }, `This site lists ${info.index.pages} pages in its llms.txt.`);
+      const btn = el("button", { type: "button", className: "bk-act" }, `Read the whole site as a book`);
+      btn.addEventListener("click", () => wholeSite(msg, btn));
+      booksNow.append(msg, btn);
+    }
+    booksNow.append(el("a", { href: location.pathname, className: "bk-src" }, "Pages, Piled’s own book"));
+  }
+  // The bookmarklet's tab fetches the site's pages, since only a page on that site may read them; it must still be open.
+  function wholeSite(msg, btn) {
+    const from = window.opener, origin = new URL(info.url).origin;
+    if (!from || from.closed) { msg.textContent = "The docs page this came from is closed. Open it again, click the bookmarklet, then choose this again."; return; }
+    btn.disabled = true;
+    msg.textContent = "Asking the docs page for the site’s pages…";
+    const onMessage = async e => {
+      if (e.source !== from || e.origin !== origin || !e.data) return;
+      if (e.data.type === "pages-piled/progress") { msg.textContent = `Gathering the site’s pages: ${+e.data.done || 0} of ${+e.data.total || 0}…`; return; }
+      if (e.data.type !== "pages-piled/book") return;
+      removeEventListener("message", onMessage);
+      try {
+        const book = window.bookTools.checkBook(e.data, e.origin);
+        const missed = Math.max(0, (+e.data.missing || 0));
+        msg.textContent = `Setting the first part${missed ? `; ${missed} pages couldn’t be read` : ""}…`;
+        const key = await window.bookTools.saveBook(book);
+        location.href = `${location.pathname}?book=${key}`;
+      } catch (err) { msg.textContent = String(err.message || err); btn.disabled = false; }
+    };
+    addEventListener("message", onMessage);
+    from.postMessage({ type: "pages-piled/want-site", v: 1 }, origin);
+  }
+  $("booksFromOpts").addEventListener("click", () => setBooks(true));
+  if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "Options, then Books," : "Books (b)"} reads them all.`, 3600), 1800);
 
   build();
 })();

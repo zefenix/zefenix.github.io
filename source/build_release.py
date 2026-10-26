@@ -35,4 +35,8 @@ site = os.path.join(out, 'site', 'pages-piled')
 os.makedirs(site, exist_ok=True)
 open(os.path.join(site, 'index.html'), 'w', encoding='utf-8', newline='\n').write(page)
 shutil.copyfile(paged, os.path.join(site, 'paged.min.js'))
+# marked and DOMPurify, loaded only when a book from elsewhere is opened, with their licences.
+vendor = os.path.join(os.path.dirname(os.path.abspath(paged)), 'vendor')
+if os.path.isdir(vendor):
+    shutil.copytree(vendor, os.path.join(site, 'vendor'), dirs_exist_ok=True)
 print('built', os.path.join(site, 'index.html'), len(page))
