@@ -228,7 +228,9 @@ def main():
     os.makedirs(out, exist_ok=True)
     rust, images = build_rust(rust_clone, out)
     cook = build_cookbooks(cook_clone, out)
-    shelf = [{k: b[k] for k in ("id", "title", "byline", "site", "url", "copyright", "notice", "licenses")} | {"chapters": len(b["chapters"])} for b in (rust, cook)]
+    # The shelf lists each book's chapters too, for the Library's outline, without their text.
+    shelf = [{k: b[k] for k in ("id", "title", "byline", "site", "url", "copyright", "notice", "licenses")} | {"chapters": len(b["chapters"]),
+             "toc": [{"title": c["title"], "group": c.get("group", ""), "shown": c.get("shown")} for c in b["chapters"]]} for b in (rust, cook)]
     json.dump(shelf, open(os.path.join(out, "shelf.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     for b in (rust, cook):
         size = sum(len(c["markdown"]) for c in b["chapters"])

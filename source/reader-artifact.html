@@ -737,18 +737,24 @@ a.toc-item { text-decoration: none; }
 .lib-now .note { font-size: 11.5px; }
 .lib-now .hint { margin: 2px 0 0; font-size: 11.5px; color: var(--ink-soft); }
 .bm-copy.primary { background: var(--accent); border-color: var(--accent); color: var(--desk); }
-.lib-parts { margin-top: 8px; display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 6px; }
-.lib-parts .grp { font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
-.lib-parts ol { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
-.lib-parts a { display: block; padding: 5px 8px; border-radius: 6px; font-family: var(--f-book); font-size: 13.5px; line-height: 1.35; color: var(--ink-soft); text-decoration: none; }
-.lib-parts a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
-.lib-parts a[aria-current="true"] { background: var(--bar); color: var(--ink); }
-.lib-parts .more { font-family: var(--f-ui); font-size: 11.5px; color: var(--ink-soft); }
 
 .lib-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; margin-bottom: 12px; }
 .library .lib-sec-head h3 { margin: 0; }
 #clearBox { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 12.5px; color: var(--ink); }
 #clearBox .reset.danger { color: #a33f3f; }
+.lib-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 26px; align-items: start; }
+.lib-main { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+.lib-outline { position: sticky; top: 64px; max-height: calc(100vh - 96px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 10px 14px 14px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
+.lib-outline .o-title { margin: 2px 0 10px; font: 400 16px/1.25 var(--f-book); color: var(--ink); }
+.lib-outline .grp { margin: 12px 0 3px; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.lib-outline ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.lib-outline a { display: grid; grid-template-columns: minmax(18px, auto) 1fr; gap: 8px; align-items: baseline; padding: 4px 8px; border-radius: 6px; font-family: var(--f-book); font-size: 13.5px; line-height: 1.3; color: var(--ink-soft); text-decoration: none; }
+.lib-outline a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.lib-outline a[aria-current="true"] { background: var(--bar); color: var(--ink); }
+.lib-outline a .n { font: 600 11px var(--f-ui); color: var(--accent); }
+.lib-outline .sub a { padding-left: 22px; font-size: 13px; }
+.lib-outline .empty { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+@media (max-width: 860px) { .lib-cols { grid-template-columns: 1fr; } .lib-outline { position: static; max-height: 60vh; order: 0; } }
 .lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
 .lib-card h3 { margin: 0; }
@@ -1080,6 +1086,8 @@ a.toc-item { text-decoration: none; }
         </div>
         <button type="button" class="tog icon" id="libClose" aria-label="Close the library" title="Close (Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
       </header>
+      <div class="lib-cols">
+      <div class="lib-main">
       <section class="lib-now" id="booksNow"></section>
       <section class="lib-sec">
         <h3>On the shelf</h3>
@@ -1107,6 +1115,9 @@ a.toc-item { text-decoration: none; }
           <p class="bm-help">The bookmarklet is for computers. On a phone, read the shelf’s books or open a file. Your browser fetches the page as it does when you read it; nothing is sent to a server, and the book stays in this browser.</p>
         </div>
       </section>
+      </div>
+      <aside class="lib-outline" id="libOutline" aria-label="Outline"></aside>
+      </div>
     </div>
   </div>
 
@@ -1681,7 +1692,9 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 // browser's IndexedDB under ?opened=KEY. The site takes no address from a link. Without either, the reader's own book stays.
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
-  window.bookTools = { checkBook, saveBook, listBooks, deleteBook, deleteAll, prepare };
+  window.bookTools = { checkBook, saveBook, listBooks, deleteBook, deleteAll, prepare, chapterIds };
+  // The reader's own chapters, for the Library's outline once another book fills the template.
+  window.ownToc = [...$("book").content.querySelectorAll(".bk > h2")].map(h => ({ title: h.textContent.trim(), id: h.id, shown: h.dataset.n }));
   const LIMIT = 80000;   // characters in a part, some 55 pages; see prepare()
   // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
   const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/" };
@@ -1717,8 +1730,16 @@ window.bookReady = (async () => {
     ref = ref || `opened=${key}`;
     say("Setting the text into pages…", false);
     await loadScripts(["vendor/marked.umd.js", "vendor/purify.min.js"]);
-    const part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
-    const toc = fillBook(book, ref, part);
+    let part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
+    let toc = fillBook(book, ref, part);
+    // A link to a chapter without a part, from the Library's outline or another device, opens the part that holds it.
+    const want = decodeURIComponent(location.hash.slice(1));
+    const there = want && !P.has("part") && toc.find(t => t.id === want);
+    if (there && there.part !== part) {
+      part = there.part;
+      toc = fillBook(book, ref, part);
+      history.replaceState(null, "", `${location.pathname}?${ref}&part=${part}${location.hash}`);
+    }
     window.bookData = book;   // for the Library's search through every part
     const { list, parts } = prepare(book);
     window.bookInfo = {
@@ -1842,7 +1863,9 @@ window.bookReady = (async () => {
         const cur = c.result;
         if (!cur) { resolve(out.sort((a, b) => (b.at || "").localeCompare(a.at || ""))); return; }
         const v = cur.value;
-        out.push({ key: cur.key, title: v.title, url: v.url, from: v.from, at: v.at, chapters: v.chapters.length });
+        let toc = [];
+        try { toc = prepare(v).list.map(c => ({ title: c.title, group: c.group || "" })); } catch {}
+        out.push({ key: cur.key, title: v.title, url: v.url, from: v.from, at: v.at, chapters: v.chapters.length, toc });
         cur.continue();
       };
       c.onerror = () => reject(c.error);
@@ -1962,6 +1985,19 @@ window.bookReady = (async () => {
       cur.size += w;
     }
     return { list, parts };
+  }
+
+  // Chapter anchors as fillBook makes them, in order, so a link can name a chapter of a book not yet open.
+  function chapterIds(titles) {
+    const ids = new Set();
+    return titles.map(text => {
+      let base = text.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").slice(0, 48) || "s";
+      if (/^\d/.test(base)) base = "s-" + base;
+      let id = base, n = 2;
+      while (ids.has(id) || document.getElementById(id)) id = `${base}-${n++}`;
+      ids.add(id);
+      return id;
+    });
   }
 
   function fillBook(book, ref, part) {
@@ -4799,7 +4835,7 @@ window.bookReady = (async () => {
     $("shelfList").replaceChildren(
       libItem({ kind: "own", href: location.pathname, title: "Pages, Piled", site: "A paged-reading prototype", source: "The reader’s own book", size: info.own ? `${chapters.length} chapters` : "", colour: COLOURS.own, current: !!info.own }),
       ...shelfData.map(b => libItem({ kind: "shelf", id: b.id, href: `?book=${b.id}`, title: b.title, site: b.site.split("/")[1] || b.site, source: b.site, size: `${b.chapters} chapters`,
-        colour: COLOURS[b.id] || colourOf(b.id), current: info.ref === `book=${b.id}`, byline: b.byline, notice: b.notice, copyright: b.copyright, url: b.url })),
+        colour: COLOURS[b.id] || colourOf(b.id), current: info.ref === `book=${b.id}`, byline: b.byline, notice: b.notice, copyright: b.copyright, url: b.url, toc: b.toc })),
       libItem({ kind: "card", title: "Claude Code’s documentation", site: "code.claude.com", source: "Read with the bookmarklet", size: "—", ghost: true }));
     let opened = [];
     try { opened = await window.bookTools.listBooks(); } catch {}
@@ -4809,7 +4845,7 @@ window.bookReady = (async () => {
     $("openedList").replaceChildren(...opened.map(b => {
       const from = b.from === "files" ? "your files" : hostOf(b.url);
       return libItem({ kind: "opened", key: b.key, href: `?opened=${b.key}`, title: b.title, site: from, source: from, size: `${b.chapters} ${b.chapters === 1 ? "page" : "pages"}`,
-        when: new Date(b.at).toLocaleDateString(), at: b.at, url: b.url, from: b.from, colour: colourOf(b.title + from), current: info.key === b.key && !info.own });
+        when: new Date(b.at).toLocaleDateString(), at: b.at, url: b.url, from: b.from, toc: b.toc, colour: colourOf(b.title + from), current: info.key === b.key && !info.own });
     }));
     filterShelf();
     const again = was && libItems().find(r => r._book.href === was);
@@ -4842,6 +4878,7 @@ window.bookReady = (async () => {
 
   // The panel: the book you selected, or, with none selected, the one you are reading.
   function renderPanel() {
+    renderOutline();
     const b = selected && selected._book;
     if (!b || b.current) return renderNow(b && b.current);
     const d = elt("div", { className: "d" },
@@ -4913,32 +4950,48 @@ window.bookReady = (async () => {
       acts.append(btn);
     }
     if (acts.children.length) d.append(acts);
-    if (info.parts && info.parts.length > 1) d.append(partsOutline());
     booksNow.replaceChildren(cover(title, site, colour), d);
   }
-  // The parts, under the book's own chapters or the site's sections. A long page cut into several parts is one row.
-  function partsOutline() {
-    const box = elt("div", { className: "lib-parts" });
-    const href = i => `?${info.ref}${i ? `&part=${i + 1}` : ""}`;
-    let group = null, ol = null;
-    for (let i = 0; i < info.parts.length; i++) {
-      const p = info.parts[i];
-      if (p.group !== group || !ol) {
-        group = p.group;
-        ol = elt("ol");
-        box.append(elt("div", {}, group ? elt("div", { className: "grp" }, group) : null, ol));
-      }
-      let j = i;
-      while (p.count === 1 && info.parts[j + 1] && info.parts[j + 1].count === 1 && info.parts[j + 1].from === p.from && info.parts[j + 1].group === p.group) j++;
-      const here = info.part - 1 >= i && info.part - 1 <= j;
-      const names = p.titles.length > 3 ? `${p.titles.slice(0, 3).join(", ")} and ${p.titles.length - 3} more` : p.titles.join(", ");
-      const a = elt("a", { href: href(here ? info.part - 1 : i) }, j > i ? p.from : names, j > i ? elt("span", { className: "more" }, here ? ` · part ${info.part - i} of ${j - i + 1}, the part you’re in` : ` · in ${j - i + 1} parts`) : null);
-      if (here) a.setAttribute("aria-current", "true");
-      ol.append(elt("li", {}, a));
-      i = j;
+  // The outline, beside the books: the chapters of the book selected, or of the one being read, under its own
+  // groups. A chapter opens where it is; in the book being read, one in this part is a jump, not a reload.
+  const outlineEl = $("libOutline");
+  function renderOutline() {
+    const b = selected && selected._book;
+    const cur = !b || b.current;
+    let title, entries;
+    if (cur && info.own) { title = "Pages, Piled"; entries = chapters.map(c => ({ title: c.title, shown: String(c.n), href: `#${c.id}`, jump: c.b })); }
+    else if (cur) {
+      title = info.title;
+      entries = (info.toc || []).map(t => ({ title: t.title, shown: t.shown, group: t.group, href: `?${info.ref}${t.part > 1 ? `&part=${t.part}` : ""}#${t.id}`, here: t.part === info.part, id: t.id }));
+    } else if (b.kind === "own") { title = b.title; entries = (window.ownToc || []).map(t => ({ title: t.title, shown: t.shown, href: `${location.pathname}#${t.id}` })); }
+    else if (b.kind === "card") { title = b.title; entries = []; }
+    else {
+      title = b.title;
+      const toc = b.toc || [], ids = window.bookTools.chapterIds(toc.map(t => t.title));
+      entries = toc.map((t, i) => ({ title: t.title, shown: typeof t.shown === "string" ? t.shown : String(i + 1), group: t.group, href: `${b.href}#${ids[i]}` }));
     }
-    requestAnimationFrame(() => { const cur = box.querySelector('[aria-current="true"]'); if (cur) box.scrollTop = cur.offsetTop - box.offsetTop - 40; });
-    return box;
+    const box = [elt("span", { className: "kick" }, "Outline"), elt("p", { className: "o-title" }, title)];
+    if (!entries.length) box.push(elt("p", { className: "empty" }, b && b.kind === "card" ? "Open the docs with the bookmarklet to see their outline here." : "No chapters to show."));
+    let group = null, ol = null;
+    for (const e of entries) {
+      if (e.group !== group || !ol) {
+        group = e.group;
+        ol = elt("ol");
+        if (group) box.push(elt("div", { className: "grp" }, group));
+        box.push(ol);
+      }
+      const a = elt("a", { href: e.href }, elt("span", { className: "n" }, e.shown && e.shown !== "" ? e.shown : ""), elt("span", { className: "t" }, e.title));
+      if (cur && (e.here || e.jump !== undefined) && curChapter >= 0 && tocItems[curChapter] && (e.jump === tocItems[curChapter].b || e.id === tocItems[curChapter].id)) a.setAttribute("aria-current", "true");
+      if (e.jump !== undefined || e.here) a.addEventListener("click", ev => {
+        ev.preventDefault();
+        const blk = e.jump !== undefined ? e.jump : blockOfId(e.id);
+        if (blk < 0) return;
+        setBooks(false); markPlace(); jump({ b: blk, f: 0 });
+      });
+      ol.append(elt("li", { className: /\./.test(e.shown || "") ? "sub" : "" }, a));
+    }
+    outlineEl.replaceChildren(...box);
+    requestAnimationFrame(() => { const c = outlineEl.querySelector('[aria-current="true"]'); if (c) outlineEl.scrollTop = c.offsetTop - outlineEl.offsetTop - 60; });
   }
 
   // Find narrows the shelf to matching books.
@@ -4951,20 +5004,20 @@ window.bookReady = (async () => {
 
   // Keys in the Library. In the find box, ↓ or Enter steps into the books; there h j k l and the arrows move,
   // ↑ from the top row goes back to the box, Enter opens, v switches the view, / finds, b closes.
-  function move(dir) {
+  function move(dir, key) {
     const items = libItems();
     if (!items.length) return;
     let i = items.indexOf(selected);
     if (i < 0) return select(0, true);
     if (libView === "list" || dir === "h" || dir === "l") {
       const next = i + (dir === "j" || dir === "l" ? 1 : -1);
-      if (next < 0) { select(-1); libFind.focus(); return; }
+      if (next < 0) { if (key === "ArrowUp") { select(-1); libFind.focus(); } return; }
       return select(Math.min(items.length - 1, next), true);
     }
     // On shelves, j and k go to the nearest cover in the next or previous row.
     const r = selected.getBoundingClientRect(), x = r.left + r.width / 2;
     const rows = items.filter(el => { const t = el.getBoundingClientRect().top; return dir === "j" ? t > r.top + 4 : t < r.top - 4; });
-    if (!rows.length) { if (dir === "k") { select(-1); libFind.focus(); } return; }
+    if (!rows.length) { if (key === "ArrowUp") { select(-1); libFind.focus(); } return; }
     const rowTop = dir === "j" ? Math.min(...rows.map(el => el.getBoundingClientRect().top)) : Math.max(...rows.map(el => el.getBoundingClientRect().top));
     const inRow = rows.filter(el => Math.abs(el.getBoundingClientRect().top - rowTop) < 4);
     const best = inRow.reduce((a, el) => { const c = el.getBoundingClientRect(); const dx = Math.abs(c.left + c.width / 2 - x); return !a || dx < a.dx ? { el, dx } : a; }, null);
@@ -4979,7 +5032,7 @@ window.bookReady = (async () => {
       if (e.target === libFind && (e.key === "ArrowDown" || e.key === "Enter")) { e.preventDefault(); select(0, true); }
       return;
     }
-    if (KEYMOVE[e.key]) { e.preventDefault(); move(KEYMOVE[e.key]); return; }
+    if (KEYMOVE[e.key]) { e.preventDefault(); move(KEYMOVE[e.key], e.key); return; }
     if (e.key === "Enter" && selected) { e.preventDefault(); openBook(selected._book); return; }
     if (e.key === "v") { e.preventDefault(); setLibView(libView === "shelf" ? "list" : "shelf"); toast(libView === "shelf" ? "Shelf" : "List", 900); return; }
     if (e.key === "b") { e.preventDefault(); setBooks(false); focusReader(); }

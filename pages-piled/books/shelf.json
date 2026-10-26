@@ -12,7 +12,564 @@
    "LICENSE-APACHE",
    "COPYRIGHT"
   ],
-  "chapters": 111
+  "chapters": 111,
+  "toc": [
+   {
+    "title": "The Rust Programming Language",
+    "group": "Front matter",
+    "shown": ""
+   },
+   {
+    "title": "Foreword",
+    "group": "Front matter",
+    "shown": ""
+   },
+   {
+    "title": "Introduction",
+    "group": "Front matter",
+    "shown": ""
+   },
+   {
+    "title": "Getting Started",
+    "group": "Getting Started",
+    "shown": "1"
+   },
+   {
+    "title": "Installation",
+    "group": "Getting Started",
+    "shown": "1.1"
+   },
+   {
+    "title": "Hello, World!",
+    "group": "Getting Started",
+    "shown": "1.2"
+   },
+   {
+    "title": "Hello, Cargo!",
+    "group": "Getting Started",
+    "shown": "1.3"
+   },
+   {
+    "title": "Programming a Guessing Game",
+    "group": "Programming a Guessing Game",
+    "shown": "2"
+   },
+   {
+    "title": "Common Programming Concepts",
+    "group": "Common Programming Concepts",
+    "shown": "3"
+   },
+   {
+    "title": "Variables and Mutability",
+    "group": "Common Programming Concepts",
+    "shown": "3.1"
+   },
+   {
+    "title": "Data Types",
+    "group": "Common Programming Concepts",
+    "shown": "3.2"
+   },
+   {
+    "title": "Functions",
+    "group": "Common Programming Concepts",
+    "shown": "3.3"
+   },
+   {
+    "title": "Comments",
+    "group": "Common Programming Concepts",
+    "shown": "3.4"
+   },
+   {
+    "title": "Control Flow",
+    "group": "Common Programming Concepts",
+    "shown": "3.5"
+   },
+   {
+    "title": "Understanding Ownership",
+    "group": "Understanding Ownership",
+    "shown": "4"
+   },
+   {
+    "title": "What is Ownership?",
+    "group": "Understanding Ownership",
+    "shown": "4.1"
+   },
+   {
+    "title": "References and Borrowing",
+    "group": "Understanding Ownership",
+    "shown": "4.2"
+   },
+   {
+    "title": "The Slice Type",
+    "group": "Understanding Ownership",
+    "shown": "4.3"
+   },
+   {
+    "title": "Using Structs to Structure Related Data",
+    "group": "Using Structs to Structure Related Data",
+    "shown": "5"
+   },
+   {
+    "title": "Defining and Instantiating Structs",
+    "group": "Using Structs to Structure Related Data",
+    "shown": "5.1"
+   },
+   {
+    "title": "An Example Program Using Structs",
+    "group": "Using Structs to Structure Related Data",
+    "shown": "5.2"
+   },
+   {
+    "title": "Methods",
+    "group": "Using Structs to Structure Related Data",
+    "shown": "5.3"
+   },
+   {
+    "title": "Enums and Pattern Matching",
+    "group": "Enums and Pattern Matching",
+    "shown": "6"
+   },
+   {
+    "title": "Defining an Enum",
+    "group": "Enums and Pattern Matching",
+    "shown": "6.1"
+   },
+   {
+    "title": "The match Control Flow Construct",
+    "group": "Enums and Pattern Matching",
+    "shown": "6.2"
+   },
+   {
+    "title": "Concise Control Flow with if let and let...else",
+    "group": "Enums and Pattern Matching",
+    "shown": "6.3"
+   },
+   {
+    "title": "Packages, Crates, and Modules",
+    "group": "Packages, Crates, and Modules",
+    "shown": "7"
+   },
+   {
+    "title": "Packages and Crates",
+    "group": "Packages, Crates, and Modules",
+    "shown": "7.1"
+   },
+   {
+    "title": "Control Scope and Privacy with Modules",
+    "group": "Packages, Crates, and Modules",
+    "shown": "7.2"
+   },
+   {
+    "title": "Paths for Referring to an Item in the Module Tree",
+    "group": "Packages, Crates, and Modules",
+    "shown": "7.3"
+   },
+   {
+    "title": "Bringing Paths Into Scope with the use Keyword",
+    "group": "Packages, Crates, and Modules",
+    "shown": "7.4"
+   },
+   {
+    "title": "Separating Modules into Different Files",
+    "group": "Packages, Crates, and Modules",
+    "shown": "7.5"
+   },
+   {
+    "title": "Common Collections",
+    "group": "Common Collections",
+    "shown": "8"
+   },
+   {
+    "title": "Storing Lists of Values with Vectors",
+    "group": "Common Collections",
+    "shown": "8.1"
+   },
+   {
+    "title": "Storing UTF-8 Encoded Text with Strings",
+    "group": "Common Collections",
+    "shown": "8.2"
+   },
+   {
+    "title": "Storing Keys with Associated Values in Hash Maps",
+    "group": "Common Collections",
+    "shown": "8.3"
+   },
+   {
+    "title": "Error Handling",
+    "group": "Error Handling",
+    "shown": "9"
+   },
+   {
+    "title": "Unrecoverable Errors with panic!",
+    "group": "Error Handling",
+    "shown": "9.1"
+   },
+   {
+    "title": "Recoverable Errors with Result",
+    "group": "Error Handling",
+    "shown": "9.2"
+   },
+   {
+    "title": "To panic! or Not to panic!",
+    "group": "Error Handling",
+    "shown": "9.3"
+   },
+   {
+    "title": "Generic Types, Traits, and Lifetimes",
+    "group": "Generic Types, Traits, and Lifetimes",
+    "shown": "10"
+   },
+   {
+    "title": "Generic Data Types",
+    "group": "Generic Types, Traits, and Lifetimes",
+    "shown": "10.1"
+   },
+   {
+    "title": "Defining Shared Behavior with Traits",
+    "group": "Generic Types, Traits, and Lifetimes",
+    "shown": "10.2"
+   },
+   {
+    "title": "Validating References with Lifetimes",
+    "group": "Generic Types, Traits, and Lifetimes",
+    "shown": "10.3"
+   },
+   {
+    "title": "Writing Automated Tests",
+    "group": "Writing Automated Tests",
+    "shown": "11"
+   },
+   {
+    "title": "How to Write Tests",
+    "group": "Writing Automated Tests",
+    "shown": "11.1"
+   },
+   {
+    "title": "Controlling How Tests Are Run",
+    "group": "Writing Automated Tests",
+    "shown": "11.2"
+   },
+   {
+    "title": "Test Organization",
+    "group": "Writing Automated Tests",
+    "shown": "11.3"
+   },
+   {
+    "title": "An I/O Project: Building a Command Line Program",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12"
+   },
+   {
+    "title": "Accepting Command Line Arguments",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12.1"
+   },
+   {
+    "title": "Reading a File",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12.2"
+   },
+   {
+    "title": "Refactoring to Improve Modularity and Error Handling",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12.3"
+   },
+   {
+    "title": "Adding Functionality with Test Driven Development",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12.4"
+   },
+   {
+    "title": "Working with Environment Variables",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12.5"
+   },
+   {
+    "title": "Redirecting Errors to Standard Error",
+    "group": "An I/O Project: Building a Command Line Program",
+    "shown": "12.6"
+   },
+   {
+    "title": "Functional Language Features: Iterators and Closures",
+    "group": "Functional Language Features: Iterators and Closures",
+    "shown": "13"
+   },
+   {
+    "title": "Closures",
+    "group": "Functional Language Features: Iterators and Closures",
+    "shown": "13.1"
+   },
+   {
+    "title": "Processing a Series of Items with Iterators",
+    "group": "Functional Language Features: Iterators and Closures",
+    "shown": "13.2"
+   },
+   {
+    "title": "Improving Our I/O Project",
+    "group": "Functional Language Features: Iterators and Closures",
+    "shown": "13.3"
+   },
+   {
+    "title": "Performance in Loops vs. Iterators",
+    "group": "Functional Language Features: Iterators and Closures",
+    "shown": "13.4"
+   },
+   {
+    "title": "More about Cargo and Crates.io",
+    "group": "More about Cargo and Crates.io",
+    "shown": "14"
+   },
+   {
+    "title": "Customizing Builds with Release Profiles",
+    "group": "More about Cargo and Crates.io",
+    "shown": "14.1"
+   },
+   {
+    "title": "Publishing a Crate to Crates.io",
+    "group": "More about Cargo and Crates.io",
+    "shown": "14.2"
+   },
+   {
+    "title": "Cargo Workspaces",
+    "group": "More about Cargo and Crates.io",
+    "shown": "14.3"
+   },
+   {
+    "title": "Installing Binaries with cargo install",
+    "group": "More about Cargo and Crates.io",
+    "shown": "14.4"
+   },
+   {
+    "title": "Extending Cargo with Custom Commands",
+    "group": "More about Cargo and Crates.io",
+    "shown": "14.5"
+   },
+   {
+    "title": "Smart Pointers",
+    "group": "Smart Pointers",
+    "shown": "15"
+   },
+   {
+    "title": "Using Box<T> to Point to Data on the Heap",
+    "group": "Smart Pointers",
+    "shown": "15.1"
+   },
+   {
+    "title": "Treating Smart Pointers Like Regular References",
+    "group": "Smart Pointers",
+    "shown": "15.2"
+   },
+   {
+    "title": "Running Code on Cleanup with the Drop Trait",
+    "group": "Smart Pointers",
+    "shown": "15.3"
+   },
+   {
+    "title": "Rc<T>, the Reference Counted Smart Pointer",
+    "group": "Smart Pointers",
+    "shown": "15.4"
+   },
+   {
+    "title": "RefCell<T> and the Interior Mutability Pattern",
+    "group": "Smart Pointers",
+    "shown": "15.5"
+   },
+   {
+    "title": "Reference Cycles Can Leak Memory",
+    "group": "Smart Pointers",
+    "shown": "15.6"
+   },
+   {
+    "title": "Fearless Concurrency",
+    "group": "Fearless Concurrency",
+    "shown": "16"
+   },
+   {
+    "title": "Using Threads to Run Code Simultaneously",
+    "group": "Fearless Concurrency",
+    "shown": "16.1"
+   },
+   {
+    "title": "Transfer Data Between Threads with Message Passing",
+    "group": "Fearless Concurrency",
+    "shown": "16.2"
+   },
+   {
+    "title": "Shared-State Concurrency",
+    "group": "Fearless Concurrency",
+    "shown": "16.3"
+   },
+   {
+    "title": "Extensible Concurrency with Send and Sync",
+    "group": "Fearless Concurrency",
+    "shown": "16.4"
+   },
+   {
+    "title": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17"
+   },
+   {
+    "title": "Futures and the Async Syntax",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17.1"
+   },
+   {
+    "title": "Applying Concurrency with Async",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17.2"
+   },
+   {
+    "title": "Working With Any Number of Futures",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17.3"
+   },
+   {
+    "title": "Streams: Futures in Sequence",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17.4"
+   },
+   {
+    "title": "A Closer Look at the Traits for Async",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17.5"
+   },
+   {
+    "title": "Futures, Tasks, and Threads",
+    "group": "Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+    "shown": "17.6"
+   },
+   {
+    "title": "Object Oriented Programming Features",
+    "group": "Object Oriented Programming Features",
+    "shown": "18"
+   },
+   {
+    "title": "Characteristics of Object-Oriented Languages",
+    "group": "Object Oriented Programming Features",
+    "shown": "18.1"
+   },
+   {
+    "title": "Using Trait Objects to Abstract over Shared Behavior",
+    "group": "Object Oriented Programming Features",
+    "shown": "18.2"
+   },
+   {
+    "title": "Implementing an Object-Oriented Design Pattern",
+    "group": "Object Oriented Programming Features",
+    "shown": "18.3"
+   },
+   {
+    "title": "Patterns and Matching",
+    "group": "Patterns and Matching",
+    "shown": "19"
+   },
+   {
+    "title": "All the Places Patterns Can Be Used",
+    "group": "Patterns and Matching",
+    "shown": "19.1"
+   },
+   {
+    "title": "Refutability: Whether a Pattern Might Fail to Match",
+    "group": "Patterns and Matching",
+    "shown": "19.2"
+   },
+   {
+    "title": "Pattern Syntax",
+    "group": "Patterns and Matching",
+    "shown": "19.3"
+   },
+   {
+    "title": "Advanced Features",
+    "group": "Advanced Features",
+    "shown": "20"
+   },
+   {
+    "title": "Unsafe Rust",
+    "group": "Advanced Features",
+    "shown": "20.1"
+   },
+   {
+    "title": "Advanced Traits",
+    "group": "Advanced Features",
+    "shown": "20.2"
+   },
+   {
+    "title": "Advanced Types",
+    "group": "Advanced Features",
+    "shown": "20.3"
+   },
+   {
+    "title": "Advanced Functions and Closures",
+    "group": "Advanced Features",
+    "shown": "20.4"
+   },
+   {
+    "title": "Macros",
+    "group": "Advanced Features",
+    "shown": "20.5"
+   },
+   {
+    "title": "Final Project: Building a Multithreaded Web Server",
+    "group": "Final Project: Building a Multithreaded Web Server",
+    "shown": "21"
+   },
+   {
+    "title": "Building a Single-Threaded Web Server",
+    "group": "Final Project: Building a Multithreaded Web Server",
+    "shown": "21.1"
+   },
+   {
+    "title": "From Single-Threaded to Multithreaded Server",
+    "group": "Final Project: Building a Multithreaded Web Server",
+    "shown": "21.2"
+   },
+   {
+    "title": "Graceful Shutdown and Cleanup",
+    "group": "Final Project: Building a Multithreaded Web Server",
+    "shown": "21.3"
+   },
+   {
+    "title": "Appendix",
+    "group": "Appendix",
+    "shown": ""
+   },
+   {
+    "title": "Keywords",
+    "group": "Appendix",
+    "shown": "A"
+   },
+   {
+    "title": "Operators and Symbols",
+    "group": "Appendix",
+    "shown": "B"
+   },
+   {
+    "title": "Derivable Traits",
+    "group": "Appendix",
+    "shown": "C"
+   },
+   {
+    "title": "Useful Development Tools",
+    "group": "Appendix",
+    "shown": "D"
+   },
+   {
+    "title": "Editions",
+    "group": "Appendix",
+    "shown": "E"
+   },
+   {
+    "title": "Translations of the Book",
+    "group": "Appendix",
+    "shown": "F"
+   },
+   {
+    "title": "How Rust is Made and “Nightly Rust”",
+    "group": "Appendix",
+    "shown": "G"
+   }
+  ]
  },
  {
   "id": "claude-cookbooks",
@@ -25,6 +582,48 @@
   "licenses": [
    "LICENSE"
   ],
-  "chapters": 8
+  "chapters": 8,
+  "toc": [
+   {
+    "title": "Memory & context management with Claude",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Automatic context compaction",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Tool choice",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Enhancing RAG with contextual retrieval",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Orchestrator workers",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Orchestrate subagents at scale with dynamic workflows",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Build a scheduled repository reviewer",
+    "group": "",
+    "shown": null
+   },
+   {
+    "title": "Trace Claude API requests and Managed Agents sessions with OpenTelemetry",
+    "group": "",
+    "shown": null
+   }
+  ]
  }
 ]
