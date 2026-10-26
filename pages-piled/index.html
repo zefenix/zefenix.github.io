@@ -173,6 +173,7 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
   width: 100%; display: grid; grid-template-columns: minmax(22px, auto) 1fr auto; align-items: baseline; gap: 4px 6px;
   padding: 7px 8px; border: 0; border-radius: 6px; background: none; cursor: pointer; text-align: left;
 }
+.app.strip-down .zoom-strip { display: none; }
 .toc-item:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
 .toc-item.k-sel, .toc-outline a.k-sel { box-shadow: inset 0 0 0 2px var(--accent); outline: none; }
 a.toc-item { text-decoration: none; }
@@ -1015,6 +1016,7 @@ a.toc-item { text-decoration: none; }
       <div class="seg" role="group" aria-label="Arrangement" data-setting="arrange" id="arrangeSeg">
         <button type="button" data-value="flow" aria-label="Flow" title="Flow: pages turned inward (v)"><svg viewBox="0 0 16 16"><rect x="5.8" y="3" width="4.4" height="10" rx=".6"/><path d="M1.5 4.2 4.3 5.4v5.2L1.5 11.8zM14.5 4.2l-2.8 1.2v5.2l2.8 1.2z"/></svg></button>
         <button type="button" data-value="pile" aria-label="Pile" title="Pile: pages lying flat (v)"><svg viewBox="0 0 16 16"><rect x="5.5" y="3" width="5" height="10" rx=".6"/><path d="M3.7 4v8.4M1.9 5v6.6M12.3 4v8.4M14.1 5v6.6"/></svg></button>
+        <button type="button" data-value="strip" aria-label="Strip" title="Strip: pages side by side, a page a step (v)"><svg viewBox="0 0 16 16"><rect x="5.6" y="3.5" width="4.8" height="9" rx=".6"/><rect x="-.6" y="3.5" width="4.8" height="9" rx=".6"/><rect x="11.8" y="3.5" width="4.8" height="9" rx=".6"/></svg></button>
       </div>
     </div>
     <div class="nav">
@@ -1059,7 +1061,9 @@ a.toc-item { text-decoration: none; }
     <section>
       <h3>Pages</h3>
       <div class="row"><span>View</span>
-        <div class="seg" data-setting="arrange"><button type="button" data-value="flow">Flow</button><button type="button" data-value="pile">Pile</button></div></div>
+        <div class="seg" data-setting="arrange"><button type="button" data-value="flow">Flow</button><button type="button" data-value="pile">Pile</button><button type="button" data-value="strip">Strip</button></div></div>
+      <div class="row strip-opt"><span>Strip goes</span>
+        <div class="seg" data-setting="stripDir"><button type="button" data-value="across">Across</button><button type="button" data-value="down">Down</button></div></div>
       <div class="row"><label for="pagedSpread">Spread</label><input type="range" id="pagedSpread" data-setting="pagedSpread" min="0" max="100" step="1"><output for="pagedSpread"></output></div>
       <div class="row"><label for="paperSel">Page size</label><select id="paperSel">
         <option value="pocket">Pocket, 108 × 175 mm</option><option value="a5">A5, 148 × 210 mm</option><option value="trade">Trade, 6 × 9 in</option>
@@ -1097,7 +1101,7 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Contents side</span>
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
-    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow, pile or strip; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
     <button type="button" class="reset" id="booksFromOpts">Library</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
@@ -1458,7 +1462,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>r</code></td> <td><b>R</b>eturn: to Listen’s sentence if you moved away, otherwise to before your last jump; again to come back</td> <td>Same</td></tr>
     <tr><td><code>s</code></td> <td><b>S</b>witch to <b>s</b>crolled pages</td> <td><b>S</b>witch back to pages</td></tr>
     <tr><td><code>f</code></td> <td><b>F</b>acing pages on, off; in All pages, spreads or single pages</td> <td>Open at facing pages</td></tr>
-    <tr><td><code>v</code></td> <td>Flow or Pile <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
+    <tr><td><code>v</code></td> <td>Flow, Pile or Strip <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
     <tr><td><code>V</code></td> <td>Next colours: Slate, Sepia, Paper, Gray</td> <td>Same</td></tr>
     <tr><td><code>t</code></td> <td>All pages as <b>t</b>humbnails</td> <td>Same</td></tr>
     <tr><td><code>-</code> <code>=</code> <code>0</code></td> <td>Less, more spread; reset</td> <td>–</td></tr>
@@ -2164,8 +2168,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile", "strip"], stripDir: ["across", "down"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -2695,11 +2699,13 @@ window.bookReady = (async () => {
     if (desk.classList.contains("linear")) { desk.classList.remove("linear"); desk.scrollTop = 0; }
     if (instant) desk.classList.add("no-anim");
     const narrow = r.width < 700, facing = !!S.facing;
-    const fitW = facing ? (r.width * (narrow ? 0.96 : 0.82)) / (2 * W) : (r.width * (narrow ? 0.8 : 0.56)) / W;
+    // Strip: pages lie flat in a row (across) or a column (down), and a step slides it a page or a spread.
+    const strip = S.arrange === "strip", down = strip && S.stripDir === "down";
+    const fitW = facing ? (r.width * (narrow ? 0.96 : strip ? 0.7 : 0.82)) / (2 * W) : (r.width * (narrow ? 0.8 : 0.56)) / W;
     // Expanded, the page (or spread) is as large as the desk allows: its full height, or its full width if that runs out first.
     const s = S.expand
       ? Math.min((r.height - 12) / H, (r.width - 12) / ((facing ? 2 : 1) * W), 3)
-      : Math.min((r.height - (narrow ? 44 : 88)) / H, fitW, 1.7);
+      : Math.min(down ? (r.height * 0.8) / H : (r.height - (narrow ? 44 : 88)) / H, fitW, 1.7);
     $("stage").style.setProperty("--strip", Math.max(S.expand ? 0 : 16, (r.height - H * s) / 2 - 6) + "px");
     const pw = W * s, sp = 0.4 + 2 * S.pagedSpread / 100, half = facing ? pw / 2 : 0;
     const center = centerPages(), first = center[0], last = center[center.length - 1];
@@ -2718,7 +2724,14 @@ window.bookReady = (async () => {
       desk.classList.remove("no-anim");
     }
 
+    const unitOf = i => (facing ? Math.floor((i + 1) / 2) : i);
+    const gapX = Math.max(24, pw * 0.08), gapY = Math.max(24, H * s * 0.05);
     const vs = pages.map((p, i) => {
+      if (strip) {
+        const d = unitOf(i) - unitOf(first), ad = Math.abs(d);
+        return { x: baseOf(i) + (down ? 0 : d * ((facing ? 2 : 1) * pw + gapX)), y: down ? d * (H * s + gapY) : 0, z: 0, ry: 0, rz: 0, f: 1,
+          dim: ad ? Math.min(0.1 + 0.04 * ad, 0.3) : 0, k: ad, kk: Math.min(ad, VISIBLE + 1), far: ad > 3 };
+      }
       let side = 0, k = 0, base = 0;
       if (center.includes(i)) base = baseOf(i);
       else if (i < first) { side = -1; k = first - i; base = baseOf(first); }
@@ -3114,6 +3127,8 @@ window.bookReady = (async () => {
     mapBtn.setAttribute("aria-pressed", String(!mapPanel.hidden));
     $("expandBtn").setAttribute("aria-pressed", String(!!S.expand));
     $("arrangeSeg").classList.toggle("off", S.view === "scroll");
+    document.querySelectorAll(".strip-opt").forEach(row => { row.hidden = S.arrange !== "strip"; });
+    app.classList.toggle("strip-down", S.view === "paged" && S.arrange === "strip" && S.stripDir === "down");
     $("arrangeSeg").setAttribute("aria-disabled", String(S.view === "scroll"));
     // each panel's control sits above its panel
     const topL = $("topL"), topR = $("topR");
@@ -3146,6 +3161,19 @@ window.bookReady = (async () => {
     if (key === "mode") {
       const scroll = val === "pages" || val === "text";
       const next = { view: scroll ? "scroll" : "paged", facing: val === "facing" ? 1 : val === "single" ? 0 : S.facing, scrollStyle: scroll ? val : S.scrollStyle };
+      // In All pages, single and facing pair the thumbnails, and All pages stays open.
+      if (gridOpen && !scroll) {
+        const at = thumbs.indexOf(document.activeElement), a = currentAnchor();
+        S.facing = next.facing;
+        saveSettings();
+        applySettings();
+        relayoutAll(a, true);   // the pages behind All pages follow, for when it closes
+        gridFacing = !!S.facing;
+        arrangeGrid();
+        const t = thumbs[at >= 0 ? at : shownPages()[0]];
+        if (t) { t.focus({ preventScroll: true }); t.scrollIntoView({ block: "center" }); }
+        return;
+      }
       closeGrid(true);
       if (next.view === S.view && next.facing === S.facing && next.scrollStyle === S.scrollStyle) return;
       const a = currentAnchor(), stayPaged = next.view === "paged" && S.view === "paged";
@@ -3163,7 +3191,7 @@ window.bookReady = (async () => {
     saveSettings();
     applySettings();
     if (!ready) return;
-    if (key === "pagedSpread" || key === "arrange") return layoutPages(false);
+    if (key === "pagedSpread" || key === "arrange" || key === "stripDir") return layoutPages(false);
     if (key === "guide" || key === "listenMode" || key === "mapMark" || key === "mapMarkOp" || key === "guideAt" || key === "guideLines" || key === "shadows" || key === "glide" || key === "theme" || key === "palette") return;
     if (key === "expand") { if (linear()) relayoutAll(a, true); else layoutPages(false); return; }
     if (key === "stat" || key === "pct") { updateChrome(); return; }
@@ -4351,8 +4379,8 @@ window.bookReady = (async () => {
   // v changes the view within the current mode: Flow or Pile in pages, text or pages in Scroll.
   function switchView() {
     if (S.view === "scroll") setSetting("scrollStyle", S.scrollStyle === "pages" ? "text" : "pages");
-    else setSetting("arrange", S.arrange === "flow" ? "pile" : "flow");
-    toast(S.view === "scroll" ? (S.scrollStyle === "pages" ? "Scroll: pages" : "Scroll: text") : S.arrange === "flow" ? "Flow view" : "Pile view", 1200);
+    else setSetting("arrange", { flow: "pile", pile: "strip", strip: "flow" }[S.arrange] || "flow");
+    toast(S.view === "scroll" ? (S.scrollStyle === "pages" ? "Scroll: pages" : "Scroll: text") : { flow: "Flow view", pile: "Pile view", strip: S.stripDir === "down" ? "Strip view, down" : "Strip view, across" }[S.arrange], 1200);
   }
   function goEdge(dir) {
     markPlace();
