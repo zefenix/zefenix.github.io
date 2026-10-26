@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>zefenix</title>
+<meta name="description" content="Experiments in design, interfaces, and the tools behind them.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2320384a'/%3E%3Ctext x='16' y='22.5' font-family='Georgia,serif' font-size='19' font-style='italic' text-anchor='middle' fill='%23eef2f3'%3Ez%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,300..600;1,7..72,300..600&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* One page: a name, a line, and a list of projects. Colours follow the device's light or dark setting. */
+:root {
+  --bg: #e6eaec; --card: #f6f8f8; --ink: #1c2226; --soft: #5c676e; --accent: #2b5a7a; --hair: #c9d0d3; --cover: #20384a; --cover-ink: #eef2f3;
+  --serif: "Literata", "Iowan Old Style", Georgia, serif;
+  --sans: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #171b1f; --card: #1f252a; --ink: #dddad3; --soft: #949da3; --accent: #8db5d3; --hair: #2e363c; --cover: #2a4659; --cover-ink: #e9eef0; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--sans);
+  display: flex; flex-direction: column;
+  padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+main { width: 100%; max-width: 38rem; margin: 0 auto; padding: 12vh 0 4rem; flex: 1; }
+h1 { margin: 0 0 .6rem; font: italic 400 clamp(2.6rem, 9vw, 3.6rem)/1 var(--serif); letter-spacing: -.02em; font-variation-settings: "opsz" 72; }
+.intro { margin: 0 0 3.2rem; font: 400 1.15rem/1.55 var(--serif); color: var(--soft); max-width: 30rem; }
+h2 { margin: 0 0 1rem; font: 600 .72rem/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--soft); }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.project {
+  display: grid; grid-template-columns: 64px 1fr; gap: 18px; align-items: center;
+  padding: 16px; border: 1px solid var(--hair); border-radius: 12px; background: var(--card);
+  color: inherit; text-decoration: none; transition: border-color .2s ease, transform .2s ease;
+}
+.project:hover { border-color: var(--accent); transform: translateY(-1px); }
+.project:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.glyph { width: 64px; height: 84px; border-radius: 4px; background: var(--cover); display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 6px 14px; }
+.glyph i { display: block; width: 5px; border-radius: 1px; background: var(--cover-ink); }
+.name { margin: 0 0 4px; font: 500 1.2rem/1.25 var(--serif); }
+.what { margin: 0 0 8px; font-size: .92rem; line-height: 1.5; color: var(--soft); }
+.meta { font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+footer { width: 100%; max-width: 38rem; margin: 0 auto; padding: 1.5rem 0 .5rem; border-top: 1px solid var(--hair); display: flex; justify-content: space-between; gap: 1rem; font-size: .85rem; color: var(--soft); }
+footer a { color: inherit; text-underline-offset: 3px; }
+footer a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1>zefenix</h1>
+  <p class="intro">Experiments in design, interfaces, and the tools behind them. Mostly prototypes, shared freely as they develop.</p>
+
+  <h2>Projects</h2>
+  <ul>
+    <li>
+      <a class="project" href="/pages-piled/">
+        <span class="glyph" aria-hidden="true"><i style="height:20px;opacity:.4"></i><i style="height:30px;opacity:.65"></i><i style="height:44px"></i><i style="height:30px;opacity:.65"></i><i style="height:20px;opacity:.4"></i></span>
+        <div>
+          <p class="name">Pages, Piled</p>
+          <p class="what">A paged-reading prototype built on paged.js. The page you’re reading stays in the middle; the rest of the book stands beside it, so you always know where you are.</p>
+          <span class="meta">Reader · 2026</span>
+        </div>
+      </a>
+    </li>
+  </ul>
+</main>
+<footer>
+  <span>zefenix</span>
+  <a href="https://github.com/zefenix">GitHub</a>
+</footer>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# GitHub Pages builds this site with Jekyll; these files stay in the repository but are not published.
+exclude:
+  - LICENSE
+  - README.md
+  - source
