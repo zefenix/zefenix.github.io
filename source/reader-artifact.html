@@ -4,6 +4,12 @@
 <style data-pagedjs-ignore>
 /* phone browsers keep the reader's sizes: Firefox for Android otherwise enlarges some text inside the set pages */
 html { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: none; text-size-adjust: none; }
+/* quiet scroll bars everywhere: a thin thumb in the theme's ink on a clear track */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 22%, transparent) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 22%, transparent); border: 2px solid transparent; border-radius: 8px; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--ink) 38%, transparent); }
 /* Layout: one-screen reader. Title bar with search; minimap panel | stage | contents panel
    (sides swappable); footer dock with view switch + options, page ticks between prev/next, editable page box.
    The stage shows one text two ways: paged.js pages on a desk, or a scroll column. */
@@ -920,7 +926,7 @@ a.toc-item { text-decoration: none; }
 <div class="app loading" id="app" data-view="paged">
   <header class="bar top" id="top">
     <div class="top-side top-l" id="topL"></div>
-    <div class="top-mid"><button type="button" class="name" id="nameBtn" title="Library (B)">Pages, Piled</button><span class="chap" id="chap" aria-live="polite"></span></div>
+    <div class="top-mid"><button type="button" class="name" id="nameBtn" title="Library (B or o)">Pages, Piled</button><span class="chap" id="chap" aria-live="polite"></span></div>
     <div class="top-side top-r" id="topR"></div>
     <div class="tray" id="tray">
     <div class="tray-listen" role="group" aria-label="Listen">
@@ -1083,7 +1089,7 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Contents side</span>
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
-    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · B or bb library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
     <button type="button" class="reset" id="booksFromOpts">Library</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
@@ -1458,7 +1464,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>cc</code></td> <td><b>C</b>ontents as chapters alone, or with their headings; in the Library, its outline the same way</td></tr>
     <tr><td><code>C</code></td> <td><b>C</b>ontents sidebar on, off</td></tr>
     <tr><td><code>L</code></td> <td>Move the keys into Contents, or in the Library its outline: <code>j</code> <code>k</code> move, Enter goes there, <code>L</code> or Esc comes back</td></tr>
-    <tr><td><code>B</code> <code>bb</code></td> <td>The Library: the shelf, your own files and the bookmarklet; in it, <code>b</code> or <code>v</code> switches Shelf and List</td></tr>
+    <tr><td><code>B</code> <code>o</code></td> <td>The Library: the shelf, your own files and the bookmarklet; in it, <code>b</code> or <code>v</code> switches Shelf and List</td></tr>
     <tr><td><code>m</code></td> <td><b>M</b>inimap on, off</td></tr>
     <tr><td><code>z</code></td> <td><b>Z</b>en: hide the menus, keep the page slider</td></tr>
     <tr><td><code>F</code></td> <td><b>F</b>ocus: fade the bars and panels</td></tr>
@@ -4321,7 +4327,7 @@ window.bookReady = (async () => {
     toast(outlineOn() ? "Contents: every heading" : "Contents: chapters", 1200);
   }
   const twice = (once, again) => { let t = 0; return () => { if (t) { clearTimeout(t); t = 0; again(); return; } t = setTimeout(() => { t = 0; once(); }, 300); }; };
-  const cKey = twice(peekToc, toggleOutline), bKey = twice(() => {}, () => toggleBooks());
+  const cKey = twice(peekToc, toggleOutline);
   // v changes the view within the current mode: Flow or Pile in pages, text or pages in Scroll.
   function switchView() {
     if (S.view === "scroll") setSetting("scrollStyle", S.scrollStyle === "pages" ? "text" : "pages");
@@ -4378,7 +4384,7 @@ window.bookReady = (async () => {
     }
     if (k === "G") { e.preventDefault(); goEdge(1); return; }
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
-    const toggles = { L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), b: bKey, t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
+    const toggles = { L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), o: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && reading) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
     // the same steps for the left hand alone: q and w a sentence back and on, Q and W a paragraph
     if ((k === "q" || k === "w") && reading) { e.preventDefault(); skipSentence(k === "w" ? 1 : -1); return; }
@@ -5052,7 +5058,7 @@ window.bookReady = (async () => {
       } else libLastC = now;
       return;
     }
-    if (e.key === "B") { e.preventDefault(); setBooks(false); focusReader(); }
+    if (e.key === "B" || e.key === "o") { e.preventDefault(); setBooks(false); focusReader(); }
   }
   // Esc: first a pending Remove all, then the selection, then the Library itself.
   function libEsc() {
