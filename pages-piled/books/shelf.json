@@ -1,0 +1,30 @@
+[
+ {
+  "id": "rust",
+  "title": "The Rust Programming Language",
+  "byline": "Steve Klabnik, Carol Nichols and Chris Krycho, with contributions from the Rust Community",
+  "site": "github.com/rust-lang/book",
+  "url": "https://github.com/rust-lang/book/tree/1500248d8f230566e4ec9f27fcbb8fe9e2898ab1",
+  "copyright": "Copyright (c) 2010 The Rust Project Developers. Licensed under the MIT license or the Apache License, Version 2.0, at your option.",
+  "notice": "Shown here unchanged apart from layout, from the book's source at commit 1500248d8f23. Not affiliated with or endorsed by the Rust Project.",
+  "licenses": [
+   "LICENSE-MIT",
+   "LICENSE-APACHE",
+   "COPYRIGHT"
+  ],
+  "chapters": 111
+ },
+ {
+  "id": "cookbooks",
+  "title": "Claude Cookbooks, a selection",
+  "byline": "Eight notebooks from anthropics/claude-cookbooks, as Markdown",
+  "site": "github.com/anthropics/claude-cookbooks",
+  "url": "https://github.com/anthropics/claude-cookbooks/tree/bfe50e59dbb4f5546a0af9ca36ebb77e637c9ce1",
+  "copyright": "Copyright (c) 2023 Anthropic. MIT License.",
+  "notice": "Selected and converted from notebooks to Markdown for Pages, Piled, from commit bfe50e59dbb4; long outputs are shortened. Not affiliated with or endorsed by Anthropic.",
+  "licenses": [
+   "LICENSE"
+  ],
+  "chapters": 8
+ }
+]

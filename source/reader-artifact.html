@@ -661,6 +661,16 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .bm-link { padding: 7px 12px; border: 1px dashed var(--accent); border-radius: 7px; font-family: var(--f-book); font-style: italic; font-size: 15px; text-decoration: none !important; cursor: grab; }
 .bm-copy { padding: 6px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; }
 .link-row { display: flex; gap: 8px; }
+.shelf { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.shelf li { display: flex; align-items: center; gap: 4px; }
+.shelf a { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border-radius: 6px; text-decoration: none; }
+.shelf a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.shelf a[aria-current="true"] { background: var(--bar); }
+.shelf .t { font-family: var(--f-book); font-size: 15px; line-height: 1.3; color: var(--ink); }
+.shelf .s { font-size: 12px; line-height: 1.35; color: var(--ink-soft); overflow-wrap: anywhere; }
+.shelf .x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 6px; background: none; color: var(--ink-soft); font-size: 15px; cursor: pointer; }
+.shelf .x:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.app.dropping::after { content: "Drop Markdown files or a folder to read them as a book"; position: fixed; inset: 12px; z-index: 40; display: grid; place-items: center; border: 2px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); font-family: var(--f-book); font-size: 20px; color: var(--ink); pointer-events: none; }
 .link-row input { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 13.5px; color: var(--ink); }
 .bm-help { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
 </style>
@@ -945,6 +955,24 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 
   <div class="popover all books" id="books" role="dialog" aria-label="Books" hidden>
     <section id="booksNow"></section>
+    <section>
+      <h3>Shelf</h3>
+      <ol class="shelf" id="shelfList"></ol>
+    </section>
+    <section id="openedSec" hidden>
+      <h3>Opened in this browser</h3>
+      <ol class="shelf" id="openedList"></ol>
+    </section>
+    <section>
+      <h3>Open your own</h3>
+      <div class="link-row">
+        <button type="button" class="bm-copy" id="pickFiles">Markdown files</button>
+        <button type="button" class="bm-copy" id="pickFolder">A folder</button>
+        <input type="file" id="fileIn" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
+        <input type="file" id="folderIn" webkitdirectory multiple hidden>
+      </div>
+      <p class="bm-help">Or drop files or a folder anywhere on the page. A folder becomes one book, its files the chapters, in the order of its SUMMARY.md if it has one. Files are read here and never uploaded.</p>
+    </section>
     <section>
       <h3>Open a link</h3>
       <form class="link-row" id="linkForm">
@@ -1507,11 +1535,11 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 // a docs page sent by the bookmarklet, kept in this browser's IndexedDB under ?book=KEY. Without one, the reader's own book stays.
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
-  window.bookTools = { checkBook, saveBook };
+  window.bookTools = { checkBook, saveBook, listBooks, deleteBook };
   const LIMIT = 50000;   // characters in a part; see prepare()
   const P = new URLSearchParams(location.search);
   const BM = P.get("from") === "bookmarklet";
-  if (!BM && !P.has("book") && !P.has("src")) return { own: true };
+  if (!BM && !P.has("book") && !P.has("src") && !P.has("shelf")) return { own: true };
   const status = $("status");
   const say = (text, back = true) => {
     status.textContent = text;
@@ -1523,8 +1551,12 @@ window.bookReady = (async () => {
     }
   };
   try {
-    let book, key;
-    if (BM) {
+    let book, key, ref;
+    if (P.has("shelf")) {
+      key = P.get("shelf");
+      book = await fromShelf(key);
+      ref = `shelf=${key}`;
+    } else if (BM) {
       say("Waiting for the page you opened this from…", false);
       book = await receiveBook();
       key = await saveBook(book);
@@ -1538,13 +1570,14 @@ window.bookReady = (async () => {
       book = await loadBook(key);
       if (!book) { say("This book is no longer kept in this browser. Open it again from its page."); return null; }
     }
+    ref = ref || `book=${key}`;
     say("Setting the text into pages…", false);
     await loadScripts(["vendor/marked.umd.js", "vendor/purify.min.js"]);
     const part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
-    fillBook(book, key, part);
+    fillBook(book, ref, part);
     const { list, parts } = prepare(book);
     window.bookInfo = {
-      key, title: book.title, url: book.url, site: book.site, src: book.src || "", part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
+      key, ref, from: book.from, title: book.title, url: book.url, site: book.site, src: book.src || "", part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
       parts: parts.map(p => ({ from: list[p.units[0].i].title, to: list[p.units[p.units.length - 1].i].title, count: new Set(p.units.map(u => u.i)).size }))
     };
     return window.bookInfo;
@@ -1611,6 +1644,23 @@ window.bookReady = (async () => {
     let index = null;
     if (d.index && sameSite(d.index.url) && Number.isInteger(d.index.pages) && d.index.pages > 0) index = { url: d.index.url, pages: d.index.pages };
     return { v: 1, title: d.title.trim() || new URL(d.url).hostname, site: (d.site || "").trim() || new URL(d.url).hostname, url: d.url, copyright: (d.copyright || "").trim(), from: "bookmarklet", at: new Date().toISOString(), chapters, index };
+  }
+
+  /* ---------- the shelf's own books ---------- */
+
+  // A hosted book: its chapters' Markdown in one file beside its licences, served with the reader.
+  async function fromShelf(id) {
+    if (!/^[a-z0-9-]{1,40}$/.test(id)) throw new Error("There is no such book on the shelf.");
+    const base = new URL(`books/${id}/`, location.href);
+    let r;
+    try { r = await fetch(new URL("book.json", base)); } catch { throw new Error("The book couldn’t be loaded. Check your connection and reload."); }
+    if (!r.ok) throw new Error("There is no such book on the shelf.");
+    const b = await r.json();
+    return {
+      v: 1, title: b.title, site: b.site, url: b.url, byline: b.byline, copyright: b.copyright, notice: b.notice,
+      licenses: (b.licenses || []).map(f => new URL(f, base).href), from: "shelf",
+      chapters: b.chapters.map(c => ({ title: c.title, url: new URL(c.path, base).href, source: c.source || "", markdown: c.markdown }))
+    };
   }
 
   /* ---------- opening a link ---------- */
@@ -1751,6 +1801,24 @@ window.bookReady = (async () => {
     });
     return key;
   }
+  async function listBooks() {
+    const d = await db();
+    return new Promise((resolve, reject) => {
+      const out = [], c = d.transaction("books").objectStore("books").openCursor();
+      c.onsuccess = () => {
+        const cur = c.result;
+        if (!cur) { resolve(out.sort((a, b) => (b.at || "").localeCompare(a.at || ""))); return; }
+        const v = cur.value;
+        out.push({ key: cur.key, title: v.title, url: v.url, from: v.from, at: v.at, chapters: v.chapters.length });
+        cur.continue();
+      };
+      c.onerror = () => reject(c.error);
+    });
+  }
+  async function deleteBook(key) {
+    const d = await db();
+    await new Promise((resolve, reject) => { const t = d.transaction("books", "readwrite"); t.objectStore("books").delete(key); t.oncomplete = resolve; t.onerror = () => reject(t.error); });
+  }
   async function loadBook(key) {
     if (!/^[0-9a-f]{12}$/.test(key)) return null;
     const d = await db();
@@ -1851,7 +1919,7 @@ window.bookReady = (async () => {
     return { list, parts };
   }
 
-  function fillBook(book, key, part) {
+  function fillBook(book, ref, part) {
     const { list, parts } = prepare(book);
     part = Math.min(part, parts.length);
     const partOf = i => parts.findIndex(p => p.units.some(u => u.i === i)) + 1;
@@ -1866,7 +1934,7 @@ window.bookReady = (async () => {
     const host = new URL(book.url).hostname;
 
     // Chapter addresses, so links between chapters stay in the book.
-    const norm = u => { try { const x = new URL(u); x.hash = ""; x.search = ""; return x.href.replace(/\.md$/, "").replace(/\/$/, ""); } catch { return ""; } };
+    const norm = u => { try { const x = new URL(u); x.hash = ""; x.search = ""; return x.href.replace(/\.(md|html)$/, "").replace(/\/$/, ""); } catch { return ""; } };
     const ids = new Set();
     const idFor = text => {
       let base = text.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").slice(0, 48) || "s";
@@ -1891,16 +1959,18 @@ window.bookReady = (async () => {
     const here = chapters.filter(ch => ch.here);
     const byUrl = new Map();
     if (book.chapters.length > 1) chapters.forEach(ch => byUrl.set(norm(ch.url), ch));
-    const hrefFor = ch => ch.part === part ? `#${ch.id}` : `?book=${key}${ch.part > 1 ? `&part=${ch.part}` : ""}#${ch.id}`;
+    const hrefFor = ch => ch.part === part ? `#${ch.id}` : `?${ref}${ch.part > 1 ? `&part=${ch.part}` : ""}#${ch.id}`;
 
     // Cover.
     const glyph = el("div", { class: "glyph", "aria-hidden": "true" });
     glyph.innerHTML = [".34,.28", ".42,.36", ".52,.46", ".64,.58", ".78,.72", "1,1", ".78,.72", ".64,.58", ".52,.46", ".42,.36", ".34,.28"].map(v => { const [h, o] = v.split(","); return `<i style="--h:${h};--o:${o}"></i>`; }).join("");
-    const src = el("a", { href: book.url }, host + new URL(book.url).pathname.replace(/\/$/, ""));
-    const imprint = el("p", { class: "imprint" }, el("span", { class: "paper" }, "A5 · 148 × 210 mm"), el("br"), "Set in Literata with paged.js", el("br"), `Opened ${new Date(book.at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`);
+    const local = book.from === "files", shelf = book.from === "shelf";
+    const src = local ? "your files" : el("a", { href: book.url }, shelf ? book.site : host + new URL(book.url).pathname.replace(/\/$/, ""));
+    const imprint = el("p", { class: "imprint" }, el("span", { class: "paper" }, "A5 · 148 × 210 mm"), el("br"), "Set in Literata with paged.js", el("br"),
+      shelf ? book.byline : `Opened ${new Date(book.at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`);
     if (parts.length > 1) imprint.append(el("br"), `Part ${part} of ${parts.length}`);
     bk.append(el("section", { class: "cover", "data-label": "Cover" },
-      el("p", { class: "kicker" }, book.site), el("h1", {}, book.title), el("p", { class: "sub" }, "From ", src), glyph, imprint));
+      el("p", { class: "kicker" }, local ? "From your files" : book.site), el("h1", {}, book.title), local ? "" : el("p", { class: "sub" }, "From ", src), glyph, imprint));
 
     // Contents: this part's chapters, with the other parts named.
     const toc = el("ol", { class: "toc" });
@@ -1908,8 +1978,8 @@ window.bookReady = (async () => {
     const contents = el("section", { class: "contents", "data-label": "Contents" }, el("h3", {}, "Contents"), toc);
     if (parts.length > 1) {
       const others = el("p", { class: "note" }, `This is part ${part} of ${parts.length}, chapters ${here[0].n} to ${here[here.length - 1].n} of ${chapters.length}. `);
-      if (part > 1) others.append(el("a", { href: `?book=${key}${part - 1 > 1 ? `&part=${part - 1}` : ""}` }, "Previous part"), " · ");
-      if (part < parts.length) others.append(el("a", { href: `?book=${key}&part=${part + 1}` }, "Next part"), " · ");
+      if (part > 1) others.append(el("a", { href: `?${ref}${part - 1 > 1 ? `&part=${part - 1}` : ""}` }, "Previous part"), " · ");
+      if (part < parts.length) others.append(el("a", { href: `?${ref}&part=${part + 1}` }, "Next part"), " · ");
       others.append("All parts: Books (b).");
       contents.append(others);
     }
@@ -1930,13 +2000,20 @@ window.bookReady = (async () => {
       if (secs.length) notes.push(el("div", { class: "note", "data-for": ch.id }, el("ul", {}, ...secs.map(s => el("li", {}, el("a", { href: `#${s.id}` }, s.textContent.trim()))))));
     }
     if (parts.length > 1 && part < parts.length) {
-      bk.append(el("p", { class: "next-part" }, el("a", { href: `?book=${key}&part=${part + 1}` }, `Continue with part ${part + 1}: ${list[parts[part].units[0].i].title}`)));
+      bk.append(el("p", { class: "next-part" }, el("a", { href: `?${ref}&part=${part + 1}` }, `Continue with part ${part + 1}: ${list[parts[part].units[0].i].title}`)));
     }
 
     // Colophon: where the text came from, and its notice.
-    const colophon = el("div", { class: "colophon" }, el("p", {}, book.title), el("p", {}, "From ", el("a", { href: book.url }, book.url)));
-    colophon.append(el("p", {}, book.copyright || `The text belongs to its authors at ${host}.`));
-    colophon.append(el("p", {}, "Opened in this browser for your own reading. Pages, Piled keeps no copy."));
+    const colophon = el("div", { class: "colophon" }, el("p", {}, book.title));
+    if (!local) colophon.append(el("p", {}, "From ", el("a", { href: book.url }, book.url)));
+    if (book.copyright || !local) colophon.append(el("p", {}, book.copyright || `The text belongs to its authors at ${host}.`));
+    if (book.notice) colophon.append(el("p", {}, book.notice));
+    if (book.licenses && book.licenses.length) {
+      const l = el("p", {}, "Licence: ");
+      book.licenses.forEach((u, i) => l.append(i ? ", " : "", el("a", { href: u }, u.split("/").pop())));
+      colophon.append(l);
+    }
+    colophon.append(el("p", {}, shelf ? "Hosted with its licence on this site." : local ? "Opened from your files; they stay on this device." : "Opened in this browser for your own reading. Pages, Piled keeps no copy."));
     bk.append(colophon);
 
     function fixLink(a, base) {
@@ -2091,7 +2168,7 @@ window.bookReady = (async () => {
   let ready = false;
   let pages = [], pageSpans = [], pageByBlock = [], W = 0, H = 0, curPage = 0;
   let artBlocks = [];
-  const ANCHOR = window.bookInfo && !window.bookInfo.own ? `anchor:${window.bookInfo.key}:${window.bookInfo.part}` : "anchor";   // each book and part keeps its own place
+  const ANCHOR = window.bookInfo && !window.bookInfo.own ? `anchor:${window.bookInfo.ref}:${window.bookInfo.part}` : "anchor";   // each book and part keeps its own place
   let anchor = store.get(ANCHOR, { b: 0, f: 0 });
   if (!(anchor && Number.isFinite(anchor.b) && Number.isFinite(anchor.f))) anchor = { b: 0, f: 0 };
   let scrollTarget = null;
@@ -4387,8 +4464,91 @@ window.bookReady = (async () => {
     const v = $("linkBox").value.trim();
     if (v) location.href = `${location.pathname}?src=${encodeURIComponent(v)}`;
   });
+  // The shelf: the reader's own book and the hosted ones, then the books opened in this browser.
+  let shelfData = null;
+  async function renderShelf() {
+    const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); e.append(...kids); return e; };
+    const row = (href, title, sub, current) => { const a = el("a", { href }, el("span", { className: "t" }, title), el("span", { className: "s" }, sub)); if (current) a.setAttribute("aria-current", "true"); return a; };
+    if (!shelfData) {
+      try { shelfData = await (await fetch("books/shelf.json")).json(); } catch { shelfData = []; }
+    }
+    $("shelfList").replaceChildren(
+      el("li", {}, row(location.pathname, "Pages, Piled", "The reader’s own book, about how it works", info.own)),
+      ...shelfData.map(b => el("li", {}, row(`?shelf=${b.id}`, b.title, `${b.chapters} chapters · ${b.site}`, info.ref === `shelf=${b.id}`))));
+    let opened = [];
+    try { opened = await window.bookTools.listBooks(); } catch {}
+    $("openedSec").hidden = !opened.length;
+    $("openedList").replaceChildren(...opened.map(b => {
+      const x = el("button", { type: "button", className: "x", title: "Remove from this browser", ariaLabel: `Remove ${b.title} from this browser` }, "×");
+      x.addEventListener("click", async () => { await window.bookTools.deleteBook(b.key); if (info.key === b.key) location.href = location.pathname; else renderShelf(); });
+      const from = b.from === "files" ? "your files" : (() => { try { return new URL(b.url).hostname; } catch { return ""; } })();
+      return el("li", {}, row(`?book=${b.key}`, b.title, `${b.chapters} ${b.chapters === 1 ? "page" : "pages"} · ${from} · ${new Date(b.at).toLocaleDateString()}`, info.key === b.key && !info.own), x);
+    }));
+  }
+
+  // Your own files: picked or dropped, read here, kept in this browser, never uploaded.
+  const TEXT = /\.(md|markdown|txt)$/i;
+  async function openFiles(files, folder) {
+    files = files.filter(f => TEXT.test(f.path) && !/(^|\/)\./.test(f.path));
+    if (!files.length) { toast("No Markdown files there. Pages, Piled opens .md, .markdown and .txt files.", 3000); return; }
+    const texts = await Promise.all(files.map(async f => ({ path: f.path, text: await f.file.text() })));
+    const size = texts.reduce((n, t) => n + t.text.length, 0);
+    if (size > 40e6) { toast("That is more than 40 million characters, too much to set as one book.", 3000); return; }
+    const url = p => `file:///${encodeURI(p)}`;
+    let order = texts.slice().sort((a, b) => (/(^|\/)readme\.\w+$/i.test(b.path) - /(^|\/)readme\.\w+$/i.test(a.path)) || a.path.localeCompare(b.path, undefined, { numeric: true }));
+    const summary = texts.find(t => /(^|\/)summary\.md$/i.test(t.path));
+    if (summary) {
+      const listed = [...summary.text.matchAll(/\[([^\]]+)\]\(([^)\s]+\.md)\)/g)].map(m => ({ title: m[1], url: new URL(m[2], url(summary.path)).href }));
+      const byUrl = new Map(texts.map(t => [url(t.path), t]));
+      const picked = listed.filter(l => byUrl.has(l.url));
+      if (picked.length) order = picked.map(l => ({ ...byUrl.get(l.url), title: l.title }));
+    }
+    const heading = t => (/^#{1,6}\s+(.+)$/m.exec(t.text) || [])[1];
+    const chapters = order.filter(t => t !== summary).map(t => ({ title: (t.title || heading(t) || t.path.split("/").pop().replace(TEXT, "")).trim().slice(0, 300), url: url(t.path), markdown: t.text }));
+    const title = folder || (chapters.length === 1 ? chapters[0].title : `${chapters.length} files`);
+    const book = { v: 1, title: title.slice(0, 300), site: "your files", url: url(folder || files[0].path), copyright: "", from: "files", at: new Date().toISOString(), chapters, index: null };
+    try {
+      const key = await window.bookTools.saveBook(book);
+      location.href = `${location.pathname}?book=${key}`;
+    } catch (err) { toast(String(err.message || err), 3000); }
+  }
+  $("pickFiles").addEventListener("click", () => $("fileIn").click());
+  $("pickFolder").addEventListener("click", () => $("folderIn").click());
+  $("fileIn").addEventListener("change", e => openFiles([...e.target.files].map(f => ({ file: f, path: f.name }))));
+  $("folderIn").addEventListener("change", e => {
+    const list = [...e.target.files].map(f => ({ file: f, path: f.webkitRelativePath || f.name }));
+    openFiles(list, list.length ? list[0].path.split("/")[0] : "");
+  });
+  // Drop: files, or a folder read through the entries API.
+  const entryFiles = async (entry, path) => {
+    if (entry.isFile) return [{ file: await new Promise((res, rej) => entry.file(res, rej)), path: path + entry.name }];
+    const reader = entry.createReader(), all = [];
+    for (;;) {
+      const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+      if (!batch.length) break;
+      all.push(...batch);
+    }
+    return (await Promise.all(all.map(e => entryFiles(e, `${path}${entry.name}/`)))).flat();
+  };
+  let dragDepth = 0;
+  const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+  window.addEventListener("dragenter", e => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; app.classList.add("dropping"); });
+  window.addEventListener("dragover", e => { if (hasFiles(e)) e.preventDefault(); });
+  window.addEventListener("dragleave", () => { if (dragDepth && !--dragDepth) app.classList.remove("dropping"); });
+  window.addEventListener("drop", async e => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    app.classList.remove("dropping");
+    const entries = [...e.dataTransfer.items].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+    if (entries.length) {
+      const files = (await Promise.all(entries.map(en => entryFiles(en, "")))).flat();
+      openFiles(files, entries.length === 1 && entries[0].isDirectory ? entries[0].name : "");
+    } else openFiles([...e.dataTransfer.files].map(f => ({ file: f, path: f.name })));
+  });
+
   function setBooks(open) {
-    if (open) { renderBooks(); booksEl.style.bottom = dock.offsetHeight + 8 + "px"; setOptions(false); closeSearch(true); }
+    if (open) { renderShelf(); renderBooks(); booksEl.style.bottom = dock.offsetHeight + 8 + "px"; setOptions(false); closeSearch(true); }
     booksEl.hidden = !open;
   }
   const toggleBooks = () => setBooks(booksEl.hidden);
@@ -4400,7 +4560,7 @@ window.bookReady = (async () => {
       booksNow.append(el("p", { className: "bk-title" }, "Pages, Piled"), el("p", { className: "bk-src" }, "The reader’s own book, about how it works."));
       return;
     }
-    booksNow.append(el("p", { className: "bk-title" }, info.title), el("p", { className: "bk-src" }, "From ", el("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.url)));
+    booksNow.append(el("p", { className: "bk-title" }, info.title), el("p", { className: "bk-src" }, ...(info.from === "files" ? ["From your files, kept in this browser"] : ["From ", el("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.url)])));
     if (info.src) {
       // A share link opens the same source as a book for anyone; the reader fetches it in their browser.
       const share = `${readerUrl}?src=${encodeURIComponent(info.src)}`;
@@ -4414,7 +4574,7 @@ window.bookReady = (async () => {
     if (info.parts.length > 1) {
       booksNow.append(el("p", { className: "bk-msg" }, `${info.chapters} pages, in ${info.parts.length} parts so each sets quickly.`));
       const ol = el("ol", { className: "bk-parts" });
-      const href = i => `?book=${info.key}${i ? `&part=${i + 1}` : ""}`;
+      const href = i => `?${info.ref}${i ? `&part=${i + 1}` : ""}`;
       // A chapter cut into several parts takes one row, its parts as numbers.
       for (let i = 0; i < info.parts.length; i++) {
         const p = info.parts[i];
