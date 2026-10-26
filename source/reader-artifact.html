@@ -1093,7 +1093,7 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Contents side</span>
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
-    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow, pile or strip; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow, pile or strip; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · J K page down, up · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
     <button type="button" class="reset" id="booksFromOpts">Library</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
@@ -1449,7 +1449,8 @@ a.toc-item { text-decoration: none; }
     <tr><td>↓ ↑, Page Down, Page Up</td> <td>Next, previous page</td> <td>Scroll down, up</td></tr>
     <tr><td>Home, End</td> <td>First, last page</td> <td>Top, bottom</td></tr>
     <tr><td><code>d</code> <code>u</code></td> <td>A page <b>d</b>own, <b>u</b>p</td> <td>Half a screen <b>d</b>own, <b>u</b>p</td></tr>
-    <tr><td>Space, Shift+Space</td> <td>Next, previous page</td> <td>A screen down, up</td></tr>
+    <tr><td>Space, Shift+Space</td> <td>Next, previous page</td> <td>A screen down, up; in scrolled pages, the next or previous page, centred</td></tr>
+    <tr><td><code>J</code> <code>K</code></td> <td>Next, previous page, as Page Down and Page Up</td> <td>The same; in scrolled pages, the page centred</td></tr>
     <tr><td><code>gg</code> <code>G</code></td> <td><b>G</b>o to the first, last page</td> <td><b>G</b>o to the top, bottom</td></tr>
     <tr><td><code>r</code></td> <td><b>R</b>eturn: to Listen’s sentence if you moved away, otherwise to before your last jump; again to come back</td> <td>Same</td></tr>
     <tr><td><code>s</code></td> <td><b>S</b>witch to <b>s</b>crolled pages</td> <td><b>S</b>witch back to pages</td></tr>
@@ -2765,11 +2766,13 @@ window.bookReady = (async () => {
     if (instant) settle(desk);
   }
 
-  // In the pages style of Scroll, bring a page's top to the top of the column.
+  // In the pages style of Scroll, centre a page in the column, or bring its top near the top when it is taller.
   function scrollToPage(i, smooth) {
     const p = pages[i];
     if (!p) return;
-    const top = desk.scrollTop + p.getBoundingClientRect().top - desk.getBoundingClientRect().top - 20;
+    const pr = p.getBoundingClientRect(), dr = desk.getBoundingClientRect();
+    const room = desk.clientHeight - pr.height;
+    const top = desk.scrollTop + pr.top - dr.top - (room > 40 ? room / 2 : 20);
     desk.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
   }
 
@@ -4450,9 +4453,10 @@ window.bookReady = (async () => {
       const half = scroller.clientHeight / 2;
       const by = { j: 70, k: -70, d: half, u: -half }[k];
       if (by) { e.preventDefault(); if (!e.repeat) glideKey(k, by); return; }
+      if (k === "J" || k === "K") { e.preventDefault(); scroller.scrollBy({ top: (k === "J" ? 1 : -1) * scroller.clientHeight * 0.85, behavior: "smooth" }); return; }
       if (scroller.contains(t)) return;          // arrows, space and Page keys scroll natively when the column has focus
-      const fwd = ["ArrowDown", "PageDown"].includes(k) || (k === " " && !e.shiftKey);
-      const back = ["ArrowUp", "PageUp"].includes(k) || (k === " " && e.shiftKey);
+      const fwd = ["ArrowDown", "PageDown", "J"].includes(k) || (k === " " && !e.shiftKey);
+      const back = ["ArrowUp", "PageUp", "K"].includes(k) || (k === " " && e.shiftKey);
       if (fwd || back) {
         e.preventDefault();
         scroller.scrollBy({ top: (fwd ? 1 : -1) * (k.startsWith("Arrow") ? 60 : scroller.clientHeight * 0.85), behavior: "smooth" });
@@ -4464,8 +4468,8 @@ window.bookReady = (async () => {
       if (by) { e.preventDefault(); if (!e.repeat) glideKey(k, by); return; }
       if ((k === "ArrowDown" || k === "ArrowUp") && desk.contains(t)) return;   // the column scrolls natively when it has focus
     }
-    const fwd = ["ArrowRight", "ArrowDown", "PageDown", "j", "l", "d"].includes(k) || (k === " " && !e.shiftKey);
-    const back = ["ArrowLeft", "ArrowUp", "PageUp", "k", "h", "u"].includes(k) || (k === " " && e.shiftKey);
+    const fwd = ["ArrowRight", "ArrowDown", "PageDown", "j", "l", "d", "J"].includes(k) || (k === " " && !e.shiftKey);
+    const back = ["ArrowLeft", "ArrowUp", "PageUp", "k", "h", "u", "K"].includes(k) || (k === " " && e.shiftKey);
     if (fwd || back) { e.preventDefault(); step(fwd ? 1 : -1); return; }
     if (k === "Home") { e.preventDefault(); goUnit(0); }
     if (k === "End") { e.preventDefault(); goUnit(pages.length - 1); }
