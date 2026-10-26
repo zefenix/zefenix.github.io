@@ -658,6 +658,9 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .books .bk-parts a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
 .books .bk-parts a[aria-current="true"] { background: var(--bar); color: var(--ink); }
 .books .bk-parts b { font-weight: 600; color: var(--accent); margin-right: 6px; }
+.books .bk-run { padding: 6px 8px; font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
+.books .bk-nums { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+.books .bk-nums a { min-width: 30px; padding: 4px 6px; text-align: center; font-variant-numeric: tabular-nums; }
 .books .bk-act { align-self: flex-start; padding: 7px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
 .books .bk-msg { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
 .bm-row { display: flex; align-items: center; gap: 10px; }
@@ -4276,11 +4279,27 @@ window.bookReady = (async () => {
     if (info.parts.length > 1) {
       booksNow.append(el("p", { className: "bk-msg" }, `${info.chapters} pages, in ${info.parts.length} parts so each sets quickly.`));
       const ol = el("ol", { className: "bk-parts" });
-      info.parts.forEach((p, i) => {
-        const a = el("a", { href: `?book=${info.key}${i ? `&part=${i + 1}` : ""}` }, el("b", {}, String(i + 1)), p.count > 1 ? `${p.from} … ${p.to}` : p.from);
-        if (i + 1 === info.part) a.setAttribute("aria-current", "true");
-        ol.append(el("li", {}, a));
-      });
+      const href = i => `?book=${info.key}${i ? `&part=${i + 1}` : ""}`;
+      // A chapter cut into several parts takes one row, its parts as numbers.
+      for (let i = 0; i < info.parts.length; i++) {
+        const p = info.parts[i];
+        let j = i;
+        while (p.count === 1 && info.parts[j + 1] && info.parts[j + 1].count === 1 && info.parts[j + 1].from === p.from) j++;
+        if (j === i) {
+          const a = el("a", { href: href(i) }, el("b", {}, String(i + 1)), p.count > 1 ? `${p.from} … ${p.to}` : p.from);
+          if (i + 1 === info.part) a.setAttribute("aria-current", "true");
+          ol.append(el("li", {}, a));
+          continue;
+        }
+        const nums = el("span", { className: "bk-nums" });
+        for (let k = i; k <= j; k++) {
+          const a = el("a", { href: href(k) }, String(k + 1));
+          if (k + 1 === info.part) a.setAttribute("aria-current", "true");
+          nums.append(a);
+        }
+        ol.append(el("li", { className: "bk-run" }, el("span", {}, `${p.from}, in ${j - i + 1} parts`), nums));
+        i = j;
+      }
       booksNow.append(ol);
     }
     if (info.index && info.chapters === 1) {
