@@ -1992,7 +1992,7 @@ window.bookReady = (async () => {
       const h1 = u.k === 0 && blocks.find(b => b.tagName === "H1");
       if (h1) { if (h1.textContent.trim()) ch.title = h1.textContent.trim(); blocks.splice(blocks.indexOf(h1), 1); }
       // A page that opens with its own title as a lesser heading, as an mdBook subchapter does, would repeat the chapter's.
-      const same = t => t.replace(/\s+/g, " ").trim().toLowerCase();
+      const same = t => t.replace(/[`*_]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
       if (u.k === 0 && blocks[0] && /^H[2-6]$/.test(blocks[0].tagName) && same(blocks[0].textContent) === same(ch.title)) blocks.shift();
       if (!ch.here) { ch.here = true; ch.cont = u.k > 0; }
       ch.blocks.push(...blocks.map(shiftHeading(0)));
@@ -2021,7 +2021,8 @@ window.bookReady = (async () => {
     for (const ch of here) toc.append(el("li", {}, el("a", { href: `#${ch.id}` }, el("span", { class: "n" }, typeof ch.shown === "string" ? ch.shown : String(ch.n)), el("span", { class: "t" }, ch.title))));
     const contents = el("section", { class: "contents", "data-label": "Contents" }, el("h3", {}, "Contents"), toc);
     if (parts.length > 1) {
-      const others = el("p", { class: "note" }, `This is part ${part} of ${parts.length}, chapters ${here[0].n} to ${here[here.length - 1].n} of ${chapters.length}. `);
+      const group = parts[part - 1].group;
+      const others = el("p", { class: "note" }, `This is part ${part} of ${parts.length}${group ? `: ${group}` : `, chapters ${here[0].n} to ${here[here.length - 1].n} of ${chapters.length}`}. `);
       if (part > 1) others.append(el("a", { href: `?${ref}${part - 1 > 1 ? `&part=${part - 1}` : ""}` }, "Previous part"), " · ");
       if (part < parts.length) others.append(el("a", { href: `?${ref}&part=${part + 1}` }, "Next part"), " · ");
       others.append("All parts: the Library (b).");

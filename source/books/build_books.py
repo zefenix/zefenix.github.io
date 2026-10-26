@@ -129,7 +129,7 @@ def build_rust(clone, out):
         elif indent == 0 and title == "Appendix":
             group, shown, label = "Appendix", "", ""
         elif indent == 0:
-            top, sub, group = top + 1, 0, title
+            top, sub, group = top + 1, 0, re.sub(r"`([^`]*)`", r"\1", title)
             shown, label = str(top), f"Chapter {top}"
         elif group == "Appendix":
             letter = re.match(r"^([A-Z])\s*-\s*", title)
@@ -139,6 +139,7 @@ def build_rust(clone, out):
         else:
             sub += 1
             shown, label = f"{top}.{sub}", f"{top}.{sub}"
+        title = re.sub(r"`([^`]*)`", r"\1", title)   # titles are plain text, without Markdown's code marks
         md = rust_chapter(os.path.join(src, file), src)
         used.update(re.findall(r'(?:src="|\]\()(img/[^")\s]+)', md))
         chapters.append({"title": title, "path": file, "group": group, "shown": shown, "label": label, "markdown": md})
