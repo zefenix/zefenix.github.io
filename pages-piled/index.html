@@ -659,38 +659,107 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
   .tick::before, .view { transition: none; }
   .flash { animation-duration: .01s; }
 }
-/* the Books sheet: what you are reading, its parts, and the bookmarklet */
+/* the Library (b, or the book's name): what you are reading, then the shelf as covers, tiles or a list */
 .top-mid .name { border: 0; padding: 0; background: none; color: inherit; cursor: pointer; text-overflow: ellipsis; overflow: hidden; max-width: 30vw; }
 .top-mid .name:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
-.books { right: auto; left: 50%; translate: -50% 0; width: min(380px, calc(100vw - 32px)); }
-.books .bk-title { margin: 0; font-family: var(--f-book); font-size: 17px; line-height: 1.3; color: var(--ink); }
-.books .bk-src { margin: 0; font-size: 12.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
-.books a { color: var(--accent); text-underline-offset: 3px; }
-.books .bk-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 40vh; overflow-y: auto; }
-.books .bk-parts a { display: block; padding: 6px 8px; border-radius: 6px; font-size: 13px; line-height: 1.35; color: var(--ink-soft); text-decoration: none; }
-.books .bk-parts a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
-.books .bk-parts a[aria-current="true"] { background: var(--bar); color: var(--ink); }
-.books .bk-parts b { font-weight: 600; color: var(--accent); margin-right: 6px; }
-.books .bk-run { padding: 6px 8px; font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
-.books .bk-nums { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
-.books .bk-nums a { min-width: 30px; padding: 4px 6px; text-align: center; font-variant-numeric: tabular-nums; }
-.books .bk-act { align-self: flex-start; padding: 7px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
-.books .bk-msg { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
+.library {
+  position: fixed; inset: 0; z-index: 30; overflow-y: auto; overscroll-behavior: contain; background: var(--desk);
+  padding: max(18px, env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) 48px max(18px, env(safe-area-inset-left, 0px));
+}
+.lib-inner { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+.lib-head { position: sticky; top: calc(-1 * max(18px, env(safe-area-inset-top, 0px))); z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 0; background: var(--desk); }
+.lib-head h2 { margin: 0 auto 0 0; font: italic 400 24px/1.1 var(--f-book); color: var(--ink); }
+.lib-head input { flex: 0 1 300px; min-width: 0; padding: 7px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: 13.5px; color: var(--ink); }
+.library h3 { margin: 0 0 12px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.library a { color: var(--accent); text-underline-offset: 3px; }
+
+/* a book's cover, drawn: its colour, its site, its title and the reader's mark */
+.bcover {
+  --cw: 118px; position: relative; width: var(--cw); aspect-ratio: 148 / 210; flex: none; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: calc(var(--cw) * .05); padding: calc(var(--cw) * .1) calc(var(--cw) * .09);
+  border-radius: 2px 5px 5px 2px; background: var(--bc, #20384a); color: #eef2f3; overflow: hidden;
+  box-shadow: inset 4px 0 0 rgba(0,0,0,.18), inset 5px 0 0 rgba(255,255,255,.08), 0 10px 18px -10px var(--shadow), 0 2px 4px -2px var(--shadow);
+}
+.bcover .k { font: 600 calc(var(--cw) * .055)/1.2 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; opacity: .75; overflow-wrap: anywhere; }
+.bcover .h { font: 400 calc(var(--cw) * .118)/1.08 var(--f-book); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.bcover .g { margin-top: auto; display: flex; align-items: flex-end; gap: calc(var(--cw) * .025); height: calc(var(--cw) * .18); }
+.bcover .g i { display: block; flex: 1; height: calc(var(--h) * 100%); background: currentColor; opacity: var(--o); border-radius: 1px; }
+.bcover.ghost { background: transparent; color: var(--ink-soft); border: 1.5px dashed var(--line); box-shadow: none; }
+
+/* the books: on shelves, as tiles, or as a list */
+.lib-books { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 26px 18px; }
+.lib-book { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; text-decoration: none; color: var(--ink); text-align: center; }
+.lib-book .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
+.lib-book .t { font-family: var(--f-book); font-size: 14px; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
+.lib-book .s { font-size: 11.5px; line-height: 1.35; color: var(--ink-soft); overflow-wrap: anywhere; }
+.lib-book:hover .bcover, .lib-book:focus-visible .bcover { transform: translateY(-3px); transition: transform .15s ease; }
+.lib-book[aria-current="true"] .bcover { outline: 2px solid var(--accent); outline-offset: 3px; }
+.lib-book .x { position: absolute; top: -8px; right: calc(50% - 70px); width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink-soft); font-size: 14px; line-height: 1; cursor: pointer; }
+.lib-book .x:hover { color: var(--ink); }
+.lib-book .s a { color: var(--accent); }
+/* Shelf: covers only, standing on a shelf under each row */
+.library.v-shelf .lib-books { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 0 18px; grid-auto-rows: 214px; align-items: end;
+  background: repeating-linear-gradient(to bottom, transparent 0 202px, color-mix(in srgb, var(--ink) 16%, transparent) 202px 206px, color-mix(in srgb, var(--ink) 5%, transparent) 206px 214px); }
+.library.v-shelf .lib-book { padding-bottom: 12px; }
+.library.v-shelf .lib-book .meta { display: none; }
+.library.v-shelf .lib-book .x { top: 4px; }
+/* List: a small cover, then the details */
+.library.v-list .lib-books { grid-template-columns: 1fr; gap: 6px; }
+.library.v-list .lib-book { flex-direction: row; align-items: center; gap: 14px; padding: 6px 8px; border-radius: 8px; text-align: left; }
+.library.v-list .lib-book:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.library.v-list .lib-books .bcover { --cw: 42px; padding: 4px; }
+.library.v-list .lib-books .bcover > * { display: none; }
+.library.v-list .lib-book .x { position: static; margin-left: auto; flex: none; }
+.library.v-list .lib-book:hover .bcover { transform: none; }
+
+/* Now reading */
+.lib-now { display: flex; gap: 22px; align-items: flex-start; padding: 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
+.lib-now .bcover { --cw: 132px; }
+.lib-now .d { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.lib-now .kick { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.lib-now .title { margin: 0; font: 400 22px/1.2 var(--f-book); color: var(--ink); text-wrap: balance; }
+.lib-now .src, .lib-now .by { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere; }
+.lib-now .prog { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.lib-now .pbar { flex: 0 1 220px; height: 4px; border-radius: 2px; background: var(--hair); overflow: hidden; }
+.lib-now .pbar i { display: block; height: 100%; background: var(--accent); }
+.lib-now .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.lib-now .msg { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+.lib-parts { margin-top: 8px; display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 6px; }
+.lib-parts .grp { font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.lib-parts ol { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.lib-parts a { display: block; padding: 5px 8px; border-radius: 6px; font-family: var(--f-book); font-size: 13.5px; line-height: 1.35; color: var(--ink-soft); text-decoration: none; }
+.lib-parts a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.lib-parts a[aria-current="true"] { background: var(--bar); color: var(--ink); }
+.lib-parts .more { font-family: var(--f-ui); font-size: 11.5px; color: var(--ink-soft); }
+
+/* found: words in the whole book, part by part */
+.lib-found { display: flex; flex-direction: column; gap: 4px; }
+.lib-found a { display: block; padding: 7px 10px; border-radius: 8px; text-decoration: none; color: var(--ink); }
+.lib-found a:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.lib-found .w { display: block; font-size: 11.5px; color: var(--ink-soft); }
+.lib-found .x { display: block; font-family: var(--f-book); font-size: 13.5px; line-height: 1.4; color: var(--ink-soft); }
+.lib-found mark { background: var(--sel); color: var(--sel-ink); border-radius: 2px; padding: 0 1px; }
+
+.lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
+.lib-card h3 { margin: 0; }
+.lib-card.flash { outline: 2px solid var(--accent); outline-offset: 2px; }
+.link-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .bm-row { display: flex; align-items: center; gap: 10px; }
 .bm-link { padding: 7px 12px; border: 1px dashed var(--accent); border-radius: 7px; font-family: var(--f-book); font-style: italic; font-size: 15px; text-decoration: none !important; cursor: grab; }
 .bm-copy { padding: 6px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; }
-.link-row { display: flex; gap: 8px; }
-.shelf { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.shelf li { display: flex; align-items: center; gap: 4px; }
-.shelf a { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border-radius: 6px; text-decoration: none; }
-.shelf a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
-.shelf a[aria-current="true"] { background: var(--bar); }
-.shelf .t { font-family: var(--f-book); font-size: 15px; line-height: 1.3; color: var(--ink); }
-.shelf .s { font-size: 12px; line-height: 1.35; color: var(--ink-soft); overflow-wrap: anywhere; }
-.shelf .card > div { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border: 1px dashed var(--line); border-radius: 6px; }
-.shelf .x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 6px; background: none; color: var(--ink-soft); font-size: 15px; cursor: pointer; }
-.shelf .x:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.bm-help { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
 .app.dropping::after { content: "Drop Markdown files or a folder to read them as a book"; position: fixed; inset: 12px; z-index: 40; display: grid; place-items: center; border: 2px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); font-family: var(--f-book); font-size: 20px; color: var(--ink); pointer-events: none; }
+@media (max-width: 600px) {
+  .lib-now { flex-direction: column; align-items: center; text-align: center; padding: 16px; }
+  .lib-now .prog, .lib-now .acts { justify-content: center; }
+  .lib-now .bcover { --cw: 112px; }
+  .lib-books { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 20px 12px; }
+  .lib-book .bcover { --cw: 100px; }
+  .library.v-shelf .lib-books { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); grid-auto-rows: 186px;
+    background: repeating-linear-gradient(to bottom, transparent 0 174px, color-mix(in srgb, var(--ink) 16%, transparent) 174px 178px, color-mix(in srgb, var(--ink) 5%, transparent) 178px 186px); }
+  .lib-head input { flex-basis: 100%; order: 3; }
+}
 .link-row input { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bar); font: inherit; font-size: 13.5px; color: var(--ink); }
 .bm-help { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
 </style>
@@ -793,6 +862,20 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .bk.ext td, .bk.ext th { overflow-wrap: anywhere; }
 .bk.ext blockquote { margin: 3mm 0; padding-left: 4mm; border-left: .8pt solid var(--line); color: var(--ink-soft); }
 .bk.ext blockquote p { text-indent: 0; }
+.bk.ext blockquote[data-alert] { margin: 3.5mm 0; padding: 2.4mm 3.6mm 2.6mm; border-left: 1.2pt solid var(--alert); border-radius: 0 1mm 1mm 0; background: var(--alert-bg); color: var(--ink); break-inside: avoid; }
+.bk.ext blockquote[data-alert] p { text-align: left; hyphens: manual; }
+.bk.ext blockquote[data-alert] .alert-label { margin: 0 0 1mm; font-family: var(--f-ui); font-size: 6.6pt; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--alert); }
+.bk.ext blockquote[data-alert="note"] { --alert: #3b6a8f; --alert-bg: rgba(59, 106, 143, .08); }
+.bk.ext blockquote[data-alert="tip"] { --alert: #3d7a52; --alert-bg: rgba(61, 122, 82, .08); }
+.bk.ext blockquote[data-alert="important"] { --alert: #6a4a8f; --alert-bg: rgba(106, 74, 143, .08); }
+.bk.ext blockquote[data-alert="warning"] { --alert: #9a6a1f; --alert-bg: rgba(154, 106, 31, .09); }
+.bk.ext blockquote[data-alert="caution"] { --alert: #a33f3f; --alert-bg: rgba(163, 63, 63, .08); }
+.bk.ext .cover { overflow: hidden; }
+.bk.ext .cover h1 { overflow-wrap: anywhere; }
+.bk.ext .cover h1.long { font-size: 32pt; }
+.bk.ext .cover h1.longer { font-size: 23pt; line-height: 1.08; }
+.bk.ext .cover h1.longest { font-size: 17pt; line-height: 1.12; }
+.bk.ext .cover .sub, .bk.ext .cover .kicker, .bk.ext .cover .imprint { overflow-wrap: anywhere; }
 .bk.ext hr { border: 0; border-top: .5pt solid var(--hair); margin: 5mm 20%; }
 .bk.ext .cover a { color: inherit; text-decoration-color: currentColor; }
 .bk.ext .colophon { break-inside: avoid; }
@@ -804,7 +887,7 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 <div class="app loading" id="app" data-view="paged">
   <header class="bar top" id="top">
     <div class="top-side top-l" id="topL"></div>
-    <div class="top-mid"><button type="button" class="name" id="nameBtn" title="Books (b)">Pages, Piled</button><span class="chap" id="chap" aria-live="polite"></span></div>
+    <div class="top-mid"><button type="button" class="name" id="nameBtn" title="Library (b)">Pages, Piled</button><span class="chap" id="chap" aria-live="polite"></span></div>
     <div class="top-side top-r" id="topR"></div>
     <div class="tray" id="tray">
     <div class="tray-listen" role="group" aria-label="Listen">
@@ -972,37 +1055,49 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
     <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow or pile; in Scroll, pages or plain text) · - = 0 spread · b books · c peek at contents · cc contents or topics · C sidebar · CC full outline · m minimap · a listen · q w or ( ) sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
-    <button type="button" class="reset" id="booksFromOpts">Books and the bookmarklet</button>
+    <button type="button" class="reset" id="booksFromOpts">Library</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
 
-  <div class="popover all books" id="books" role="dialog" aria-label="Books" hidden>
-    <section id="booksNow"></section>
-    <section>
-      <h3>Shelf</h3>
-      <ol class="shelf" id="shelfList"></ol>
-    </section>
-    <section id="openedSec" hidden>
-      <h3>Opened in this browser</h3>
-      <ol class="shelf" id="openedList"></ol>
-    </section>
-    <section>
-      <h3>Open your own</h3>
-      <div class="link-row">
-        <button type="button" class="bm-copy" id="pickFiles">Markdown files</button>
-        <button type="button" class="bm-copy" id="pickFolder">A folder</button>
-        <input type="file" id="fileIn" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
-        <input type="file" id="folderIn" webkitdirectory multiple hidden>
-      </div>
-      <p class="bm-help">Or drop files or a folder anywhere on the page. A folder becomes one book, its files the chapters, in the order of its SUMMARY.md if it has one. Files are read here and never uploaded.</p>
-    </section>
-    <section>
-      <h3>Read any docs page</h3>
-      <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a></div>
-      <p class="bm-help">Drag the link to your bookmarks bar. Then, on any documentation page, click it: the page opens here as a book, and the site’s other pages can follow.</p>
-      <p class="bm-help">The bookmarklet is for computers. On a phone, read the shelf’s books or open a file.</p>
-      <p class="bm-help">Your browser fetches the page as it does when you read it. Nothing is sent to a server, and the book stays in this browser.</p>
-    </section>
+  <div class="library" id="books" role="dialog" aria-label="Library" hidden>
+    <div class="lib-inner">
+      <header class="lib-head">
+        <h2>Library</h2>
+        <input id="libFind" type="search" placeholder="Find a book, or words in this one" autocomplete="off" spellcheck="false" aria-label="Find a book, or words in the book you are reading">
+        <div class="seg small" role="group" aria-label="Show books as" id="libView">
+          <button type="button" data-v="shelf">Shelf</button><button type="button" data-v="tiles">Tiles</button><button type="button" data-v="list">List</button>
+        </div>
+        <button type="button" class="tog icon" id="libClose" aria-label="Close the library" title="Close (Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
+      </header>
+      <section class="lib-found" id="libFound" hidden></section>
+      <section class="lib-now" id="booksNow"></section>
+      <section class="lib-sec">
+        <h3>On the shelf</h3>
+        <div class="lib-books" id="shelfList"></div>
+      </section>
+      <section class="lib-sec" id="openedSec" hidden>
+        <h3>Opened in this browser</h3>
+        <div class="lib-books" id="openedList"></div>
+      </section>
+      <section class="lib-add">
+        <div class="lib-card">
+          <h3>Open your own</h3>
+          <div class="link-row">
+            <button type="button" class="bm-copy" id="pickFiles">Markdown files</button>
+            <button type="button" class="bm-copy" id="pickFolder">A folder</button>
+            <input type="file" id="fileIn" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
+            <input type="file" id="folderIn" webkitdirectory multiple hidden>
+          </div>
+          <p class="bm-help">Or drop files or a folder anywhere on the page. A folder becomes one book, its files the chapters, in the order of its SUMMARY.md if it has one. Files are read here and never uploaded.</p>
+        </div>
+        <div class="lib-card" id="bmCard">
+          <h3>Read any docs page</h3>
+          <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a></div>
+          <p class="bm-help">Drag the link to your bookmarks bar. Then, on any documentation page, click it: the page opens here as a book, with its pictures, and the site’s other pages can follow.</p>
+          <p class="bm-help">The bookmarklet is for computers. On a phone, read the shelf’s books or open a file. Your browser fetches the page as it does when you read it; nothing is sent to a server, and the book stays in this browser.</p>
+        </div>
+      </section>
+    </div>
   </div>
 
   <div class="search" id="searchBox" role="dialog" aria-label="Search the text" hidden>
@@ -1492,6 +1587,27 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
     return null;
   };
   const mainOf = d => (d.querySelector("main article, article, main, [role=main]") || d.body).innerHTML.slice(0, 5e6);
+  let room = 40e6;
+  const asData = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.onerror = () => r(null); f.readAsDataURL(b); });
+  const inline = async c => {
+    const key = "markdown" in c ? "markdown" : "html";
+    const urls = new Set([...c[key].matchAll(/!\[[^\]]*\]\(\s*<?([^)\s>]+)/g), ...c[key].matchAll(/<img[^>]*?\ssrc=["']([^"']+)/gi)].map(m => m[1]));
+    for (const raw of urls) {
+      if (/^data:/i.test(raw)) continue;
+      try {
+        const abs = new URL(raw.replace(/\\(.)/g, "$1").replace(/&amp;/g, "&"), c.url);
+        if (!/^https?:$/.test(abs.protocol)) continue;
+        const r = await fetch(abs.href, { credentials: abs.origin === location.origin ? "same-origin" : "omit" });
+        const b = r.ok ? await r.blob() : null;
+        if (!b || !/^image\//.test(b.type) || b.size > 3e6 || b.size * 1.4 > room) continue;
+        const d = await asData(b);
+        if (!d) continue;
+        room -= d.length;
+        c[key] = c[key].split(raw).join(d);
+      } catch {}
+    }
+    return c;
+  };
   const findIndex = async () => {
     const parts = location.pathname.split("/").filter(Boolean);
     for (let i = parts.length - 1; i >= 0; i--) {
@@ -1525,24 +1641,24 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
         while (next < idx.list.length) {
           const i = next++, c = idx.list[i];
           const md = await mdOf(c.url);
-          if (md) out[i] = { ...c, markdown: md };
+          if (md) out[i] = await inline({ ...c, markdown: md });
           else {
             const h = await get(c.url, false);
-            if (h) out[i] = { ...c, html: mainOf(new DOMParser().parseFromString(h, "text/html")) };
+            if (h) out[i] = await inline({ ...c, html: mainOf(new DOMParser().parseFromString(h, "text/html")) });
           }
           w.postMessage({ type: "pages-piled/progress", done: ++done, total: idx.list.length }, RO);
         }
       };
       await Promise.all([1, 2, 3, 4, 5, 6].map(work));
       const chapters = out.filter(Boolean);
-      w.postMessage({ type: "pages-piled/book", v: 1, title: idx.title, site, url: idx.url, copyright, chapters, index: { url: idx.url, pages: idx.list.length }, missing: idx.list.length - chapters.length }, RO);
+      w.postMessage({ type: "pages-piled/book", v: 1, title: idx.title, site, url: idx.url.replace(/llms\.txt$/, ""), copyright, chapters, index: { url: idx.url, pages: idx.list.length }, missing: idx.list.length - chapters.length }, RO);
       busy = false;
     }
   });
   (async () => {
     const [md, found] = await Promise.all([mdOf(here), findIndex()]);
     idx = found;
-    const ch = md ? { title, url: here, markdown: md } : { title, url: here, html: mainOf(document) };
+    const ch = await inline(md ? { title, url: here, markdown: md } : { title, url: here, html: mainOf(document) });
     book = { type: "pages-piled/book", v: 1, title, site, url: here, copyright, chapters: [ch], index: idx ? { url: idx.url, pages: idx.list.length } : null };
     send();
   })();
@@ -1554,7 +1670,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 // browser's IndexedDB under ?opened=KEY. The site takes no address from a link. Without either, the reader's own book stays.
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
-  window.bookTools = { checkBook, saveBook, listBooks, deleteBook };
+  window.bookTools = { checkBook, saveBook, listBooks, deleteBook, prepare };
   const LIMIT = 50000;   // characters in a part; see prepare()
   // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
   const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/" };
@@ -1592,10 +1708,12 @@ window.bookReady = (async () => {
     await loadScripts(["vendor/marked.umd.js", "vendor/purify.min.js"]);
     const part = Math.max(1, parseInt(P.get("part") || "1", 10) || 1);
     fillBook(book, ref, part);
+    window.bookData = book;   // for the Library's search through every part
     const { list, parts } = prepare(book);
     window.bookInfo = {
       key, ref, from: book.from, title: book.title, url: book.url, site: book.site, part: Math.min(part, parts.length), index: book.index || null, chapters: book.chapters.length,
-      parts: parts.map(p => ({ from: list[p.units[0].i].title, to: list[p.units[p.units.length - 1].i].title, count: new Set(p.units.map(u => u.i)).size }))
+      parts: parts.map(p => ({ group: p.group, titles: [...new Set(p.units.map(u => list[u.i].title))], from: list[p.units[0].i].title, to: list[p.units[p.units.length - 1].i].title,
+        count: new Set(p.units.map(u => u.i)).size, piece: p.units[0].k, size: p.size }))
     };
     return window.bookInfo;
   } catch (err) {
@@ -1651,7 +1769,7 @@ window.bookReady = (async () => {
       size += (md ? c.markdown : c.html).length;
       return { title: c.title, url: c.url, group: str(c.group || "", 200) ? c.group || "" : "", ...(md ? { markdown: c.markdown } : { html: c.html }) };
     });
-    if (size > 40e6) fail("more than 40 million characters");
+    if (size > 80e6) fail("more than 80 million characters");
     let index = null;
     if (d.index && sameSite(d.index.url) && Number.isInteger(d.index.pages) && d.index.pages > 0) index = { url: d.index.url, pages: d.index.pages };
     return { v: 1, title: d.title.trim() || new URL(d.url).hostname, site: (d.site || "").trim() || new URL(d.url).hostname, url: d.url, copyright: (d.copyright || "").trim(), from: "bookmarklet", at: new Date().toISOString(), chapters, index };
@@ -1801,23 +1919,31 @@ window.bookReady = (async () => {
       }
       if (!list.length) list.push({ title, url: c.url, markdown: "" });
     }
+    // A page longer than three parts, such as a changelog, moves to the end as an appendix, so reading runs through
+    // the guide; parts follow the site's own sections, never spanning two.
+    // Size is text: a picture the bookmarklet stored as data counts as a short paragraph, not its bytes.
+    const weigh = t => t.replace(/data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]+/g, " ".repeat(300)).length;
+    const size = c => weigh(typeof c.markdown === "string" ? c.markdown : c.html);
+    if (list.length > 1) list = [...list.filter(c => size(c) <= 3 * LIMIT), ...list.filter(c => size(c) > 3 * LIMIT).map(c => ({ ...c, group: "Appendix" }))];
     const units = [];
     list.forEach((c, i) => {
       const html = typeof c.markdown !== "string", text = html ? c.html : c.markdown;
-      if (html || text.length <= LIMIT) { units.push({ i, k: 0, html, text }); return; }
+      if (html || weigh(text) <= LIMIT) { units.push({ i, k: 0, html, text, w: weigh(text) }); return; }
       let buf = "", k = 0;
-      for (const seg of splitAt(text, 2).flatMap(seg => seg.length > LIMIT ? paragraphs(seg) : [seg])) {
-        if (buf && buf.length + seg.length > LIMIT) { units.push({ i, k: k++, html, text: buf }); buf = ""; }
+      for (const seg of splitAt(text, 2).flatMap(seg => weigh(seg) > LIMIT ? paragraphs(seg) : [seg])) {
+        if (buf && weigh(buf) + weigh(seg) > LIMIT) { units.push({ i, k: k++, html, text: buf, w: weigh(buf) }); buf = ""; }
         buf += (buf ? "\n\n" : "") + seg;
       }
-      if (buf) units.push({ i, k, html, text: buf });
+      if (buf) units.push({ i, k, html, text: buf, w: weigh(buf) });
     });
     const parts = [];
     let cur = null;
     for (const u of units) {
-      if (!cur || (cur.size + u.text.length > LIMIT && cur.units.length)) parts.push(cur = { units: [], size: 0 });
+      const group = list[u.i].group || "";
+      const w = u.w ?? weigh(u.text);
+      if (!cur || cur.group !== group || (cur.size + w > LIMIT && cur.units.length)) parts.push(cur = { units: [], size: 0, group });
       cur.units.push(u);
-      cur.size += u.text.length;
+      cur.size += w;
     }
     return { list, parts };
   }
@@ -1876,7 +2002,9 @@ window.bookReady = (async () => {
       shelf ? book.byline : `Opened ${new Date(book.at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`);
     if (parts.length > 1) imprint.append(el("br"), `Part ${part} of ${parts.length}`);
     bk.append(el("section", { class: "cover", "data-label": "Cover" },
-      el("p", { class: "kicker" }, local ? "From your files" : book.site), el("h1", {}, book.title), local ? "" : el("p", { class: "sub" }, "From ", src), glyph, imprint));
+      el("p", { class: "kicker" }, local ? "From your files" : book.site),
+      // A long title sets smaller, so the cover always stays one page.
+      el("h1", { class: book.title.length > 110 ? "longest" : book.title.length > 64 ? "longer" : book.title.length > 30 ? "long" : "" }, book.title.length > 180 ? book.title.slice(0, 177) + "…" : book.title), local ? "" : el("p", { class: "sub" }, "From ", src), glyph, imprint));
 
     // Contents: this part's chapters, with the other parts named.
     const toc = el("ol", { class: "toc" });
@@ -1975,8 +2103,28 @@ window.bookReady = (async () => {
     flushLoose();
     for (const b of out) {
       b.querySelectorAll("img").forEach(img => {
-        try { const u = new URL(img.getAttribute("src") || "", c.url); if (!/^https?:$/.test(u.protocol)) throw 0; img.src = u.href; img.referrerPolicy = "no-referrer"; } catch { img.remove(); }
+        // Images the bookmarklet brought along arrive as data: URLs; others load from their own site.
+        const src = img.getAttribute("src") || "";
+        if (/^data:image\/(png|jpe?g|gif|webp|avif|svg\+xml);base64,/i.test(src)) return;
+        try { const u = new URL(src, c.url); if (!/^https?:$/.test(u.protocol)) throw 0; img.src = u.href; img.referrerPolicy = "no-referrer"; } catch { img.remove(); }
       });
+    }
+    // GitHub's alerts, > [!NOTE], [!TIP], [!IMPORTANT], [!WARNING] and [!CAUTION], become labelled boxes.
+    const ALERTS = { note: "Note", tip: "Tip", important: "Important", warning: "Warning", caution: "Caution" };
+    for (const b of out) {
+      if (b.tagName !== "BLOCKQUOTE") continue;
+      const first = b.firstElementChild;
+      const m = first && /^\s*\[!(note|tip|important|warning|caution)\]\s*/i.exec(first.textContent);
+      if (!m) continue;
+      const type = m[1].toLowerCase();
+      const walker = doc.createTreeWalker(first, NodeFilter.SHOW_TEXT);
+      for (let n, left = m[0].length; left > 0 && (n = walker.nextNode());) { const cut = Math.min(left, n.data.length); n.data = n.data.slice(cut); left -= cut; }
+      if (!first.textContent.trim() && !first.querySelector("img")) first.remove();
+      b.dataset.alert = type;
+      const label = doc.createElement("p");
+      label.className = "alert-label";
+      label.textContent = ALERTS[type];
+      b.prepend(label);
     }
     return out.filter(b => b.tagName === "HR" || b.textContent.trim() || b.querySelector("img"));
   }
@@ -4099,6 +4247,12 @@ window.bookReady = (async () => {
     pageKey = null;
     const t = e.target;
     const typing = !!(t.closest && t.closest("input, textarea, select")) && t.offsetParent !== null;   // a hidden search box doesn't count
+    // In the Library, / and Ctrl+F find a book or words in this one; b and Esc close it; other keys wait.
+    if (!booksEl.hidden && !isEsc(e)) {
+      if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") || (e.key === "/" && !typing)) { e.preventDefault(); libFind.focus(); libFind.select(); }
+      else if (e.key === "b" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setBooks(false); focusReader(); }
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "f") {
       if (t === q) return;                       // a second Ctrl+F reaches the browser's own find bar
       e.preventDefault();
@@ -4410,33 +4564,6 @@ window.bookReady = (async () => {
   const bmLink = $("bmLink");
   bmLink.href = bmHref;
   bmLink.addEventListener("click", e => { e.preventDefault(); toast("Drag this link to your bookmarks bar, then click it on a docs page.", 2600); });
-  // The shelf: the reader's own book and the hosted ones, then the books opened in this browser.
-  let shelfData = null;
-  async function renderShelf() {
-    const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); e.append(...kids); return e; };
-    const row = (href, title, sub, current) => { const a = el("a", { href }, el("span", { className: "t" }, title), el("span", { className: "s" }, sub)); if (current) a.setAttribute("aria-current", "true"); return a; };
-    if (!shelfData) {
-      try { shelfData = await (await fetch("books/shelf.json")).json(); } catch { shelfData = []; }
-    }
-    $("shelfList").replaceChildren(
-      el("li", {}, row(location.pathname, "Pages, Piled", "The reader’s own book, about how it works", info.own)),
-      ...shelfData.map(b => el("li", {}, row(`?book=${b.id}`, b.title, `${b.chapters} chapters · ${b.site}`, info.ref === `book=${b.id}`))),
-      el("li", { className: "card" }, el("div", {},
-        el("span", { className: "t" }, "Claude Code’s documentation"),
-        el("span", { className: "s" }, "Not hosted here. On a computer, drag “Read in Pages, Piled” below to your bookmarks bar, open ",
-          el("a", { href: "https://code.claude.com/docs", target: "_blank", rel: "noopener noreferrer" }, "code.claude.com/docs"),
-          " and click it. The site lets no other site read its pages, so the bookmarklet is the way in."))));
-    let opened = [];
-    try { opened = await window.bookTools.listBooks(); } catch {}
-    $("openedSec").hidden = !opened.length;
-    $("openedList").replaceChildren(...opened.map(b => {
-      const x = el("button", { type: "button", className: "x", title: "Remove from this browser", ariaLabel: `Remove ${b.title} from this browser` }, "×");
-      x.addEventListener("click", async () => { await window.bookTools.deleteBook(b.key); if (info.key === b.key) location.href = location.pathname; else renderShelf(); });
-      const from = b.from === "files" ? "your files" : (() => { try { return new URL(b.url).hostname; } catch { return ""; } })();
-      return el("li", {}, row(`?opened=${b.key}`, b.title, `${b.chapters} ${b.chapters === 1 ? "page" : "pages"} · ${from} · ${new Date(b.at).toLocaleDateString()}`, info.key === b.key && !info.own), x);
-    }));
-  }
-
   // Your own files: picked or dropped, read here, kept in this browser, never uploaded.
   const TEXT = /\.(md|markdown|txt)$/i;
   async function openFiles(files, folder) {
@@ -4498,64 +4625,183 @@ window.bookReady = (async () => {
     } else openFiles([...e.dataTransfer.files].map(f => ({ file: f, path: f.name })));
   });
 
-  function setBooks(open) {
-    if (open) { renderShelf(); renderBooks(); booksEl.style.bottom = dock.offsetHeight + 8 + "px"; setOptions(false); closeSearch(true); }
-    booksEl.hidden = !open;
+  // The Library: what you are reading, then every book as a drawn cover, on shelves, as tiles or in a list.
+  const libFind = $("libFind"), libFound = $("libFound");
+  const elt = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); e.append(...kids.filter(k => k !== null && k !== undefined)); return e; };
+  const COLOURS = { own: "var(--cover)", "rust-book": "#7a3b22", "claude-cookbooks": "#57452f" };
+  const PALETTE = ["#20384a", "#3b4a2e", "#5a2f3f", "#2f3f5a", "#4a3a26", "#25474a", "#463252"];
+  const colourOf = s => PALETTE[[...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
+  const GLYPH = [[.34, .28], [.52, .46], [.78, .72], [1, 1], [.78, .72], [.52, .46], [.34, .28]];
+  function cover(title, site, colour, ghost) {
+    const g = elt("span", { className: "g", ariaHidden: "true" });
+    for (const [h, o] of GLYPH) { const i = document.createElement("i"); i.style.setProperty("--h", h); i.style.setProperty("--o", o); g.append(i); }
+    const c = elt("span", { className: "bcover" + (ghost ? " ghost" : "") }, elt("span", { className: "k" }, site), elt("span", { className: "h" }, title), g);
+    if (!ghost) c.style.setProperty("--bc", colour);
+    return c;
   }
-  const toggleBooks = () => setBooks(booksEl.hidden);
-  $("nameBtn").addEventListener("click", toggleBooks);
-  function renderBooks() {
-    const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); e.append(...kids); return e; };
-    booksNow.replaceChildren(el("h3", {}, "Reading"));
-    if (info.own) {
-      booksNow.append(el("p", { className: "bk-title" }, "Pages, Piled"), el("p", { className: "bk-src" }, "The reader’s own book, about how it works."));
-      return;
+  function libItem({ href, title, sub, site, colour, current, ghost, onRemove, onOpen }) {
+    const a = elt(href ? "a" : "div", { className: "lib-book", title });
+    if (href) a.href = href;
+    if (onOpen) { a.tabIndex = 0; a.addEventListener("click", onOpen); a.addEventListener("keydown", e => { if (e.key === "Enter") onOpen(e); }); }
+    a.dataset.find = `${title} ${site} ${typeof sub === "string" ? sub : sub.textContent}`.toLowerCase();
+    if (current) a.setAttribute("aria-current", "true");
+    a.append(cover(title, site, colour, ghost), elt("span", { className: "meta" }, elt("span", { className: "t" }, title), elt("span", { className: "s" }, sub)));
+    if (onRemove) {
+      const x = elt("button", { type: "button", className: "x", title: "Remove from this browser", ariaLabel: `Remove ${title} from this browser` }, "×");
+      x.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); onRemove(); });
+      a.append(x);
     }
-    booksNow.append(el("p", { className: "bk-title" }, info.title), el("p", { className: "bk-src" }, ...(info.from === "files" ? ["From your files, kept in this browser"] : ["From ", el("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.url)])));
+    return a;
+  }
+  let libView = store.get("libView", "shelf");
+  function setLibView(v) {
+    libView = ["shelf", "tiles", "list"].includes(v) ? v : "shelf";
+    store.set("libView", libView);
+    booksEl.classList.remove("v-shelf", "v-tiles", "v-list");
+    booksEl.classList.add("v-" + libView);
+    $("libView").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === libView)));
+  }
+  $("libView").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (b) setLibView(b.dataset.v); });
+  setLibView(libView);
+  $("libClose").addEventListener("click", () => { setBooks(false); focusReader(); });
+
+  // The shelf: the reader's own book, the hosted ones and Claude Code's documentation; then the books opened here.
+  let shelfData = null;
+  async function renderShelf() {
+    if (!shelfData) {
+      try { shelfData = await (await fetch("books/shelf.json")).json(); } catch { shelfData = []; }
+    }
+    $("shelfList").replaceChildren(
+      libItem({ href: location.pathname, title: "Pages, Piled", site: "A paged-reading prototype", sub: "The reader’s own book", colour: COLOURS.own, current: !!info.own }),
+      ...shelfData.map(b => libItem({ href: `?book=${b.id}`, title: b.title, site: b.site.split("/")[1] || b.site, sub: `${b.chapters} chapters · ${b.site}`, colour: COLOURS[b.id] || colourOf(b.id), current: info.ref === `book=${b.id}` })),
+      libItem({ title: "Claude Code’s documentation", site: "code.claude.com", ghost: true,
+        sub: elt("span", {}, "Read it with the bookmarklet: ", elt("a", { href: "https://code.claude.com/docs", target: "_blank", rel: "noopener noreferrer" }, "code.claude.com/docs")),
+        onOpen: e => { if (e.target.closest("a")) return; const c = $("bmCard"); c.scrollIntoView({ behavior: "smooth", block: "center" }); c.classList.add("flash"); setTimeout(() => c.classList.remove("flash"), 1600); } }));
+    let opened = [];
+    try { opened = await window.bookTools.listBooks(); } catch {}
+    $("openedSec").hidden = !opened.length;
+    $("openedList").replaceChildren(...opened.map(b => {
+      const from = b.from === "files" ? "your files" : (() => { try { return new URL(b.url).hostname; } catch { return ""; } })();
+      return libItem({ href: `?opened=${b.key}`, title: b.title, site: from, sub: `${b.chapters} ${b.chapters === 1 ? "page" : "pages"} · ${from} · ${new Date(b.at).toLocaleDateString()}`,
+        colour: colourOf(b.title + from), current: info.key === b.key && !info.own,
+        onRemove: async () => { await window.bookTools.deleteBook(b.key); if (info.key === b.key && !info.own) location.href = location.pathname; else renderShelf(); } });
+    }));
+    filterShelf();
+  }
+
+  // Now reading: the book, where you are in it, and its parts by the site's own sections.
+  function progress() {
+    const page = curPage + 1, total = pages.length || 1;
+    if (info.own || !info.parts || info.parts.length < 2) return { text: `Page ${page} of ${total}`, pct: page / total };
+    const sizes = info.parts.map(p => p.size || 1), all = sizes.reduce((a, b) => a + b, 0);
+    const before = sizes.slice(0, info.part - 1).reduce((a, b) => a + b, 0);
+    const pct = (before + sizes[info.part - 1] * (page / total)) / all;
+    return { text: `Page ${page} of ${total} in part ${info.part} of ${info.parts.length}`, pct };
+  }
+  function renderBooks() {
+    const p = progress(), bd = window.bookData || {};
+    const title = info.own ? "Pages, Piled" : info.title;
+    const site = info.own ? "A paged-reading prototype" : info.from === "files" ? "Your files" : info.from === "shelf" ? (bd.site || "").split("/")[1] || bd.site : (info.site || "");
+    const colour = info.own ? COLOURS.own : info.from === "shelf" ? (COLOURS[info.key] || colourOf(info.key)) : colourOf(info.title + (info.from === "files" ? "your files" : (() => { try { return new URL(info.url).hostname; } catch { return ""; } })()));
+    const d = elt("div", { className: "d" },
+      elt("span", { className: "kick" }, "Now reading"),
+      elt("p", { className: "title" }, title),
+      info.own ? elt("p", { className: "by" }, "The reader’s own book, about how it works.")
+        : elt("p", { className: "src" }, ...(info.from === "files" ? ["From your files, kept in this browser"] : ["From ", elt("a", { href: info.url, target: "_blank", rel: "noopener noreferrer" }, info.from === "shelf" && bd.site ? bd.site : info.url)])),
+      bd.byline ? elt("p", { className: "by" }, bd.byline) : null,
+      elt("div", { className: "prog" }, elt("span", { className: "pbar" }, Object.assign(document.createElement("i"), { style: `width:${Math.round(p.pct * 100)}%` })), `${p.text} · ${Math.round(p.pct * 100)}%`));
+    const acts = elt("div", { className: "acts" });
     if (info.from === "shelf") {
       // A shelf book's link names the book, never an address.
       const share = `${readerUrl}?${info.ref}`;
-      const btn = el("button", { type: "button", className: "bm-copy" }, "Copy a link to this book");
-      btn.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(share); toast("Copied a link to this book.", 2000); }
-        catch { toast(share, 6000); }
-      });
-      booksNow.append(btn);
-    }
-    if (info.parts.length > 1) {
-      booksNow.append(el("p", { className: "bk-msg" }, `${info.chapters} pages, in ${info.parts.length} parts so each sets quickly.`));
-      const ol = el("ol", { className: "bk-parts" });
-      const href = i => `?${info.ref}${i ? `&part=${i + 1}` : ""}`;
-      // A chapter cut into several parts takes one row, its parts as numbers.
-      for (let i = 0; i < info.parts.length; i++) {
-        const p = info.parts[i];
-        let j = i;
-        while (p.count === 1 && info.parts[j + 1] && info.parts[j + 1].count === 1 && info.parts[j + 1].from === p.from) j++;
-        if (j === i) {
-          const a = el("a", { href: href(i) }, el("b", {}, String(i + 1)), p.count > 1 ? `${p.from} … ${p.to}` : p.from);
-          if (i + 1 === info.part) a.setAttribute("aria-current", "true");
-          ol.append(el("li", {}, a));
-          continue;
-        }
-        const nums = el("span", { className: "bk-nums" });
-        for (let k = i; k <= j; k++) {
-          const a = el("a", { href: href(k) }, String(k + 1));
-          if (k + 1 === info.part) a.setAttribute("aria-current", "true");
-          nums.append(a);
-        }
-        ol.append(el("li", { className: "bk-run" }, el("span", {}, `${p.from}, in ${j - i + 1} parts`), nums));
-        i = j;
-      }
-      booksNow.append(ol);
+      const btn = elt("button", { type: "button", className: "bm-copy" }, "Copy a link to this book");
+      btn.addEventListener("click", async () => { try { await navigator.clipboard.writeText(share); toast("Copied a link to this book.", 2000); } catch { toast(share, 6000); } });
+      acts.append(btn);
     }
     if (info.index && info.chapters === 1) {
-      const msg = el("p", { className: "bk-msg" }, `This site lists ${info.index.pages} pages in its llms.txt.`);
-      const btn = el("button", { type: "button", className: "bk-act" }, `Read the whole site as a book`);
+      const msg = elt("p", { className: "msg" }, `This site lists ${info.index.pages} pages in its llms.txt.`);
+      const btn = elt("button", { type: "button", className: "bm-copy" }, "Read the whole site as a book");
       btn.addEventListener("click", () => wholeSite(msg, btn));
-      booksNow.append(msg, btn);
+      d.append(msg);
+      acts.append(btn);
     }
-    booksNow.append(el("a", { href: location.pathname, className: "bk-src" }, "Pages, Piled’s own book"));
+    if (acts.children.length) d.append(acts);
+    if (info.parts && info.parts.length > 1) d.append(partsOutline());
+    booksNow.replaceChildren(cover(title, site, colour), d);
   }
+  // The parts, under the site's sections. A long page cut into several parts is one row.
+  function partsOutline() {
+    const box = elt("div", { className: "lib-parts" });
+    const href = i => `?${info.ref}${i ? `&part=${i + 1}` : ""}`;
+    let group = null, ol = null;
+    for (let i = 0; i < info.parts.length; i++) {
+      const p = info.parts[i];
+      if (p.group !== group || !ol) {
+        group = p.group;
+        ol = elt("ol");
+        box.append(elt("div", {}, group ? elt("div", { className: "grp" }, group) : null, ol));
+      }
+      let j = i;
+      while (p.count === 1 && info.parts[j + 1] && info.parts[j + 1].count === 1 && info.parts[j + 1].from === p.from && info.parts[j + 1].group === p.group) j++;
+      const here = info.part - 1 >= i && info.part - 1 <= j;
+      const names = p.titles.length > 3 ? `${p.titles.slice(0, 3).join(", ")} and ${p.titles.length - 3} more` : p.titles.join(", ");
+      const a = elt("a", { href: href(here ? info.part - 1 : i) }, j > i ? p.from : names, j > i ? elt("span", { className: "more" }, here ? ` · part ${info.part - i} of ${j - i + 1}, the part you’re in` : ` · in ${j - i + 1} parts`) : null);
+      if (here) a.setAttribute("aria-current", "true");
+      ol.append(elt("li", {}, a));
+      i = j;
+    }
+    requestAnimationFrame(() => { const cur = box.querySelector('[aria-current="true"]'); if (cur) box.scrollTop = cur.offsetTop - box.offsetTop - 40; });
+    return box;
+  }
+
+  // Find: the shelf narrows to matching books; in a long book, its words are found in every part.
+  function filterShelf() {
+    const q = libFind.value.trim().toLowerCase();
+    booksEl.querySelectorAll(".lib-books .lib-book").forEach(b => { b.hidden = !!q && !b.dataset.find.includes(q); });
+  }
+  let findTimer = 0;
+  libFind.addEventListener("input", () => { clearTimeout(findTimer); findTimer = setTimeout(findWords, 200); filterShelf(); });
+  libFind.addEventListener("keydown", e => { if (e.key === "Enter") { const a = libFound.querySelector("a"); if (a) a.click(); } });
+  function findWords() {
+    const q = libFind.value.trim();
+    if (q.length < 2) { libFound.hidden = true; libFound.replaceChildren(); return; }
+    if (info.own || !window.bookData) {
+      const a = elt("a", { href: "#" }, elt("span", { className: "w" }, "In this book"), elt("span", { className: "x" }, `Search Pages, Piled’s own book for “${q}”`));
+      a.addEventListener("click", e => { e.preventDefault(); setBooks(false); openSearch(); $("q").value = q; $("q").dispatchEvent(new Event("input")); });
+      libFound.replaceChildren(elt("h3", {}, "Found"), a);
+      libFound.hidden = false;
+      return;
+    }
+    const { list, parts } = window.bookTools.prepare(window.bookData);
+    const needle = q.toLowerCase(), out = [];
+    let count = 0;
+    parts.forEach((p, pi) => p.units.forEach(u => {
+      const low = u.text.toLowerCase();
+      for (let at = low.indexOf(needle); at >= 0; at = low.indexOf(needle, at + needle.length)) {
+        count++;
+        if (out.length < 60) out.push({ part: pi, title: list[u.i].title, group: list[u.i].group || "", text: u.text, at });
+      }
+    }));
+    const rows = out.map(r => {
+      const from = Math.max(0, r.at - 70), to = Math.min(r.text.length, r.at + needle.length + 90);
+      const plain = s => s.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\]\([^)]*\)/g, "]").replace(/[*_`#>\[\]]/g, "").replace(/\s+/g, " ");
+      const pre = plain(r.text.slice(from, r.at)), hit = r.text.slice(r.at, r.at + needle.length), post = plain(r.text.slice(r.at + needle.length, to));
+      return elt("a", { href: `?${info.ref}${r.part ? `&part=${r.part + 1}` : ""}&find=${encodeURIComponent(q)}` },
+        elt("span", { className: "w" }, `${r.group ? r.group + " · " : ""}${r.title}${parts.length > 1 ? ` · part ${r.part + 1}` : ""}`),
+        elt("span", { className: "x" }, (from ? "…" : "") + pre, elt("mark", {}, hit), post + (to < r.text.length ? "…" : "")));
+    });
+    libFound.replaceChildren(elt("h3", {}, count ? `Found in this book: ${count} ${count === 1 ? "place" : "places"}${count > out.length ? `, the first ${out.length} shown` : ""}` : `“${q}” isn’t in this book`), ...rows);
+    libFound.hidden = false;
+  }
+
+  function setBooks(open) {
+    if (open) { renderShelf(); renderBooks(); setOptions(false); closeSearch(true); }
+    booksEl.hidden = !open;
+    app.classList.toggle("lib-on", open);
+  }
+  const toggleBooks = () => setBooks(booksEl.hidden);
+  $("nameBtn").addEventListener("click", toggleBooks);
+
   // The bookmarklet's tab fetches the site's pages, since only a page on that site may read them; it must still be open.
   function wholeSite(msg, btn) {
     const from = window.opener, origin = new URL(info.url).origin;
@@ -4579,9 +4825,16 @@ window.bookReady = (async () => {
     from.postMessage({ type: "pages-piled/want-site", v: 1 }, origin);
   }
   $("booksFromOpts").addEventListener("click", () => setBooks(true));
-  if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "Options, then Books," : "Books (b)"} reads them all.`, 3600), 1800);
+  if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "Options, then Library," : "The Library (b)"} reads them all.`, 3600), 1800);
 
-  build();
+  // A result found in the Library opens its part with the reader's search already run.
+  build().then(() => {
+    const find = new URLSearchParams(location.search).get("find");
+    if (!find || !ready) return;
+    openSearch();
+    $("q").value = find;
+    $("q").dispatchEvent(new Event("input"));
+  });
 })();
 </script>
 </body>
