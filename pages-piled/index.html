@@ -187,6 +187,10 @@ a.toc-item { text-decoration: none; }
 /* the full outline: every chapter's sections under it, numbered, with their pages */
 .toc-outline { display: none; list-style: none; margin: 0 0 6px; padding: 0 0 0 30px; }
 .toc-panel.with-outline .toc-outline { display: block; }
+.toc-panel.with-notes .toc-outline { display: none; }   /* Topics shows the topics alone */
+/* at the foot of Contents: chapters alone, or with their headings */
+.toc-foot { flex: none; display: flex; justify-content: center; padding: 8px 0 max(10px, env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--hair); }
+.toc-panel.with-notes .toc-foot { display: none; }
 .toc-outline a { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 3px 8px; border-radius: 5px; color: var(--ink-soft); text-decoration: none; font-family: var(--f-book); font-size: 13px; line-height: 1.32; }
 .toc-outline a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
 .toc-outline .n { font: 600 10.5px var(--f-ui); color: var(--accent); }
@@ -961,6 +965,11 @@ a.toc-item { text-decoration: none; }
 
     <aside class="panel toc-panel" id="tocPanel" aria-label="Contents">
       <div class="toc-pane" id="tocPane"><ol class="toc-list" id="tocList"></ol></div>
+      <div class="toc-foot">
+        <div class="seg small" role="group" aria-label="Contents shows" id="outlineSeg">
+          <button type="button" data-o="off" title="Chapters only (CC)">Chapters</button><button type="button" data-o="on" title="Chapters and their headings (CC)">With headings</button>
+        </div>
+      </div>
     </aside>
 
     <main class="stage" id="stage">
@@ -3179,6 +3188,7 @@ window.bookReady = (async () => {
     mapPanel.classList.toggle("peek", !narrow && !S.map && peekSide === "map");
     tocPanel.classList.toggle("with-notes", !!S.notes && hasTopics);
     tocPanel.classList.toggle("with-outline", outlineOn());
+    document.querySelectorAll("#outlineSeg button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.o === "on") === outlineOn())));
     document.querySelectorAll("#ctlToc .seg.small, .topics-opt").forEach(el => { el.hidden = !hasTopics; });
     tocBtn.setAttribute("aria-pressed", String(!tocPanel.hidden));
     mapBtn.setAttribute("aria-pressed", String(!mapPanel.hidden));
@@ -4373,6 +4383,12 @@ window.bookReady = (async () => {
     if (!tocPanel.hidden) { toast("Contents is pinned open; C puts it away", 1600); return; }
     peek("toc");
   }
+  $("outlineSeg").addEventListener("click", e => {
+    const b = e.target.closest("button[data-o]");
+    if (!b || (b.dataset.o === "on") === outlineOn()) return;
+    setSetting("outline", b.dataset.o);
+    applySettings();
+  });
   function toggleOutline() {
     setSetting("outline", outlineOn() ? "off" : "on");
     applySettings();
