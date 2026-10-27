@@ -1,7 +1,9 @@
 # Build the shelf's hosted books from their sources at pinned commits.
-# usage: python3 source/books/build_books.py RUST_BOOK_CLONE COOKBOOKS_CLONE OUT
+# usage: python3 source/books/build_books.py RUST_BOOK_CLONE COOKBOOKS_CLONE SE_DIR OUT
 #   RUST_BOOK_CLONE  a clone of https://github.com/rust-lang/book at RUST_COMMIT
 #   COOKBOOKS_CLONE  a clone of https://github.com/anthropics/claude-cookbooks at COOKBOOKS_COMMIT
+#   SE_DIR           a folder holding a clone of each Standard Ebooks repository in SE_BOOKS, named as the
+#                    repository and at its pinned commit
 #   OUT              the books folder, pages-piled/books
 # Each book is one book.json with its chapters' Markdown, beside its licence files and any images it uses.
 import json, os, re, shutil, subprocess, sys
@@ -22,6 +24,27 @@ NOTEBOOKS = [
     "observability/opentelemetry_tracing.ipynb",
 ]
 OUTPUT_LINES = 24   # a code cell's text output is shown up to this many lines
+
+# Public-domain books from Standard Ebooks, each at a pinned commit. Each is in the public domain in the United
+# States, and its author, translator and illustrator died more than seventy years ago, so it is free where a work
+# is protected for seventy years after its author's death as well. files: a selection, else the whole spine.
+SE_BOOKS = [
+    {"id": "martian-odyssey", "author": "Stanley G. Weinbaum", "repo": "stanley-g-weinbaum_short-fiction", "commit": "d9f83a574f4ed64969bb11ab1dca4b3e854dee4d",
+     "title": "A Martian Odyssey", "byline": "Stanley G. Weinbaum, with its sequel, Valley of Dreams", "files": ["a-martian-odyssey.xhtml", "valley-of-dreams.xhtml"]},
+    {"id": "sherlock-holmes", "author": "Arthur Conan Doyle", "repo": "arthur-conan-doyle_the-adventures-of-sherlock-holmes", "commit": "48ec456ea50987a81f564821457b9fb32cc2bfc6",
+     "title": "The Adventures of Sherlock Holmes", "byline": "Arthur Conan Doyle"},
+    {"id": "south", "author": "Ernest Shackleton", "repo": "ernest-shackleton_south", "commit": "233aa69e707ecc348ceef2eb1c167ada6a28ac24",
+     "title": "South", "byline": "Ernest Shackleton: the story of the Endurance expedition, 1914–1917"},
+    {"id": "meditations", "author": "Marcus Aurelius", "repo": "marcus-aurelius_meditations_george-long", "commit": "3a47d37d9f1df94de235d53839f4b254ce2953d5",
+     "title": "Meditations", "byline": "Marcus Aurelius, translated by George Long"},
+    {"id": "the-prince", "author": "Niccolò Machiavelli", "repo": "niccolo-machiavelli_the-prince_w-k-marriott", "commit": "25742ea76e27337369abe273447519c1b6eb9d3c",
+     "title": "The Prince", "byline": "Niccolò Machiavelli, translated by W. K. Marriott"},
+    {"id": "gold-bug", "author": "Edgar Allan Poe", "repo": "edgar-allan-poe_short-fiction", "commit": "f0a51689d795e5a0807d9901f69d8b14cd467048",
+     "title": "The Gold-Bug", "byline": "Edgar Allan Poe", "files": ["the-gold-bug.xhtml"]},
+    {"id": "money-getting", "author": "P. T. Barnum", "repo": "p-t-barnum_the-art-of-money-getting", "commit": "73e90fe0a78e3f2e3d15cf9ba622c7bdaed2fac8",
+     "title": "The Art of Money Getting", "byline": "P. T. Barnum: golden rules for making money"},
+]
+SE_SKIP = {"titlepage.xhtml", "imprint.xhtml", "halftitlepage.xhtml", "colophon.xhtml", "uncopyright.xhtml", "loi.xhtml"}
 
 
 def head(clone, want):
@@ -223,19 +246,70 @@ def build_cookbooks(clone, out):
     return book
 
 
+# ---------- Standard Ebooks ----------
+
+def se_chapter(path):
+    """A chapter's title, label and HTML. The reader sets the title as the chapter's heading, so the file's own goes;
+    note numbers stay as plain superscripts, since the reader keeps no ids to link them to."""
+    x = open(path, encoding="utf-8").read()
+    title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", re.search(r"<title>(.*?)</title>", x, re.S).group(1))).strip()
+    body = re.search(r"<body[^>]*>(.*)</body>", x, re.S).group(1)
+    body, n = re.subn(r"<hgroup\b.*?</hgroup>", "", body, count=1, flags=re.S)
+    if not n:
+        body = re.sub(r"<h[1-3]\b.*?</h[1-3]>", "", body, count=1, flags=re.S)
+    body = re.sub(r"<a\b[^>]*epub:type=\"noteref\"[^>]*>(.*?)</a>", r"<sup>\1</sup>", body, flags=re.S)
+    body = re.sub(r"\s*<a\b[^>]*epub:type=\"backlink\"[^>]*>.*?</a>", "", body, flags=re.S)
+    body = re.sub(r'\s(?:epub:type|xml:lang|xmlns(?::\w+)?)="[^"]*"', "", body)
+    shown, label = "", ""
+    m = re.match(r"^(Appendix )?([IVXLC]+): (.+)$", title)
+    if m:
+        shown, label, title = (m.group(2), f"{m.group(1) or 'Chapter '}{m.group(2)}", m.group(3))
+    return title, shown, label, body.strip()
+
+
+def build_se(spec, clone, out):
+    head(clone, spec["commit"])
+    text = os.path.join(clone, "src", "epub", "text")
+    dest = os.path.join(out, spec["id"])
+    shutil.rmtree(dest, ignore_errors=True)
+    os.makedirs(dest)
+    spine = re.findall(r'<itemref idref="([^"]+)"', open(os.path.join(clone, "src", "epub", "content.opf"), encoding="utf-8").read())
+    files = spec.get("files") or [f for f in spine if f not in SE_SKIP]
+    chapters, used = [], set()
+    for f in files:
+        title, shown, label, html = se_chapter(os.path.join(text, f))
+        used.update(re.findall(r'src="\.\./(images/[^"]+)"', html))
+        chapters.append({"title": title, "path": f"text/{f}", "shown": shown, "label": label, "html": html,
+                         "source": f"https://github.com/standardebooks/{spec['repo']}/blob/{spec['commit']}/src/epub/text/{f}"})
+    for img in sorted(used):
+        os.makedirs(os.path.join(dest, "images"), exist_ok=True)
+        shutil.copyfile(os.path.join(clone, "src", "epub", img), os.path.join(dest, img))
+    shutil.copyfile(os.path.join(clone, "LICENSE.md"), os.path.join(dest, "LICENSE.md"))
+    book = {
+        "v": 1, "id": spec["id"], "title": spec["title"], "byline": spec["byline"], "author": spec["author"], "site": "Standard Ebooks",
+        "url": f"https://github.com/standardebooks/{spec['repo']}/tree/{spec['commit']}",
+        "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
+        "notice": f"From the Standard Ebooks edition at commit {spec['commit'][:12]}, shown unchanged apart from layout{', a selection' if spec.get('files') else ''}. Not affiliated with or endorsed by Standard Ebooks.",
+        "licenses": ["LICENSE.md"], "chapters": chapters,
+    }
+    json.dump(book, open(os.path.join(dest, "book.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    return book, len(used)
+
+
 def main():
-    rust_clone, cook_clone, out = sys.argv[1:4]
+    rust_clone, cook_clone, se_dir, out = sys.argv[1:5]
     os.makedirs(out, exist_ok=True)
     rust, images = build_rust(rust_clone, out)
     cook = build_cookbooks(cook_clone, out)
+    se = [build_se(spec, os.path.join(se_dir, spec["repo"]), out) for spec in SE_BOOKS]
     # The shelf lists each book's chapters too, for the Library's outline, without their text.
-    shelf = [{k: b[k] for k in ("id", "title", "byline", "site", "url", "copyright", "notice", "licenses")} | {"chapters": len(b["chapters"]),
-             "toc": [{"title": c["title"], "group": c.get("group", ""), "shown": c.get("shown")} for c in b["chapters"]]} for b in (rust, cook)]
+    shelf = [{k: b[k] for k in ("id", "title", "byline", "author", "site", "url", "copyright", "notice", "licenses") if k in b} | {"chapters": len(b["chapters"]),
+             "toc": [{"title": c["title"], "group": c.get("group", ""), "shown": c.get("shown")} for c in b["chapters"]]} for b in (rust, cook, *(b for b, _ in se))]
     json.dump(shelf, open(os.path.join(out, "shelf.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    for b in (rust, cook):
-        size = sum(len(c["markdown"]) for c in b["chapters"])
+    for b in (rust, cook, *(b for b, _ in se)):
+        size = sum(len(c.get("markdown") or c.get("html")) for c in b["chapters"])
         print(f"{b['id']}: {len(b['chapters'])} chapters, {size:,} characters")
-    print(f"rust images: {images}")
+    print(f"rust images: {images}; " + ", ".join(f"{b['id']} {n}" for b, n in se if n))
 
 
 if __name__ == "__main__":
