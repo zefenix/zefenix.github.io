@@ -2664,7 +2664,7 @@ window.bookReady = (async () => {
   /* ---------- contents ---------- */
 
   // Each chapter row can carry its headings underneath, shown when Contents lists them (cc, or the switch at its foot).
-  let tocItems = [], curChapter = -1, curSection = null, places = [];
+  let tocItems = [], curChapter = -1, curSections = new Set(), places = [];
   const outlineOn = () => S.outline === "on";
   function buildToc() {
     const entries = [{ b: 0, n: "", title: "Cover", id: "summary" }, ...chapters];
@@ -3158,23 +3158,33 @@ window.bookReady = (async () => {
     }
     let end = top;
     if (shownOf(top)) while (end + 1 < tocItems.length && shownOf(end + 1).startsWith(shownOf(top) + ".")) end++;
-    // the heading you are in: the last one in this chapter that starts at or before where you are
-    let sec = null;
-    tocItems[ci].li.querySelectorAll(".toc-outline a").forEach(x => { if (+x.dataset.b <= a.b) sec = x; });
+    // Everything on the pages shown is marked, not only where they start: the last block in view, on both pages
+    // of a spread or down the scrolled column.
+    let bZ = a.b;
+    if (textScroll()) { const [, y1] = bandRange(); bZ = Math.max(a.b, anchorAtY(Math.max(0, y1 - 1)).b); }
+    else for (const sp of centerPages().flatMap(i => pageSpans[i] || [])) bZ = Math.max(bZ, sp.b);
+    const inView = b => b > a.b && b <= bZ;
+    // the headings you are reading: the one you are in, and every one that starts on the pages shown
+    let lead = null;
+    tocItems[ci].li.querySelectorAll(".toc-outline a").forEach(x => { if (+x.dataset.b <= a.b) lead = x; });
+    const secs = new Set([...tocList.querySelectorAll(".toc-outline a[data-b]")].filter(x => inView(+x.dataset.b)));
+    if (lead) secs.add(lead);
+    const tinted = t => outlineOn() && [...secs].some(x => t.li.contains(x));
     tocItems.forEach((t, i) => {
-      t.btn.setAttribute("aria-current", String(i === ci || i === top));
-      t.btn.classList.toggle("sub-here", i === ci && ci !== top && !(sec && outlineOn()));
+      const sub = i !== top && shownOf(i).includes("."), shown = i === ci || inView(t.b);
+      t.btn.setAttribute("aria-current", String(shown || i === top));
+      t.btn.classList.toggle("sub-here", shown && sub && !tinted(t));
       t.li.classList.toggle("cur", i >= top && i <= end);
       t.li.classList.toggle("cur-first", i === top);
       t.li.classList.toggle("cur-last", i === end);
     });
-    if (sec !== curSection) {
-      if (curSection) curSection.removeAttribute("aria-current");
-      if (sec) sec.setAttribute("aria-current", "true");
-      curSection = sec;
-      if (sec && outlineOn() && ci === curChapter) keepInView(sec);
-    }
-    if (ci !== curChapter) { curChapter = ci; keepInView(sec && outlineOn() ? sec : tocItems[ci].li); }
+    const was = curSections;
+    was.forEach(x => { if (!secs.has(x)) x.removeAttribute("aria-current"); });
+    secs.forEach(x => x.setAttribute("aria-current", "true"));
+    curSections = secs;
+    const firstSec = [...secs].sort((x, y) => x.dataset.b - y.dataset.b)[0];
+    if (ci !== curChapter) { curChapter = ci; keepInView(firstSec && outlineOn() ? firstSec : tocItems[ci].li); }
+    else if (firstSec && outlineOn() && !was.has(firstSec)) keepInView(firstSec);
   }
 
   // Click or drag anywhere along the page slider; a tip names the page under the pointer.
@@ -4809,7 +4819,7 @@ window.bookReady = (async () => {
     tocList.replaceChildren();
     buildToc();
     buildTicks();
-    curChapter = -1; curSection = null;
+    curChapter = -1; curSections = new Set();
     ready = true;
     thumbsBtn.disabled = false;
     status.hidden = true;
