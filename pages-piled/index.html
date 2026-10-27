@@ -423,8 +423,8 @@ a.toc-item { text-decoration: none; }
 .guide {
   box-sizing: border-box;   /* its edges count in its height, so at either end it stays inside the reading area */
   --guide-line: calc(19px * 1.68);
-  --guide-h: calc(var(--guide-lines, 3) * var(--guide-line) + 4px);   /* the lines, a pixel of air above and below, and its two edges */
-  display: none; position: absolute; left: 0; right: 0; height: var(--guide-h);
+  --guide-h: min(calc(var(--guide-lines, 3) * var(--guide-line) + 4px), 100%);   /* the lines, a pixel of air above and below, and its two edges; never taller than the screen */
+  display: none; position: absolute; left: var(--guide-x, 0px); width: var(--guide-w, 100%); height: var(--guide-h);
   top: clamp(calc(var(--guide-h) / 2), var(--guide-at, 50%), calc(100% - var(--guide-h) / 2));
   transform: translateY(-50%); pointer-events: none;
   background: color-mix(in srgb, var(--accent) 7%, transparent);
@@ -524,6 +524,21 @@ a.toc-item { text-decoration: none; }
   display: flex; flex-direction: column; gap: 16px;
 }
 .popover section { display: flex; flex-direction: column; gap: 9px; }
+/* Options in groups on every screen: All, then the groups under tabs at its foot, which stay in view while a long group scrolls */
+.popover { padding-bottom: 0; }
+.opt-tabs {
+  display: flex; order: 99; position: sticky; bottom: 0; z-index: 1; margin: 0 -18px; padding: 0 8px 2px;
+  border-top: 1px solid var(--hair); background: var(--surface);
+}
+.opt-tabs button {
+  position: relative; flex: auto; min-height: 40px; padding: 0 6px; border: 0; background: none; cursor: pointer;
+  font-size: 12.5px; font-weight: 500; white-space: nowrap; color: var(--ink-soft);
+}
+.opt-tabs button:hover { color: var(--ink); }
+.opt-tabs button[aria-selected="true"] { color: var(--ink); }
+.opt-tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: 6px; right: 6px; top: -1px; height: 2px; border-radius: 1px; background: var(--accent); }
+.popover:not(.all) section:not(.on) { display: none; }
+.popover:not(.all) .note { display: none; }
 .popover h3 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
 .popover .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13.5px; }
 .popover .row input[type="range"] { flex: 1; max-width: 150px; accent-color: var(--accent); }
@@ -615,7 +630,7 @@ a.toc-item { text-decoration: none; }
 .app.tucked .top, .app.tucked .dock-ctl, .app.tucked .dock-page { display: none; }
 @media (min-width: 861px) { .app.tucked .dock .nav { grid-column: 2; } }   /* the slider stays in the middle when the controls beside it go */
 /* ---------- phones: the same bars, regrouped; Options in tabs; Listen adds a row ---------- */
-.opt-tabs, .tray, .tray-listen, .menu-strip { display: none; }
+.tray, .tray-listen, .menu-strip { display: none; }
 /* One set of Listen's steps on every screen: the phone's, by sentence and paragraph. On a wider screen they sit in
    the top bar's own row, a pair each side of Listen, styled like its other icon buttons, while Listen plays. */
 #listenPrev, #listenNext { display: none !important; }
@@ -628,19 +643,6 @@ a.toc-item { text-decoration: none; }
   .top .seg.small button { display: inline-grid; place-items: center; }
 }
 @media (max-width: 600px), (max-height: 500px) and (pointer: coarse) {
-  /* the group tabs sit at the foot of Options and stay in view while a long group scrolls above them */
-  .popover { padding-bottom: 0; }
-  .opt-tabs {
-    display: flex; order: 99; position: sticky; bottom: 0; z-index: 1; margin: 0 -18px; padding: 0 8px 2px;
-    border-top: 1px solid var(--hair); background: var(--surface);
-  }
-  .opt-tabs button {
-    position: relative; flex: auto; min-height: 40px; padding: 0 6px; border: 0; background: none; cursor: pointer;
-    font-size: 12.5px; font-weight: 500; white-space: nowrap; color: var(--ink-soft);
-  }
-  .opt-tabs button[aria-selected="true"] { color: var(--ink); }
-  .opt-tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: 6px; right: 6px; top: -1px; height: 2px; border-radius: 1px; background: var(--accent); }
-  .popover:not(.all) section:not(.on) { display: none; }
   .popover .note { display: none; }
   .popover { gap: 14px; }
   .app.listening .tray, .tray:has(> #chip:not([hidden])) { display: flex; }
@@ -1148,7 +1150,7 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Reading zone</span>
         <div class="seg" data-setting="guide"><button type="button" data-value="0">Off</button><button type="button" data-value="1">On</button></div></div>
       <div class="row zone-opt"><label for="guideAt">Zone place</label><input type="range" id="guideAt" data-setting="guideAt" min="0" max="100" step="1"><output for="guideAt" id="guideAtOut" title="Back to the middle"></output></div>
-      <div class="row zone-opt"><label for="guideLines">Zone height</label><input type="range" id="guideLines" data-setting="guideLines" min="0" max="5" step="1"><output for="guideLines"></output></div>
+      <div class="row zone-opt"><label for="guideLines">Zone height</label><input type="range" id="guideLines" data-setting="guideLines" min="0" max="30" step="1"><output for="guideLines"></output></div>
     </section>
     <section>
       <h3>Panels</h3>
@@ -2307,7 +2309,7 @@ window.bookReady = (async () => {
     s.guideAt = Number.isFinite(Number(s.guideAt)) ? clamp(Math.round(Number(s.guideAt)), 0, 100) : DEFAULTS.guideAt;
     s.mapMarkOp = Number.isFinite(Number(s.mapMarkOp)) ? clamp(Math.round(Number(s.mapMarkOp)), 5, 100) : DEFAULTS.mapMarkOp;
     s.textSize = Number.isFinite(Number(s.textSize)) ? clamp(Math.round(Number(s.textSize) / 5) * 5, 80, 150) : DEFAULTS.textSize;
-    s.guideLines = Number.isFinite(Number(s.guideLines)) ? clamp(Math.round(Number(s.guideLines)), 0, 5) : DEFAULTS.guideLines;
+    s.guideLines = Number.isFinite(Number(s.guideLines)) ? clamp(Math.round(Number(s.guideLines)), 0, 30) : DEFAULTS.guideLines;
     for (const [k, list] of Object.entries(CHOICES)) if (!list.includes(s[k])) s[k] = DEFAULTS[k];
     delete s.listenStay;   // the old Follow-first switch; Stay is the default now
     for (const k of ["facing", "pagedSpread", "guide", "mapMark", "toc", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
@@ -3232,12 +3234,22 @@ window.bookReady = (async () => {
   /* ---------- settings ---------- */
 
   const THEME_NAMES = { system: "Auto", light: "Light", dark: "Dark" };
-  const ZONE_SIZES = ["Line", "Thin", "Short", "Medium", "Tall", "Tallest"];   // a hairline, then one to five lines of text
+  const zoneSize = v => (v ? `${v} ${v === 1 ? "line" : "lines"}` : "Line");   // a hairline, then one to thirty lines of text
   // in scrolled pages a line of the zone is a line of the book at the pages' zoom (10.2pt type, 1.5 leading)
   function sizeGuide() {
     const guide = document.querySelector(".guide");
     if (linear()) guide.style.setProperty("--guide-line", (20.4 * (parseFloat(desk.style.getPropertyValue("--lz")) || 1)).toFixed(1) + "px");
     else guide.style.removeProperty("--guide-line");
+    // as wide as what is read, the page or the text column, with a little to spare each side
+    requestAnimationFrame(() => {
+      const host = guide.offsetParent, col = linear() ? pages[0] : textScroll() ? article : null;
+      if (!host || !col) { guide.style.removeProperty("--guide-x"); guide.style.removeProperty("--guide-w"); return; }
+      const hr = host.getBoundingClientRect(), cr = col.getBoundingClientRect();
+      if (!cr.width) return;
+      const pad = Math.min(16, cr.width * 0.03);
+      guide.style.setProperty("--guide-x", Math.max(0, cr.left - hr.left - pad) + "px");
+      guide.style.setProperty("--guide-w", Math.min(hr.width, cr.width + 2 * pad) + "px");
+    });
   }
   function nextTheme(value) {
     return CHOICES.theme[(CHOICES.theme.indexOf(value) + 1) % CHOICES.theme.length];
@@ -3297,7 +3309,7 @@ window.bookReady = (async () => {
       inp.value = String(S[inp.dataset.setting]);
       const v = S[inp.dataset.setting];
       inp.nextElementSibling.textContent = inp.dataset.setting === "rate" || inp.dataset.setting === "glide" ? +v.toFixed(2) + "×"
-        : inp.dataset.setting === "guideLines" ? ZONE_SIZES[v]
+        : inp.dataset.setting === "guideLines" ? zoneSize(v)
         : inp.dataset.setting === "guideAt" ? (v === 50 ? "Middle" : v + "%") : v + "%";
     });
   }
@@ -4296,9 +4308,9 @@ window.bookReady = (async () => {
   $("rowBack").addEventListener("click", backToListen);
   $("listenBack").addEventListener("click", backToListen);
   $("rowStop").addEventListener("click", stopReading);
-  // On a phone Options shows one group at a time, under tabs named by the groups' own headings.
+  // Options shows one group at a time, under tabs named by the groups' own headings.
   const optSections = [...opts.querySelectorAll(":scope > section")];
-  // The first tab, All, shows every group as the desktop does; the tab last chosen is kept for next time.
+  // The first tab, All, shows every group at once; the tab last chosen is kept for next time.
   // Then the groups in pairs, Look & Pages and Listen & Scroll, and Panels alone, each group under its heading.
   const optTabs = [[0, 1], [2, 3], [4]];
   const showOptTab = i => {
