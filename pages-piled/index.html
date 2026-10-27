@@ -703,6 +703,7 @@ a.toc-item { text-decoration: none; }
 .top-mid .name:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 .library {
   position: fixed; inset: 0; z-index: 30; overflow-y: auto; overscroll-behavior: contain; background: var(--desk);
+  touch-action: pan-y pinch-zoom;   /* a sideways swipe reaches the script, which switches Shelf and List */
   padding: max(18px, env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) 48px max(18px, env(safe-area-inset-left, 0px));
 }
 .lib-inner { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
@@ -1538,7 +1539,7 @@ a.toc-item { text-decoration: none; }
   <li>Minimap: the book drawn small, as a column of little pages in the page views and as the text itself in plain text. Click or drag on it to move. A faint percentage in its box shows how far through you are; Options sets how faint, or turns it off. <code>m</code> hides or shows the minimap.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Flow or Pile.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from there, or from just below the page, opens the Library.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>
@@ -3575,14 +3576,12 @@ window.bookReady = (async () => {
     if (peekSide === "toc") endPeek();
     else if (tocPanel.hidden) peek("toc");
   });
-  statR.addEventListener("click", () => { if (ready && !upSwiped()) (gridOpen ? closeGrid() : openGrid()); });
-  // A swipe up from either way into All pages, the strip below the page or the right of the slider, opens the Library instead.
+  statR.addEventListener("click", () => { if (ready) (gridOpen ? closeGrid() : openGrid()); });
+  // A swipe up from the strip below the page, the way into All pages, opens the Library instead.
   let upSwipe = null, upSwipeAt = -1e9;
   const upSwiped = () => performance.now() - upSwipeAt < 500;
-  [$("zoomStrip"), statR].forEach(el => {
-    el.addEventListener("pointerdown", e => { upSwipe = e.pointerType !== "mouse" && e.isPrimary ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null; });
-    el.addEventListener("pointercancel", () => { upSwipe = null; });
-  });
+  $("zoomStrip").addEventListener("pointerdown", e => { upSwipe = e.pointerType !== "mouse" && e.isPrimary ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null; });
+  $("zoomStrip").addEventListener("pointercancel", () => { upSwipe = null; });
   document.addEventListener("pointerup", e => {
     const u = upSwipe;
     upSwipe = null;
@@ -4555,12 +4554,12 @@ window.bookReady = (async () => {
     setTucked(!app.classList.contains("tucked"));
   });
   // On a phone, a swipe down on the bottom bar tucks the menus and a swipe up brings them back, for one thumb.
-  // The slider's own track is left out, so dragging it only ever scrubs, and so is the right of the slider, whose swipe up opens the Library.
+  // The slider's own track is left out, so dragging it only ever scrubs.
   // And a swipe up on the top bar tucks them too, a swipe toward the edge each bar sits on.
   let barSwipe = null;
   [dock, top].forEach(bar => {
     bar.addEventListener("pointerdown", e => {
-      barSwipe = phoneMQ.matches && e.isPrimary && !e.target.closest("#ticks, #statR") ? { x: e.clientX, y: e.clientY, id: e.pointerId, bar } : null;
+      barSwipe = phoneMQ.matches && e.isPrimary && !e.target.closest("#ticks") ? { x: e.clientX, y: e.clientY, id: e.pointerId, bar } : null;
     });
     bar.addEventListener("pointercancel", () => { barSwipe = null; });
   });
@@ -5253,12 +5252,26 @@ window.bookReady = (async () => {
   }
   $("libView").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (b) setLibView(b.dataset.v); });
   setLibView(libView);
+  // On a touch screen, a swipe sideways switches them, in the order of their buttons: left to List, right to Shelf.
+  let libSwipe = null, libSwipedAt = -1e9;
+  booksEl.addEventListener("pointerdown", e => { libSwipe = e.pointerType !== "mouse" && e.isPrimary ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null; });
+  booksEl.addEventListener("pointercancel", () => { libSwipe = null; });
+  booksEl.addEventListener("pointerup", e => {
+    const w = libSwipe;
+    libSwipe = null;
+    if (!w || e.pointerId !== w.id) return;
+    const dx = e.clientX - w.x, dy = e.clientY - w.y;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < 1.5 * Math.abs(dy)) return;
+    libSwipedAt = performance.now();
+    const v = dx < 0 ? "list" : "shelf";
+    if (v !== libView) { setLibView(v); toast(v === "shelf" ? "Shelf" : "List", 900); }
+  });
   $("libClose").addEventListener("click", () => { setBooks(false); focusReader(); });
   // A click on empty space goes back to the book, as in All pages; with the find box focused, the first one only leaves the box.
   let findHeld = false;   // a touch takes the focus before its click arrives, so whether the box had it is read as the finger lands
   booksEl.addEventListener("pointerdown", () => { findHeld = document.activeElement === libFind; }, true);
   booksEl.addEventListener("click", e => {
-    if (!e.target.matches(".library, .lib-inner, .lib-cols, .lib-main, .lib-sec, .lib-sec-head, .lib-books, .lib-add, .lib-outline")) return;
+    if (!e.target.matches(".library, .lib-inner, .lib-cols, .lib-main, .lib-sec, .lib-sec-head, .lib-books, .lib-add, .lib-outline") || performance.now() - libSwipedAt < 500) return;
     if (findHeld || document.activeElement === libFind) { findHeld = false; libFind.blur(); return; }
     setBooks(false);
     focusReader();
