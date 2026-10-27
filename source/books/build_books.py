@@ -29,10 +29,12 @@ OUTPUT_LINES = 24   # a code cell's text output is shown up to this many lines
 # States, and its author, translator and illustrator died more than seventy years ago, so it is free where a work
 # is protected for seventy years after its author's death as well. files: a selection, else the whole spine.
 SE_BOOKS = [
-    {"id": "meditations", "author": "Marcus Aurelius", "repo": "marcus-aurelius_meditations_george-long", "commit": "3a47d37d9f1df94de235d53839f4b254ce2953d5",
-     "title": "Meditations", "byline": "Marcus Aurelius, translated by George Long"},
     {"id": "sherlock-holmes", "author": "Arthur Conan Doyle", "repo": "arthur-conan-doyle_the-adventures-of-sherlock-holmes", "commit": "48ec456ea50987a81f564821457b9fb32cc2bfc6",
      "title": "The Adventures of Sherlock Holmes", "byline": "Arthur Conan Doyle"},
+    {"id": "monte-cristo", "author": "Alexandre Dumas", "repo": "alexandre-dumas_the-count-of-monte-cristo_chapman-and-hall", "commit": "1af363f17450316f295e7d30d7eb77742906c789",
+     "title": "The Count of Monte Cristo", "byline": "Alexandre Dumas, in the anonymous English translation of 1846"},
+    {"id": "meditations", "author": "Marcus Aurelius", "repo": "marcus-aurelius_meditations_george-long", "commit": "3a47d37d9f1df94de235d53839f4b254ce2953d5",
+     "title": "Meditations", "byline": "Marcus Aurelius, translated by George Long"},
 ]
 SE_SKIP = {"titlepage.xhtml", "imprint.xhtml", "halftitlepage.xhtml", "colophon.xhtml", "uncopyright.xhtml", "loi.xhtml"}
 

@@ -1,5 +1,687 @@
 [
  {
+  "id": "sherlock-holmes",
+  "title": "The Adventures of Sherlock Holmes",
+  "byline": "Arthur Conan Doyle",
+  "author": "Arthur Conan Doyle",
+  "site": "Standard Ebooks",
+  "url": "https://github.com/standardebooks/arthur-conan-doyle_the-adventures-of-sherlock-holmes/tree/48ec456ea50987a81f564821457b9fb32cc2bfc6",
+  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
+  "notice": "From the Standard Ebooks edition at commit 48ec456ea509, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
+  "licenses": [
+   "LICENSE.md"
+  ],
+  "chapters": 12,
+  "toc": [
+   {
+    "title": "A Scandal in Bohemia",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Redheaded League",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "A Case of Identity",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Boscombe Valley Mystery",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Five Orange Pips",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Man with the Twisted Lip",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Blue Carbuncle",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Speckled Band",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Engineer’s Thumb",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Noble Bachelor",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Beryl Coronet",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Copper Beeches",
+    "group": "",
+    "shown": ""
+   }
+  ]
+ },
+ {
+  "id": "monte-cristo",
+  "title": "The Count of Monte Cristo",
+  "byline": "Alexandre Dumas, in the anonymous English translation of 1846",
+  "author": "Alexandre Dumas",
+  "site": "Standard Ebooks",
+  "url": "https://github.com/standardebooks/alexandre-dumas_the-count-of-monte-cristo_chapman-and-hall/tree/1af363f17450316f295e7d30d7eb77742906c789",
+  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
+  "notice": "From the Standard Ebooks edition at commit 1af363f17450, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
+  "licenses": [
+   "LICENSE.md"
+  ],
+  "chapters": 118,
+  "toc": [
+   {
+    "title": "Marseilles—The Arrival",
+    "group": "",
+    "shown": "I"
+   },
+   {
+    "title": "Father and Son",
+    "group": "",
+    "shown": "II"
+   },
+   {
+    "title": "The Catalans",
+    "group": "",
+    "shown": "III"
+   },
+   {
+    "title": "Conspiracy",
+    "group": "",
+    "shown": "IV"
+   },
+   {
+    "title": "The Marriage Feast",
+    "group": "",
+    "shown": "V"
+   },
+   {
+    "title": "The Deputy Procureur du Roi",
+    "group": "",
+    "shown": "VI"
+   },
+   {
+    "title": "The Examination",
+    "group": "",
+    "shown": "VII"
+   },
+   {
+    "title": "The Château d’If",
+    "group": "",
+    "shown": "VIII"
+   },
+   {
+    "title": "The Evening of the Betrothal",
+    "group": "",
+    "shown": "IX"
+   },
+   {
+    "title": "The King’s Closet at the Tuileries",
+    "group": "",
+    "shown": "X"
+   },
+   {
+    "title": "The Corsican Ogre",
+    "group": "",
+    "shown": "XI"
+   },
+   {
+    "title": "Father and Son",
+    "group": "",
+    "shown": "XII"
+   },
+   {
+    "title": "The Hundred Days",
+    "group": "",
+    "shown": "XIII"
+   },
+   {
+    "title": "The Two Prisoners",
+    "group": "",
+    "shown": "XIV"
+   },
+   {
+    "title": "Number 34 and Number 27",
+    "group": "",
+    "shown": "XV"
+   },
+   {
+    "title": "A Learned Italian",
+    "group": "",
+    "shown": "XVI"
+   },
+   {
+    "title": "The Abbé’s Chamber",
+    "group": "",
+    "shown": "XVII"
+   },
+   {
+    "title": "The Treasure",
+    "group": "",
+    "shown": "XVIII"
+   },
+   {
+    "title": "The Third Attack",
+    "group": "",
+    "shown": "XIX"
+   },
+   {
+    "title": "The Cemetery of the Château d’If",
+    "group": "",
+    "shown": "XX"
+   },
+   {
+    "title": "The Island of Tiboulen",
+    "group": "",
+    "shown": "XXI"
+   },
+   {
+    "title": "The Smugglers",
+    "group": "",
+    "shown": "XXII"
+   },
+   {
+    "title": "The Island of Monte Cristo",
+    "group": "",
+    "shown": "XXIII"
+   },
+   {
+    "title": "The Secret Cave",
+    "group": "",
+    "shown": "XXIV"
+   },
+   {
+    "title": "The Unknown",
+    "group": "",
+    "shown": "XXV"
+   },
+   {
+    "title": "The Pont du Gard Inn",
+    "group": "",
+    "shown": "XXVI"
+   },
+   {
+    "title": "The Story",
+    "group": "",
+    "shown": "XXVII"
+   },
+   {
+    "title": "The Prison Register",
+    "group": "",
+    "shown": "XXVIII"
+   },
+   {
+    "title": "The House of Morrel &amp; Son",
+    "group": "",
+    "shown": "XXIX"
+   },
+   {
+    "title": "The Fifth of September",
+    "group": "",
+    "shown": "XXX"
+   },
+   {
+    "title": "Italy: Sinbad the Sailor",
+    "group": "",
+    "shown": "XXXI"
+   },
+   {
+    "title": "The Waking",
+    "group": "",
+    "shown": "XXXII"
+   },
+   {
+    "title": "Roman Bandits",
+    "group": "",
+    "shown": "XXXIII"
+   },
+   {
+    "title": "The Colosseum",
+    "group": "",
+    "shown": "XXXIV"
+   },
+   {
+    "title": "La Mazzolata",
+    "group": "",
+    "shown": "XXXV"
+   },
+   {
+    "title": "The Carnival at Rome",
+    "group": "",
+    "shown": "XXXVI"
+   },
+   {
+    "title": "The Catacombs of Saint Sebastian",
+    "group": "",
+    "shown": "XXXVII"
+   },
+   {
+    "title": "The Rendezvous",
+    "group": "",
+    "shown": "XXXVIII"
+   },
+   {
+    "title": "The Guests",
+    "group": "",
+    "shown": "XXXIX"
+   },
+   {
+    "title": "The Breakfast",
+    "group": "",
+    "shown": "XL"
+   },
+   {
+    "title": "The Presentation",
+    "group": "",
+    "shown": "XLI"
+   },
+   {
+    "title": "Monsieur Bertuccio",
+    "group": "",
+    "shown": "XLII"
+   },
+   {
+    "title": "The House at Auteuil",
+    "group": "",
+    "shown": "XLIII"
+   },
+   {
+    "title": "The Vendetta",
+    "group": "",
+    "shown": "XLIV"
+   },
+   {
+    "title": "The Rain of Blood",
+    "group": "",
+    "shown": "XLV"
+   },
+   {
+    "title": "Unlimited Credit",
+    "group": "",
+    "shown": "XLVI"
+   },
+   {
+    "title": "The Dappled Grays",
+    "group": "",
+    "shown": "XLVII"
+   },
+   {
+    "title": "Ideology",
+    "group": "",
+    "shown": "XLVIII"
+   },
+   {
+    "title": "Haydée",
+    "group": "",
+    "shown": "XLIX"
+   },
+   {
+    "title": "The Morrel Family",
+    "group": "",
+    "shown": "L"
+   },
+   {
+    "title": "Pyramus and Thisbe",
+    "group": "",
+    "shown": "LI"
+   },
+   {
+    "title": "Toxicology",
+    "group": "",
+    "shown": "LII"
+   },
+   {
+    "title": "Robert le Diable",
+    "group": "",
+    "shown": "LIII"
+   },
+   {
+    "title": "A Flurry in Stocks",
+    "group": "",
+    "shown": "LIV"
+   },
+   {
+    "title": "Major Cavalcanti",
+    "group": "",
+    "shown": "LV"
+   },
+   {
+    "title": "Andrea Cavalcanti",
+    "group": "",
+    "shown": "LVI"
+   },
+   {
+    "title": "In the Lucern Patch",
+    "group": "",
+    "shown": "LVII"
+   },
+   {
+    "title": "M. Noirtier de Villefort",
+    "group": "",
+    "shown": "LVIII"
+   },
+   {
+    "title": "The Will",
+    "group": "",
+    "shown": "LIX"
+   },
+   {
+    "title": "The Telegraph",
+    "group": "",
+    "shown": "LX"
+   },
+   {
+    "title": "How a Gardener May Get Rid of the Dormice That Eat His Peaches",
+    "group": "",
+    "shown": "LXI"
+   },
+   {
+    "title": "Ghosts",
+    "group": "",
+    "shown": "LXII"
+   },
+   {
+    "title": "The Dinner",
+    "group": "",
+    "shown": "LXIII"
+   },
+   {
+    "title": "The Beggar",
+    "group": "",
+    "shown": "LXIV"
+   },
+   {
+    "title": "A Conjugal Scene",
+    "group": "",
+    "shown": "LXV"
+   },
+   {
+    "title": "Matrimonial Projects",
+    "group": "",
+    "shown": "LXVI"
+   },
+   {
+    "title": "The Office of the King’s Attorney",
+    "group": "",
+    "shown": "LXVII"
+   },
+   {
+    "title": "A Summer Ball",
+    "group": "",
+    "shown": "LXVIII"
+   },
+   {
+    "title": "The Inquiry",
+    "group": "",
+    "shown": "LXIX"
+   },
+   {
+    "title": "The Ball",
+    "group": "",
+    "shown": "LXX"
+   },
+   {
+    "title": "Bread and Salt",
+    "group": "",
+    "shown": "LXXI"
+   },
+   {
+    "title": "Madame de Saint-Méran",
+    "group": "",
+    "shown": "LXXII"
+   },
+   {
+    "title": "The Promise",
+    "group": "",
+    "shown": "LXXIII"
+   },
+   {
+    "title": "The Villefort Family Vault",
+    "group": "",
+    "shown": "LXXIV"
+   },
+   {
+    "title": "A Signed Statement",
+    "group": "",
+    "shown": "LXXV"
+   },
+   {
+    "title": "Progress of Cavalcanti the Younger",
+    "group": "",
+    "shown": "LXXVI"
+   },
+   {
+    "title": "Haydée",
+    "group": "",
+    "shown": "LXXVII"
+   },
+   {
+    "title": "We Hear from Yanina",
+    "group": "",
+    "shown": "LXXVIII"
+   },
+   {
+    "title": "The Lemonade",
+    "group": "",
+    "shown": "LXXIX"
+   },
+   {
+    "title": "The Accusation",
+    "group": "",
+    "shown": "LXXX"
+   },
+   {
+    "title": "The Room of the Retired Baker",
+    "group": "",
+    "shown": "LXXXI"
+   },
+   {
+    "title": "The Burglary",
+    "group": "",
+    "shown": "LXXXII"
+   },
+   {
+    "title": "The Hand of God",
+    "group": "",
+    "shown": "LXXXIII"
+   },
+   {
+    "title": "Beauchamp",
+    "group": "",
+    "shown": "LXXXIV"
+   },
+   {
+    "title": "The Journey",
+    "group": "",
+    "shown": "LXXXV"
+   },
+   {
+    "title": "The Trial",
+    "group": "",
+    "shown": "LXXXVI"
+   },
+   {
+    "title": "The Challenge",
+    "group": "",
+    "shown": "LXXXVII"
+   },
+   {
+    "title": "The Insult",
+    "group": "",
+    "shown": "LXXXVIII"
+   },
+   {
+    "title": "The Night",
+    "group": "",
+    "shown": "LXXXIX"
+   },
+   {
+    "title": "The Meeting",
+    "group": "",
+    "shown": "XC"
+   },
+   {
+    "title": "Mother and Son",
+    "group": "",
+    "shown": "XCI"
+   },
+   {
+    "title": "The Suicide",
+    "group": "",
+    "shown": "XCII"
+   },
+   {
+    "title": "Valentine",
+    "group": "",
+    "shown": "XCIII"
+   },
+   {
+    "title": "Maximilian’s Avowal",
+    "group": "",
+    "shown": "XCIV"
+   },
+   {
+    "title": "Father and Daughter",
+    "group": "",
+    "shown": "XCV"
+   },
+   {
+    "title": "The Contract",
+    "group": "",
+    "shown": "XCVI"
+   },
+   {
+    "title": "The Departure for Belgium",
+    "group": "",
+    "shown": "XCVII"
+   },
+   {
+    "title": "The Bell and Bottle Tavern",
+    "group": "",
+    "shown": "XCVIII"
+   },
+   {
+    "title": "The Law",
+    "group": "",
+    "shown": "XCIX"
+   },
+   {
+    "title": "The Apparition",
+    "group": "",
+    "shown": "C"
+   },
+   {
+    "title": "Locusta",
+    "group": "",
+    "shown": "CI"
+   },
+   {
+    "title": "Valentine",
+    "group": "",
+    "shown": "CII"
+   },
+   {
+    "title": "Maximilian",
+    "group": "",
+    "shown": "CIII"
+   },
+   {
+    "title": "Danglars’ Signature",
+    "group": "",
+    "shown": "CIV"
+   },
+   {
+    "title": "The Cemetery of Père-Lachaise",
+    "group": "",
+    "shown": "CV"
+   },
+   {
+    "title": "Dividing the Proceeds",
+    "group": "",
+    "shown": "CVI"
+   },
+   {
+    "title": "The Lions’ Den",
+    "group": "",
+    "shown": "CVII"
+   },
+   {
+    "title": "The Judge",
+    "group": "",
+    "shown": "CVIII"
+   },
+   {
+    "title": "The Assizes",
+    "group": "",
+    "shown": "CIX"
+   },
+   {
+    "title": "The Indictment",
+    "group": "",
+    "shown": "CX"
+   },
+   {
+    "title": "Expiation",
+    "group": "",
+    "shown": "CXI"
+   },
+   {
+    "title": "The Departure",
+    "group": "",
+    "shown": "CXII"
+   },
+   {
+    "title": "The Past",
+    "group": "",
+    "shown": "CXIII"
+   },
+   {
+    "title": "Peppino",
+    "group": "",
+    "shown": "CXIV"
+   },
+   {
+    "title": "Luigi Vampa’s Bill of Fare",
+    "group": "",
+    "shown": "CXV"
+   },
+   {
+    "title": "The Pardon",
+    "group": "",
+    "shown": "CXVI"
+   },
+   {
+    "title": "The Fifth of October",
+    "group": "",
+    "shown": "CXVII"
+   },
+   {
+    "title": "Endnotes",
+    "group": "",
+    "shown": ""
+   }
+  ]
+ },
+ {
   "id": "meditations",
   "title": "Meditations",
   "byline": "Marcus Aurelius, translated by George Long",
@@ -75,82 +757,6 @@
    },
    {
     "title": "Endnotes",
-    "group": "",
-    "shown": ""
-   }
-  ]
- },
- {
-  "id": "sherlock-holmes",
-  "title": "The Adventures of Sherlock Holmes",
-  "byline": "Arthur Conan Doyle",
-  "author": "Arthur Conan Doyle",
-  "site": "Standard Ebooks",
-  "url": "https://github.com/standardebooks/arthur-conan-doyle_the-adventures-of-sherlock-holmes/tree/48ec456ea50987a81f564821457b9fb32cc2bfc6",
-  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
-  "notice": "From the Standard Ebooks edition at commit 48ec456ea509, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
-  "licenses": [
-   "LICENSE.md"
-  ],
-  "chapters": 12,
-  "toc": [
-   {
-    "title": "A Scandal in Bohemia",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Redheaded League",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "A Case of Identity",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Boscombe Valley Mystery",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Five Orange Pips",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Man with the Twisted Lip",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Blue Carbuncle",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Speckled Band",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Engineer’s Thumb",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Noble Bachelor",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Beryl Coronet",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Copper Beeches",
     "group": "",
     "shown": ""
    }
