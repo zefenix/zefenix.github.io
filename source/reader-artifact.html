@@ -4561,6 +4561,7 @@ window.bookReady = (async () => {
     if (t.closest && t.closest(".popover")) return;
     const k = e.key;
     if (k === "/") { e.preventDefault(); openSearch(); return; }
+    if (gridOpen && (k === "o" || k === "B")) { e.preventDefault(); closeGrid(true); setBooks(true); return; }   // the Library, from All pages too
     if (gridOpen) return gridKey(e);
     if (t.closest && t.closest("button") && (k === " " || k === "Enter")) return;
 
