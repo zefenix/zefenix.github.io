@@ -1153,6 +1153,7 @@ a.toc-item { text-decoration: none; }
         <div class="seg" data-setting="arrange"><button type="button" data-value="pile">Pile</button><button type="button" data-value="flow">Flow</button><button type="button" data-value="strip">Strip</button></div></div>
       <div class="row strip-opt"><span>Strip goes</span>
         <div class="seg" data-setting="stripDir"><button type="button" data-value="across">Across</button><button type="button" data-value="down">Down</button></div></div>
+      <div class="row strip-opt"><label for="stripAt">Strip rests</label><input type="range" id="stripAt" data-setting="stripAt" min="-40" max="40" step="5"><output for="stripAt"></output></div>
       <div class="row"><label for="pagedSpread">Spread</label><input type="range" id="pagedSpread" data-setting="pagedSpread" min="0" max="100" step="1"><output for="pagedSpread"></output></div>
       <div class="row"><label for="paperSel">Page size</label><select id="paperSel">
         <option value="pocket">Pocket, 108 × 175 mm</option><option value="a5">A5, 148 × 210 mm</option><option value="trade">Trade, 6 × 9 in</option>
@@ -1407,7 +1408,7 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 4. Strip from the front. The pages lie flat in one row, a gap apart, and a step slides the row by one page.</figcaption>
 </figure>
 <p id="strip-history">It is inspired by PaperWM, a window manager for the GNOME desktop that sets windows side by side on an endless strip and scrolls the strip to bring the window you are working in into view, rather than squeezing them all onto one screen. It is not a carousel: nothing turns or loops, and every page keeps its size. Only your view travels along the row.</p>
-<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
+<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. The current page need not sit in the middle: <code>_</code> and <code>+</code> rest it further left or right, or up and down in a column, so the pages on one side get more room, and <code>)</code> brings it back. Strip rests, under Options, does the same. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
 
 <h2 id="scroll" data-n="5">Scroll</h2>
 <p id="scroll-why">Pages are not always the best way to read. Many people read a long web page by keeping their line at one height and scrolling the text up to meet their eyes. The eyes barely move; the text comes to them.</p>
@@ -1626,7 +1627,8 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>v</code></td> <td>Pile, Flow or Strip <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
     <tr><td><code>V</code></td> <td>Next colours: Slate, Sepia, Paper, Gray</td> <td>Same</td></tr>
     <tr><td><code>t</code></td> <td>All pages as <b>t</b>humbnails</td> <td>Same</td></tr>
-    <tr><td><code>-</code> <code>=</code> <code>0</code></td> <td>Less, more spread; reset</td> <td>–</td></tr>
+    <tr><td><code>-</code> <code>=</code> <code>0</code></td> <td>Less, more spread, or in Strip a narrower, wider gap; reset</td> <td>–</td></tr>
+    <tr><td><code>_</code> <code>+</code> <code>)</code></td> <td>In Strip, rest the page further left, further right; back to the middle</td> <td>–</td></tr>
   </tbody>
 </table>
 <h3 id="keys-panels">Panels and screen</h3>
@@ -2328,7 +2330,7 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", zenExit: "off", libClick: "select", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", stripAt: 0, mapAt: "side", zenExit: "off", libClick: "select", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
   const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
@@ -2366,6 +2368,7 @@ window.bookReady = (async () => {
     for (const [k, list] of Object.entries(CHOICES)) if (!list.includes(s[k])) s[k] = DEFAULTS[k];
     delete s.listenStay;   // the old Follow-first switch; Stay is the default now
     for (const k of ["facing", "pagedSpread", "mapMark", "toc", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
+    s.stripAt = clamp(Math.round(Number(s.stripAt) / 5) * 5 || 0, -40, 40);
     delete s.notes;   // Topics are gone
     return s;
   }
@@ -2880,6 +2883,8 @@ window.bookReady = (async () => {
     const narrow = r.width < 700, facing = !!S.facing;
     // Strip: pages lie flat in a row (across) or a column (down), and a step slides it a page or a spread.
     const strip = S.arrange === "strip", down = strip && S.stripDir === "down";
+    // where Strip rests its current page: the middle, or off to one side by a share of the desk (_ + and ), or Options)
+    const restX = strip && !down ? (S.stripAt / 100) * r.width : 0, restY = down ? (S.stripAt / 100) * r.height : 0;
     const fitW = facing ? (r.width * (narrow ? 0.96 : strip ? 0.7 : 0.82)) / (2 * W) : (r.width * (narrow ? 0.8 : 0.56)) / W;
     // Expanded, the page (or spread) is as large as the desk allows: its full height, or its full width if that runs out first.
     const s = S.expand
@@ -2892,7 +2897,7 @@ window.bookReady = (async () => {
     // the All pages target is the space directly below the current page (or pair)
     const two = facing && center.length === 2, stageStyle = $("stage").style;
     stageStyle.setProperty("--strip-w", (two ? 2 * pw : pw) / 3 + "px");
-    stageStyle.setProperty("--strip-x", (two ? 0 : baseOf(first)) + "px");
+    stageStyle.setProperty("--strip-x", restX + (two ? 0 : baseOf(first)) + "px");
 
     // When the zoom changes (a new view or window size), first redraw every page where it already is at the new zoom,
     // so the move to its new place still animates.
@@ -2909,7 +2914,7 @@ window.bookReady = (async () => {
     const vs = pages.map((p, i) => {
       if (strip) {
         const d = unitOf(i) - unitOf(first), ad = Math.abs(d);
-        return { x: baseOf(i) + (down ? 0 : d * ((facing ? 2 : 1) * pw + gapX)), y: down ? d * (H * s + gapY) : 0, z: 0, ry: 0, rz: 0, f: 1,
+        return { x: restX + baseOf(i) + (down ? 0 : d * ((facing ? 2 : 1) * pw + gapX)), y: restY + (down ? d * (H * s + gapY) : 0), z: 0, ry: 0, rz: 0, f: 1,
           dim: ad ? Math.min(0.1 + 0.04 * ad, 0.3) : 0, k: ad, kk: Math.min(ad, VISIBLE + 1), far: ad > 3 };
       }
       let side = 0, k = 0, base = 0;
@@ -3382,6 +3387,7 @@ window.bookReady = (async () => {
       inp.value = String(S[inp.dataset.setting]);
       const v = S[inp.dataset.setting];
       inp.nextElementSibling.textContent = inp.dataset.setting === "rate" || inp.dataset.setting === "glide" ? +v.toFixed(2) + "×"
+        : inp.dataset.setting === "stripAt" ? stripAtText(v)
         : v + "%";
     });
   }
@@ -3429,7 +3435,7 @@ window.bookReady = (async () => {
     saveSettings();
     applySettings();
     if (!ready) return;
-    if (key === "pagedSpread" || key === "arrange" || key === "stripDir") return layoutPages(false);
+    if (key === "pagedSpread" || key === "arrange" || key === "stripDir" || key === "stripAt") return layoutPages(false);
     if (key === "listenCode") { allSentences = null; return; }   // Listen's queue is built again, with or without the code
     if (key === "highlighter") { applyHighlighter(); return; }
     if (key === "listenMode" || key === "mapMark" || key === "mapMarkOp" || key === "shadows" || key === "glide" || key === "theme" || key === "palette") return;
@@ -3504,6 +3510,7 @@ window.bookReady = (async () => {
   document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector(".dpick.open")) { openPick(null); e.stopImmediatePropagation(); } }, true);
 
   const coerce = (key, v) => (typeof DEFAULTS[key] === "number" ? Number(v) : v);
+  function stripAtText(v) { return v ? `${Math.abs(v)}% ${S.stripDir === "down" ? (v < 0 ? "up" : "down") : (v < 0 ? "left" : "right")}` : "in the middle"; }
   document.querySelectorAll(".seg[data-setting]").forEach(seg => {
     seg.addEventListener("click", e => {
       const b = e.target.closest("button[data-value]");
@@ -4975,7 +4982,16 @@ window.bookReady = (async () => {
       else { skipSentence(k === "]" ? 1 : -1); pageKey = { key: k, at: now }; }
       return;
     }
-    if (k === "-" || k === "=" || k === "+" || k === "0") {
+    // _ and + move where Strip rests its page, a step to the left or up and to the right or down; ) brings it back to the middle
+    if (k === "_" || k === "+" || k === ")") {
+      e.preventDefault();
+      if (S.view !== "paged" || S.arrange !== "strip") { toast("_ + and ) move the page in Strip", 1400); return; }
+      const v = k === ")" ? 0 : clamp(S.stripAt + (k === "_" ? -5 : 5), -40, 40);
+      setSetting("stripAt", v);
+      toast(`Strip rests ${stripAtText(v)}`, 1200);
+      return;
+    }
+    if (k === "-" || k === "=" || k === "0") {
       e.preventDefault();
       const v = k === "0" ? DEFAULTS.pagedSpread : clamp(S.pagedSpread + (k === "-" ? -5 : 5), 0, 100);
       setSetting("pagedSpread", v);
