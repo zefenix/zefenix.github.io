@@ -852,6 +852,7 @@ a.toc-item { text-decoration: none; }
 .lib-found .r-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-soft); font-weight: 500; }
 .lib-found .r-snip { font-size: 13.5px; line-height: 1.4; }
 .lib-found .f-more { margin: 4px 10px 0; font-size: 12px; color: var(--ink-soft); }
+.lib-found .f-all { font-size: 12.5px; }
 .lib-found .empty { margin: 0; font-size: 13px; color: var(--ink-soft); }
 @media (max-width: 700px) { .lib-found .f-row { grid-template-columns: 1fr; gap: 2px; } }
 /* The outline marks the chapters that hold the words found. */
@@ -1405,7 +1406,7 @@ a.toc-item { text-decoration: none; }
   </svg>
   <figcaption>Figure 4. Strip from the front. The pages lie flat in one row, a gap apart, and a step slides the row by one page.</figcaption>
 </figure>
-<p id="strip-history">It comes from PaperWM, a window manager for the GNOME desktop that sets windows side by side on an endless strip and scrolls the strip to bring the window you are working in into view, rather than squeezing them all onto one screen. It is not a carousel: nothing turns or loops, and every page keeps its size. Only your view travels along the row.</p>
+<p id="strip-history">It is inspired by PaperWM, a window manager for the GNOME desktop that sets windows side by side on an endless strip and scrolls the strip to bring the window you are working in into view, rather than squeezing them all onto one screen. It is not a carousel: nothing turns or loops, and every page keeps its size. Only your view travels along the row.</p>
 <p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
 
 <h2 id="scroll" data-n="5">Scroll</h2>
@@ -1592,7 +1593,8 @@ a.toc-item { text-decoration: none; }
 <p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, the default; Sepia; Paper, a soft cream; and Gray, after Firefox’s Reader View. On a phone its settings are grouped in tabs: All, Look &amp; Pages, Listen &amp; Scroll, and Panels.</p>
 
 <h2 id="keys" data-n="11">Keys</h2>
-<h3 id="keys-moving">Moving</h3>
+<p id="keys-intro">Press <code>?</code> anywhere for these keys on a page of their own, where you can find one by what it does, or, on a computer, set keys of your own. Where a key works differently in Scroll, the tables say how.</p>
+<h3 id="keys-moving">Turning pages</h3>
 <table id="keys-table">
   <thead><tr><th>Key</th> <th>In pages</th> <th>In Scroll</th></tr></thead>
   <tbody>
@@ -1603,10 +1605,22 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>d</code> <code>u</code></td> <td>A page <b>d</b>own, <b>u</b>p</td> <td>Half a screen <b>d</b>own, <b>u</b>p</td></tr>
     <tr><td>Space, Shift+Space</td> <td>Next, previous page</td> <td>A screen down, up; in scrolled pages, the next or previous page, centred</td></tr>
     <tr><td><code>J</code> <code>K</code></td> <td>Next, previous page, as Page Down and Page Up</td> <td>The same; in scrolled pages, the page centred</td></tr>
+  </tbody>
+</table>
+<h3 id="keys-jumping">Jumping</h3>
+<table id="keys-jump">
+  <thead><tr><th>Key</th> <th>In pages</th> <th>In Scroll</th></tr></thead>
+  <tbody>
     <tr><td><code>gg</code> <code>G</code></td> <td><b>G</b>o to the first, last page</td> <td><b>G</b>o to the top, bottom</td></tr>
-    <tr><td><code>gN</code> <code>gP</code></td> <td><b>G</b>o to the <b>n</b>ext, <b>p</b>revious part of a book in parts, at its first chapter</td> <td>Same</td></tr>
     <tr><td><code>gn</code> <code>gp</code></td> <td><b>G</b>o to the <b>n</b>ext chapter; to the start of this one, then the <b>p</b>revious; in a book in parts, opening the part it is in</td> <td>Same</td></tr>
+    <tr><td><code>gN</code> <code>gP</code></td> <td><b>G</b>o to the <b>n</b>ext, <b>p</b>revious part of a book in parts, at its first chapter</td> <td>Same</td></tr>
     <tr><td><code>r</code> <code>R</code></td> <td><b>R</b>eturn: back through your jumps one at a time, and <code>R</code> forward again; to Listen’s sentence or the highlight first, if you moved away from it</td> <td>Same</td></tr>
+  </tbody>
+</table>
+<h3 id="keys-views">Views</h3>
+<table id="keys-view">
+  <thead><tr><th>Key</th> <th>In pages</th> <th>In Scroll</th></tr></thead>
+  <tbody>
     <tr><td><code>s</code></td> <td><b>S</b>witch to <b>s</b>crolled pages</td> <td><b>S</b>witch back to pages</td></tr>
     <tr><td><code>f</code></td> <td><b>F</b>acing pages on, off; in All pages, spreads or single pages</td> <td>Open at facing pages</td></tr>
     <tr><td><code>v</code></td> <td>Pile, Flow or Strip <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
@@ -1615,12 +1629,12 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>-</code> <code>=</code> <code>0</code></td> <td>Less, more spread; reset</td> <td>–</td></tr>
   </tbody>
 </table>
-<h3 id="keys-panels">Panels and tools</h3>
+<h3 id="keys-panels">Panels and screen</h3>
 <table id="keys-tools">
   <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
   <tbody>
     <tr><td><code>c</code></td> <td>Peek at <b>c</b>ontents; again to put it away</td></tr>
-    <tr><td><code>cc</code></td> <td><b>C</b>ontents as chapters alone, or with their headings; in the Library, its outline the same way</td></tr>
+    <tr><td><code>cc</code></td> <td><b>C</b>ontents as chapters alone, or with their headings, also while <code>L</code> has the keys there; in the Library, its outline the same way</td></tr>
     <tr><td><code>C</code></td> <td><b>C</b>ontents sidebar on, off</td></tr>
     <tr><td><code>L</code></td> <td>Move the keys into Contents, or in the Library its outline: <code>j</code> <code>k</code> move, Enter goes there, <code>L</code> or Esc comes back</td></tr>
     <tr><td><code>B</code> <code>o</code></td> <td>The Library: the shelf, your own files and the bookmarklet; in it, <code>b</code> or <code>v</code> switches Shelf and List</td></tr>
@@ -1632,15 +1646,21 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>e</code></td> <td><b>E</b>xpand pages to fill the screen</td></tr>
     <tr><td><code>O</code></td> <td><b>O</b>ptions</td></tr>
     <tr><td><code>?</code></td> <td>These keys, on a page of their own</td></tr>
-    <tr><td><code>a</code></td> <td>Listen, stop <b>a</b>udio</td></tr>
-    <tr><td><code>H</code></td> <td><b>H</b>ighlighter on, off: click or tap a sentence, or a paragraph, to mark it, and it stays as you read; <code>q</code> <code>w</code> step it, <code>Q</code> <code>W</code> switch sentences and paragraphs, <code>r</code> goes back to it</td></tr>
+  </tbody>
+</table>
+<h3 id="keys-reading">Search, Listen and the highlighter</h3>
+<table id="keys-find">
+  <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
+  <tbody>
     <tr><td><code>/</code> Ctrl+f</td> <td>Search</td></tr>
     <tr><td><code>n</code> <code>N</code></td> <td><b>N</b>ext, previous match</td></tr>
     <tr><td>Enter</td> <td>In search, stay at the match; in the page box, go to the page</td></tr>
     <tr><td>Esc, Ctrl+[</td> <td>Close the last thing opened, a peek, search or a menu; then stop Listen; then clear highlights</td></tr>
+    <tr><td><code>a</code></td> <td>Listen, stop <b>a</b>udio</td></tr>
+    <tr><td><code>H</code></td> <td><b>H</b>ighlighter on, off: click or tap a sentence, or a paragraph, to mark it, and it stays as you read; <code>q</code> <code>w</code> step it, <code>Q</code> <code>W</code> switch sentences and paragraphs, <code>r</code> goes back to it</td></tr>
   </tbody>
 </table>
-<h3 id="keys-listening">Listening</h3>
+<h3 id="keys-listening">Stepping through the text</h3>
 <table id="keys-listen">
   <thead><tr><th>Key</th> <th>While Listen reads, or the highlighter is on</th></tr></thead>
   <tbody>
@@ -1803,7 +1823,7 @@ window.bookReady = (async () => {
     if (el.tagName === "H2") window.ownText.push({ title: el.textContent.trim(), id: el.id, text: "" });
     else if (window.ownText.length && !el.classList.contains("colophon")) window.ownText[window.ownText.length - 1].text += el.textContent + "\n\n";
   }
-  window.ownKeys = [...$("book").content.querySelectorAll("#keys-moving, #keys-table, #keys-panels, #keys-tools, #keys-listening, #keys-listen")].map(el => {
+  window.ownKeys = [...$("book").content.querySelectorAll("#keys-moving, #keys-table, #keys-jumping, #keys-jump, #keys-views, #keys-view, #keys-panels, #keys-tools, #keys-reading, #keys-find, #keys-listening, #keys-listen")].map(el => {
     const c = el.cloneNode(true);
     c.removeAttribute("id");
     return c;
@@ -4791,8 +4811,24 @@ window.bookReady = (async () => {
     tocPeeked = false;
     focusReader();
   }
+  let tocLastC = 0;
   function tocKey(e) {
     if (e.altKey || e.ctrlKey || e.metaKey) return false;
+    // cc shows or hides the headings, as it does outside, and Contents keeps the keys, on the same place or its chapter
+    if (e.key === "c") {
+      e.preventDefault();
+      const now = performance.now();
+      if (now - tocLastC < 300) {
+        tocLastC = 0;
+        const was = tocLinks()[tSel];
+        toggleOutline();
+        const links = tocLinks();
+        let i = links.indexOf(was);
+        if (i < 0 && was) i = links.findLastIndex(l => l.compareDocumentPosition(was) & Node.DOCUMENT_POSITION_FOLLOWING);
+        tocSelect(Math.max(0, i));
+      } else tocLastC = now;
+      return true;
+    }
     const step = { j: 1, ArrowDown: 1, k: -1, ArrowUp: -1 }[e.key];
     if (step) { e.preventDefault(); tocSelect(tSel + step); return true; }
     if (e.key === "g" || e.key === "G") { e.preventDefault(); tocSelect(e.key === "g" ? 0 : tocLinks().length - 1); return true; }
@@ -5579,7 +5615,7 @@ window.bookReady = (async () => {
   }
 
   // Find narrows the books to those whose names match, and below them lists the places in every book's text
-  // that hold the words, a few per book; the outline marks the chapters that hold them.
+  // that hold the words: the first few per book, and every one, up to FOUND_MAX, on asking; the outline marks the chapters that hold them.
   function filterShelf() {
     const q = libFind.value.trim().toLowerCase();
     booksEl.querySelectorAll(".lib-books .lib-book").forEach(b => {
@@ -5612,7 +5648,9 @@ window.bookReady = (async () => {
     return textCache.get(book.href);
   }
   const plainMd = t => t.replace(/data:image\/[^)\s"]+/g, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\]\([^)]*\)/g, "]").replace(/<[^>]+>/g, "").replace(/[*_`#>\[\]]/g, "").replace(/\s+/g, " ");
-  const hitHref = (book, u, q) => `${book.kind === "own" ? location.pathname + "?" : `?opened=${book.key}&`}${u.part > 1 ? `part=${u.part}&` : ""}find=${encodeURIComponent(q)}${u.id ? "#" + u.id : ""}`;
+  // k: which match within its chapter, so the reader opens at that one
+  const hitHref = (book, u, q, k) => `${book.kind === "own" ? location.pathname + "?" : `?opened=${book.key}&`}${u.part > 1 ? `part=${u.part}&` : ""}find=${encodeURIComponent(q)}${k ? `&at=${k}` : ""}${u.id ? "#" + u.id : ""}`;
+  const FOUND_FIRST = 12, FOUND_MAX = 500;
   let foundBy = new Map(), foundQ = "", foundRun = 0, foundTimer = 0;
   const foundRows = () => [...$("libFound").querySelectorAll(".f-row")];
   function findWords() { clearTimeout(foundTimer); foundTimer = setTimeout(runFound, 220); }
@@ -5629,10 +5667,11 @@ window.bookReady = (async () => {
       let count = 0;
       for (const u of units) {
         u.low ??= u.text.toLowerCase();
-        for (let at = u.low.indexOf(q); at >= 0; at = u.low.indexOf(q, at + q.length)) {
+        let k = 0;
+        for (let at = u.low.indexOf(q); at >= 0; at = u.low.indexOf(q, at + q.length), k++) {
           count++;
           chapters.set(u.title, (chapters.get(u.title) || 0) + 1);
-          if (hits.length < 5 && !hits.some(h => h.u === u)) hits.push({ u, at });
+          if (hits.length < FOUND_MAX) hits.push({ u, at, k });
         }
       }
       if (!count) continue;
@@ -5652,13 +5691,25 @@ window.bookReady = (async () => {
         if (row) { row.hidden = false; row.closest("section").hidden = false; select(libItems().indexOf(row), true); }
       });
       out.push(elt("div", { className: "f-book" }, name, elt("span", { className: "f-count" }, `${g.count} ${g.count === 1 ? "place" : "places"} in ${g.chapters.size} ${g.chapters.size === 1 ? "chapter" : "chapters"}`)));
-      out.push(elt("div", { className: "f-rows" }, ...g.hits.map(({ u, at }) => {
+      const row = ({ u, at, k }) => {
         const a = Math.max(0, at - 60), z = Math.min(u.text.length, at + q.length + 90);
         const m = elt("mark", {}, u.text.slice(at, at + q.length));
         const snip = elt("span", { className: "r-snip" }, (a ? "…" : "") + plainMd(u.text.slice(a, at)), m, plainMd(u.text.slice(at + q.length, z)) + (z < u.text.length ? "…" : ""));
-        return Object.assign(elt("a", { className: "f-row", href: hitHref(g.b, u, raw) }, elt("span", { className: "r-meta" }, u.title), snip), { _book: g.b });
-      })));
-      if (g.count > g.hits.length) out.push(elt("p", { className: "f-more" }, "Select the book to see every chapter that holds them."));
+        const where = g.chapters.get(u.title) > 1 ? `${u.title} · ${k + 1}` : u.title;
+        return Object.assign(elt("a", { className: "f-row", href: hitHref(g.b, u, raw, k) }, elt("span", { className: "r-meta" }, where), snip), { _book: g.b });
+      };
+      const rows = elt("div", { className: "f-rows" }, ...g.hits.slice(0, FOUND_FIRST).map(row));
+      out.push(rows);
+      if (g.hits.length > FOUND_FIRST) {
+        const more = elt("button", { type: "button", className: "reset f-all" }, `Show all ${g.hits.length < g.count ? g.hits.length + " of " : ""}${g.count} places`);
+        more.addEventListener("click", () => {
+          const first = rows.children.length;
+          rows.append(...g.hits.slice(FOUND_FIRST).map(row));
+          more.replaceWith(...(g.count > g.hits.length ? [elt("p", { className: "f-more" }, `The first ${FOUND_MAX} places; open the book and search it for the rest.`)] : []));
+          rows.children[first]?.focus();
+        });
+        out.push(elt("p", { className: "f-more" }, more));
+      }
     }
     sec.replaceChildren(...out);
     sec.hidden = false;
@@ -5958,9 +6009,10 @@ window.bookReady = (async () => {
   // the chip showing which match this is, at the first match in the chapter picked; n and N go on from there.
   build().then(() => {
     if (ready && S.highlighter !== "off") applyHighlighter();   // left on, it comes back on, at the place you are
-    const P = new URLSearchParams(location.search), find = P.get("find");
+    const P = new URLSearchParams(location.search), find = P.get("find"), nth = Math.max(0, parseInt(P.get("at"), 10) || 0);
     if (!find || !ready) return;
     P.delete("find");
+    P.delete("at");
     history.replaceState(history.state, "", `${location.pathname}${P.toString() ? "?" + P : ""}${location.hash}`);
     q.value = find;
     runSearch(find);
@@ -5968,7 +6020,7 @@ window.bookReady = (async () => {
     let id = "";
     try { id = decodeURIComponent(location.hash.slice(1)); } catch {}
     const b0 = id ? blockOfId(id) : -1, ri = b0 >= 0 ? results.findIndex(r => r.b >= b0) : 0;
-    showResult(jumps.length + Math.max(0, ri), false);
+    showResult(jumps.length + Math.min(results.length - 1, Math.max(0, ri) + nth), false);
     updateChip();
   });
 })();
