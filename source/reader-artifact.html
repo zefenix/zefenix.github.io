@@ -127,6 +127,7 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
 .tog svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; flex: none; }
 .tog[aria-pressed="true"] { color: var(--ink); border-color: var(--line); background: var(--surface); }
 .tog kbd { padding: 1px 4px; }
+.tog.icon span, .tog.icon kbd { display: none; }   /* the top bar's buttons are icons alone, their names in their labels and titles */
 .tog:disabled { opacity: .35; cursor: default; }
 
 .chip { display: inline-flex; align-items: center; height: 30px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); overflow: hidden; }
@@ -1053,9 +1054,9 @@ a.toc-item { text-decoration: none; }
       <button type="button" class="tog icon" id="zenBtn" aria-pressed="false" aria-label="Zen" title="Zen: hide the menus and panels (z)"><svg viewBox="0 0 16 16"><path d="M4 4h8L4 12h8" stroke-linejoin="round"/></svg></button>
     </div>
     <div class="find" id="ctlFind">
-      <button type="button" class="tog" id="searchBtn" aria-label="Search" aria-haspopup="dialog" aria-controls="searchBox"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span>Search</span><kbd>/</kbd></button>
+      <button type="button" class="tog icon" id="searchBtn" aria-label="Search" title="Search (/)" aria-haspopup="dialog" aria-controls="searchBox"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span>Search</span><kbd>/</kbd></button>
       <button type="button" class="tog icon" id="listenPrev" hidden aria-label="Previous sentence" title="Previous sentence ([)"><svg viewBox="0 0 16 16"><path d="M11 3.5 6 8l5 4.5M4.5 3.5v9"/></svg></button>
-      <button type="button" class="tog" id="listenBtn" aria-pressed="false" title="Read aloud (a)"><svg viewBox="0 0 16 16"><path d="M3 6.2h2.3L8.5 3.5v9L5.3 9.8H3z"/><path d="M10.6 5.6a3.2 3.2 0 0 1 0 4.8M12.4 3.9a5.6 5.6 0 0 1 0 8.2"/></svg><span id="listenLabel">Listen</span></button>
+      <button type="button" class="tog icon" id="listenBtn" aria-pressed="false" aria-label="Listen" title="Read aloud (a)"><svg viewBox="0 0 16 16"><path d="M3 6.2h2.3L8.5 3.5v9L5.3 9.8H3z"/><path d="M10.6 5.6a3.2 3.2 0 0 1 0 4.8M12.4 3.9a5.6 5.6 0 0 1 0 8.2"/></svg><span id="listenLabel">Listen</span></button>
       <button type="button" class="tog icon" id="listenNext" hidden aria-label="Next sentence" title="Next sentence (])"><svg viewBox="0 0 16 16"><path d="M5 3.5 10 8l-5 4.5M11.5 3.5v9"/></svg></button>
       <button type="button" class="tog icon listen-back" id="listenBack" aria-label="Back to Listen's place" title="Back to Listen's place (r)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.4"/></svg></button>
       <span class="screen-tools">
@@ -1070,7 +1071,7 @@ a.toc-item { text-decoration: none; }
       </div>
     </div>
     <div class="ctl" id="ctlMap">
-      <button type="button" class="tog" id="mapBtn" aria-label="Minimap" aria-pressed="true" aria-controls="mapPanel"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M10 3v10"/></svg><span>Minimap</span></button>
+      <button type="button" class="tog icon" id="mapBtn" aria-label="Minimap" title="Minimap (m)" aria-pressed="true" aria-controls="mapPanel"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M10 3v10"/></svg><span>Minimap</span></button>
     </div>
   </div>
 
@@ -4456,6 +4457,7 @@ window.bookReady = (async () => {
   function setListenUI(on) {
     listenBtn.setAttribute("aria-pressed", String(on));
     $("listenLabel").textContent = on ? "Stop" : "Listen";
+    $("listenBtn").setAttribute("aria-label", on ? "Stop listening" : "Listen");
     $("listenPrev").hidden = $("listenNext").hidden = !on;
     $("app").classList.toggle("listening", on);
   }
