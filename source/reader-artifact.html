@@ -854,6 +854,8 @@ a.toc-item { text-decoration: none; }
 .keyhelp td { padding: 6px 10px; vertical-align: top; border-bottom: 1px solid var(--hair); line-height: 1.4; }
 .keyhelp td:first-child { white-space: nowrap; width: 11em; }
 .kh-tools { display: flex; gap: 8px; }
+#khFind { width: 100%; box-sizing: border-box; margin: 4px 0 6px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: 13.5px; color: var(--ink); }
+.keyhelp tr.kh-miss, .keyhelp .kh-empty { display: none; }
 .kh-note { margin: 0 0 6px; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
 .keyhelp.editing code[data-d] { cursor: pointer; outline: 1px dashed color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
 .keyhelp.editing code[data-d]:focus-visible { outline: 2px solid var(--accent); }
@@ -1235,6 +1237,7 @@ a.toc-item { text-decoration: none; }
       <header class="lib-head"><h2>Keys</h2>
         <span class="kh-tools fine-only"><button type="button" class="reset" id="khReset" hidden>Reset keys</button><button type="button" class="reset" id="khEdit" aria-pressed="false">Change keys</button></span>
         <button type="button" class="tog icon" id="khClose" aria-label="Close the keys" title="Close (? or Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></header>
+      <input id="khFind" type="search" placeholder="Find a key or what it does (/)" autocomplete="off" spellcheck="false" aria-label="Find a key">
       <p class="kh-note" id="khNote" hidden>Click a key, then press the new one. A key in use swaps. Esc cancels.</p>
       <div class="kh-body" id="khBody"></div>
       <h3>In the Library</h3>
@@ -2307,7 +2310,7 @@ window.bookReady = (async () => {
     set(k, v) { try { localStorage.setItem("piled4:" + k, JSON.stringify(v)); } catch {} }
   };
   // the reading highlight (R): on or off, which sentence, and a short hold while it moves the page itself
-  let tracing = false, ti = 0, traceFollow = 0, traceTimer = 0;
+  let tracing = false, ti = 0, traceFollow = 0, traceTimer = 0, traceTarget = null;
   // the sidebars as Zen found them, and which of them you changed while in it (see setTucked)
   let zenPanels = null, zenSetting = false;
   const zenTouched = new Set();
@@ -4053,7 +4056,7 @@ window.bookReady = (async () => {
     const cover = el.classList.contains("cover");
     if (cover) parts = [...el.querySelectorAll("h1, .sub")];
     else if (el.tagName === "FIGURE") parts = [...el.querySelectorAll("figcaption")];
-    else if (el.tagName === "TABLE") parts = [...el.rows];
+    else if (el.tagName === "TABLE") parts = [...el.rows].filter(r => r.parentElement.tagName !== "THEAD" && ![...r.cells].every(c => c.tagName === "TH"));   // the rows, not the heading row
     else if (el.tagName === "UL" || el.tagName === "OL" || el.classList.contains("colophon")) parts = [...el.children];   // the colophon's lines are read apart
     else return [[0, am.text.length, null]];
     let cur = 0;
@@ -4373,16 +4376,38 @@ window.bookReady = (async () => {
     if (hasHL) CSS.highlights.set("trace", new Highlight(...ranges));
     anchor = { b: it.b, f: it.s / Math.max(1, it.am.text.length) };
     if (!steer) return;
-    traceFollow = performance.now() + 800;
-    if (textScroll()) { const r = ranges[0].getBoundingClientRect(); scrollText(scroller.scrollTop + r.top + r.height / 2 - traceLineY(), true); }
-    else if (linear() && pg) { const r = pg.range.getBoundingClientRect(); desk.scrollTo({ top: desk.scrollTop + r.top + r.height / 2 - traceLineY(), behavior: "smooth" }); }
-    else if (pg) { const p = centerPages().includes(pg.endPage) ? pg.endPage : pg.startPage; if (p >= 0 && !centerPages().includes(p)) goPage(p); }
+    // Where the step's own scroll will end. Scrolling counts as yours only when it comes to rest somewhere else,
+    // however long the browser takes to glide there.
+    const aim = (el, r, go) => {
+      const top = clamp(el.scrollTop + r.top + r.height / 2 - traceLineY(), 0, el.scrollHeight - el.clientHeight);
+      traceTarget = { el, top };
+      const from = el.scrollTop;
+      go(top);
+      // a browser that doesn't glide (some won't, or the reader asked for less motion) gets there at once
+      setTimeout(() => { if (traceTarget && traceTarget.el === el && traceTarget.top === top && el.scrollTop === from && Math.abs(from - top) > 4) el.scrollTo({ top, behavior: "auto" }); }, 300);
+    };
+    if (textScroll()) aim(scroller, ranges[0].getBoundingClientRect(), top => scrollText(top, true));
+    else if (linear() && pg) aim(desk, firstRun(pg.range), top => desk.scrollTo({ top, behavior: "smooth" }));
+    else if (pg) { traceFollow = performance.now() + 800; const p = centerPages().includes(pg.endPage) ? pg.endPage : pg.startPage; if (p >= 0 && !centerPages().includes(p)) goPage(p); }
+  }
+  // A sentence that runs on over a page break is placed by its part on the first page, not by both and the gap between.
+  function firstRun(range) {
+    const rects = [...range.getClientRects()].filter(r => r.width && r.height);
+    if (!rects.length) return range.getBoundingClientRect();
+    let top = rects[0].top, bottom = rects[0].bottom;
+    for (const r of rects.slice(1)) { if (r.top - bottom > 40) break; top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); }
+    return { top, height: bottom - top };
   }
   function traceFollowView() {
     if (!tracing || performance.now() < traceFollow) return;
     clearTimeout(traceTimer);
     traceTimer = setTimeout(() => {
       if (!tracing || performance.now() < traceFollow) return;
+      // still on its way, or come to rest where the step sent it: the reader's own scroll, not yours
+      if (traceTarget) {
+        if (Math.abs(traceTarget.el.scrollTop - traceTarget.top) <= 4) return;
+      }
+      traceTarget = null;
       let a = null;
       if (textScroll()) a = anchorAtY(scroller.scrollTop - article.offsetTop + traceLineY() - scroller.getBoundingClientRect().top);
       else if (linear()) { const pr = pages[curPage] && pages[curPage].getBoundingClientRect(); if (pr) a = anchorAtPoint(pr.left + pr.width / 2, traceLineY()); }
@@ -4726,7 +4751,20 @@ window.bookReady = (async () => {
     const typing = !!(t.closest && t.closest("input, textarea, select")) && t.offsetParent !== null;   // a hidden search box doesn't count
     // In the Library, / and Ctrl+F find a book or words in this one; b and Esc close it; other keys wait.
     if (!$("keyHelp").hidden) {
-      if (e.key === "?" || isEsc(e)) { e.preventDefault(); showKeys(false); }
+      // the keys page: j k and the arrows scroll, d u by half a page, g G to the ends, / finds, q ? or Esc closes;
+      // in its find box Esc clears, then leaves the box
+      const kf = $("khFind");
+      if (typing && t === kf) {
+        if (isEsc(e)) { e.preventDefault(); if (kf.value) { kf.value = ""; filterKeys(); } else kf.blur(); }
+        else if (e.key === "Enter" || e.key === "ArrowDown") { e.preventDefault(); kf.blur(); }
+        return;
+      }
+      if (typing) return;
+      if (e.key === "?" || e.key === "q" || isEsc(e)) { e.preventDefault(); showKeys(false); return; }
+      if (e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f")) { e.preventDefault(); kf.focus(); kf.select(); return; }
+      const by = { j: 60, ArrowDown: 60, k: -60, ArrowUp: -60, d: keyHelp.clientHeight / 2, u: -keyHelp.clientHeight / 2, " ": keyHelp.clientHeight * 0.85 }[e.key];
+      if (by && !e.ctrlKey && !e.metaKey) { e.preventDefault(); keyHelp.scrollBy({ top: e.shiftKey && e.key === " " ? -by : by }); return; }
+      if (e.key === "g" || e.key === "G" || e.key === "Home" || e.key === "End") { e.preventDefault(); keyHelp.scrollTo({ top: e.key === "g" || e.key === "Home" ? 0 : keyHelp.scrollHeight }); }
       return;
     }
     if (e.key === "?" && !typing && booksEl.hidden) { e.preventDefault(); showKeys(true); return; }
@@ -4782,7 +4820,7 @@ window.bookReady = (async () => {
     if ((k === "Q" || k === "W") && (reading || tracing)) { e.preventDefault(); skipParagraph(k === "W" ? 1 : -1); return; }
     // [ and ] step a sentence back and on; pressed twice quickly, [[ and ]] go a page back and on.
     if ((k === "[" || k === "]") && (reading || tracing)) {
-      const now = performance.now();
+      const now = e.timeStamp;   // timed from the key presses, as g's pairs are
       e.preventDefault();
       if (armedPageKey && armedPageKey.key === k && now - armedPageKey.at <= 500) skipPage(k === "]" ? 1 : -1);
       else { skipSentence(k === "]" ? 1 : -1); pageKey = { key: k, at: now }; }
@@ -5584,6 +5622,7 @@ window.bookReady = (async () => {
   function showKeys(on) {
     if (on && !$("khBody").children.length) { $("khBody").replaceChildren(...(window.ownKeys || []).map(el => el.cloneNode(true))); markKeys(); }
     if (!on) { endCapture(); setEditing(false); }
+    if (on) { $("khFind").value = ""; filterKeys(); keyHelp.scrollTop = 0; }
     if (on) { keysFrom = document.activeElement; setOptions(false); }
     keyHelp.hidden = !on;
     if (on) $("khClose").focus({ preventScroll: true });
@@ -5591,6 +5630,18 @@ window.bookReady = (async () => {
     else focusReader();
   }
   $("khClose").addEventListener("click", () => showKeys(false));
+  // Find on the keys page: rows whose key or words hold what is typed; a table with none, and its heading, step aside.
+  function filterKeys() {
+    const q = $("khFind").value.trim().toLowerCase();
+    keyHelp.querySelectorAll("table").forEach(tb => {
+      let any = false;
+      tb.querySelectorAll("tbody tr").forEach(tr => { const hit = !q || tr.textContent.toLowerCase().includes(q); tr.classList.toggle("kh-miss", !hit); any = any || hit; });
+      tb.classList.toggle("kh-empty", !any);
+      const h = tb.previousElementSibling;
+      if (h && h.tagName === "H3") h.classList.toggle("kh-empty", !any);
+    });
+  }
+  $("khFind").addEventListener("input", filterKeys);
 
   // Keys you set. A key you choose stands in for the one it replaces, everywhere and in sequences such as gg; a key
   // already in use swaps places, and a key given away does nothing. The reader's own handlers never change: a key
