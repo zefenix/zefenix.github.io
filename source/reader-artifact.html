@@ -830,6 +830,12 @@ a.toc-item { text-decoration: none; }
 .keyhelp th { padding: 6px 10px; text-align: left; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
 .keyhelp td { padding: 6px 10px; vertical-align: top; border-bottom: 1px solid var(--hair); line-height: 1.4; }
 .keyhelp td:first-child { white-space: nowrap; width: 11em; }
+.kh-tools { display: flex; gap: 8px; }
+.kh-note { margin: 0 0 6px; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
+.keyhelp.editing code[data-d] { cursor: pointer; outline: 1px dashed color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
+.keyhelp.editing code[data-d]:focus-visible { outline: 2px solid var(--accent); }
+.keyhelp code.changed { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.keyhelp code.capturing { background: var(--accent); border-color: var(--accent); color: var(--surface); }
 .keyhelp code { padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); font: 12.5px var(--f-mono); }
 .lib-card.flash { outline: 2px solid var(--accent); outline-offset: 2px; }
 .link-row { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1198,7 +1204,10 @@ a.toc-item { text-decoration: none; }
 
   <div class="keyhelp" id="keyHelp" role="dialog" aria-label="Keys" hidden>
     <div class="kh-inner">
-      <header class="lib-head"><h2>Keys</h2><button type="button" class="tog icon" id="khClose" aria-label="Close the keys" title="Close (? or Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></header>
+      <header class="lib-head"><h2>Keys</h2>
+        <span class="kh-tools fine-only"><button type="button" class="reset" id="khReset" hidden>Reset keys</button><button type="button" class="reset" id="khEdit" aria-pressed="false">Change keys</button></span>
+        <button type="button" class="tog icon" id="khClose" aria-label="Close the keys" title="Close (? or Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></header>
+      <p class="kh-note" id="khNote" hidden>Click a key, then press the new one. A key in use swaps. Esc cancels.</p>
       <div class="kh-body" id="khBody"></div>
       <h3>In the Library</h3>
       <table class="kh-lib"><thead><tr><th>Key</th> <th>What it does</th></tr></thead><tbody>
@@ -5364,7 +5373,8 @@ window.bookReady = (async () => {
   const keyHelp = $("keyHelp");
   let keysFrom = null;
   function showKeys(on) {
-    if (on && !$("khBody").children.length) $("khBody").replaceChildren(...(window.ownKeys || []).map(el => el.cloneNode(true)));
+    if (on && !$("khBody").children.length) { $("khBody").replaceChildren(...(window.ownKeys || []).map(el => el.cloneNode(true))); markKeys(); }
+    if (!on) { endCapture(); setEditing(false); }
     if (on) { keysFrom = document.activeElement; setOptions(false); }
     keyHelp.hidden = !on;
     if (on) $("khClose").focus({ preventScroll: true });
@@ -5372,6 +5382,103 @@ window.bookReady = (async () => {
     else focusReader();
   }
   $("khClose").addEventListener("click", () => showKeys(false));
+
+  // Keys you set. A key you choose stands in for the one it replaces, everywhere and in sequences such as gg; a key
+  // already in use swaps places, and a key given away does nothing. The reader's own handlers never change: a key
+  // pressed is read as the one it stands for before they see it.
+  const keyOf = c => { const t = c.textContent.trim(); return t.length === 1 ? t : t.length === 2 && t[0] === t[1] ? t[0] : null; };
+  const codeKeys = root => [...root.querySelectorAll("code")].map(keyOf).filter(Boolean);
+  const keyDefaults = [...new Set([...(window.ownKeys || []).flatMap(codeKeys), ...codeKeys(keyHelp)])];
+  let chosen = store.get("keys", {}), pressMap = {}, capturing = null;
+  if (!chosen || typeof chosen !== "object") chosen = {};
+  const effKey = d => chosen[d] ?? d;
+  function rebuildPress() {
+    const all = [...new Set([...keyDefaults, ...Object.keys(chosen)])];
+    pressMap = {};
+    for (const d of all) if (effKey(d) !== d) pressMap[effKey(d)] = d;
+    for (const d of all) if (effKey(d) !== d && !all.some(x => effKey(x) === d)) pressMap[d] ??= "Unidentified";
+  }
+  rebuildPress();
+  function markKeys() {
+    keyHelp.querySelectorAll("table code").forEach(c => {
+      if (c.dataset.d) return;
+      const d = keyOf(c);
+      if (!d) return;
+      c.dataset.d = d;
+      c.dataset.twice = c.textContent.trim().length === 2 ? "1" : "";
+    });
+    paintKeys();
+  }
+  function paintKeys() {
+    keyHelp.querySelectorAll("code[data-d]").forEach(c => {
+      const d = c.dataset.d, k = effKey(d);
+      if (c === (capturing && capturing.code)) return;
+      c.textContent = c.dataset.twice ? k + k : k;
+      c.classList.toggle("changed", k !== d);
+      c.title = k !== d ? `Set by you; was ${c.dataset.twice ? d + d : d}` : "";
+      c.tabIndex = keyHelp.classList.contains("editing") ? 0 : -1;
+    });
+    $("khReset").hidden = !Object.keys(chosen).length;
+  }
+  function setEditing(on) {
+    keyHelp.classList.toggle("editing", on);
+    $("khEdit").setAttribute("aria-pressed", String(on));
+    $("khEdit").textContent = on ? "Done" : "Change keys";
+    $("khNote").hidden = !on;
+    paintKeys();
+  }
+  function startCapture(c) {
+    endCapture();
+    capturing = { code: c };
+    c.classList.add("capturing");
+    c.textContent = "press a key";
+  }
+  function endCapture() {
+    if (!capturing) return;
+    capturing.code.classList.remove("capturing");
+    capturing = null;
+    paintKeys();
+  }
+  function assign(d, n) {
+    const all = [...new Set([...keyDefaults, ...Object.keys(chosen)])];
+    const old = effKey(d), other = all.find(x => x !== d && effKey(x) === n);
+    if (n === old) return;
+    if (other) chosen[other] = old;
+    chosen[d] = n;
+    for (const k of Object.keys(chosen)) if (chosen[k] === k) delete chosen[k];
+    store.set("keys", chosen);
+    rebuildPress();
+    toast(other ? `${n} now does this, and ${old} does what ${n} did.` : `${n} now does this.`, 2400);
+  }
+  $("khEdit").addEventListener("click", () => setEditing(!keyHelp.classList.contains("editing")));
+  $("khReset").addEventListener("click", () => { chosen = {}; store.set("keys", chosen); rebuildPress(); endCapture(); paintKeys(); toast("Keys are back to how they came.", 1600); });
+  keyHelp.addEventListener("click", e => {
+    const c = e.target.closest("code[data-d]");
+    if (c && keyHelp.classList.contains("editing")) startCapture(c);
+  });
+  window.addEventListener("keydown", e => {
+    if (capturing) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (e.key === "Escape") { endCapture(); return; }
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === " ") { toast("Choose a letter, number or symbol.", 1600); return; }
+      const c = capturing.code;
+      assign(c.dataset.d, e.key);
+      endCapture();
+      c.focus({ preventScroll: true });
+      return;
+    }
+    if (!keyHelp.hidden && keyHelp.classList.contains("editing") && e.key === "Enter" && e.target.matches && e.target.matches("code[data-d]")) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      startCapture(e.target);
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey || !keyHelp.hidden) return;
+    if (e.target.closest && e.target.closest("input, textarea, select")) return;
+    const to = pressMap[e.key];
+    if (to !== undefined) Object.defineProperty(e, "key", { value: to });
+  }, true);
   $("keysFromOpts").addEventListener("click", () => showKeys(true));
   $("nameBtn").addEventListener("click", toggleBooks);
 
