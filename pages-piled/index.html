@@ -4564,7 +4564,7 @@ window.bookReady = (async () => {
     if (isEsc(e)) {
       escAt = performance.now();
       if (e.key === "[") e.preventDefault();
-      if (!booksEl.hidden) libEsc();
+      if (!booksEl.hidden) { e.preventDefault(); libEsc(); }   // not the search box's own clearing: Esc there is a step of its own
       else if (tocNav) enterToc(false);
       else if (!opts.hidden) { setOptions(false); if (focusMode) focusReader(); else optsBtn.focus(); }
       else if (!searchBox.hidden) closeSearch(false);
@@ -5362,12 +5362,15 @@ window.bookReady = (async () => {
     }
     if (e.key === "B" || e.key === "o") { e.preventDefault(); setBooks(false); focusReader(); }
   }
-  // Esc: first a pending Remove all, then the selection, then the Library itself.
+  // Esc steps back: a pending Remove all, the outline, then from the words found or a book to the find box,
+  // then clears the find, then leaves the box, then closes the Library.
   function libEsc() {
     if (askingClear) { askClear(false); return; }
-    if (foundRows().includes(document.activeElement)) { libFind.focus(); return; }
     if (inOutline || outlineEl.classList.contains("sheet")) { enterOutline(false); openSheet(false); return; }
-    if (selected) { select(-1); return; }
+    if (foundRows().includes(document.activeElement)) { libFind.focus(); return; }
+    if (selected) { select(-1); if (libFind.value) libFind.focus(); return; }
+    if (libFind.value) { libFind.value = ""; filterShelf(); clearTimeout(foundTimer); runFound(); libFind.focus(); return; }
+    if (document.activeElement === libFind) { libFind.blur(); return; }
     setBooks(false);
     focusReader();
   }
