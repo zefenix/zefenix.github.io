@@ -192,8 +192,21 @@ a.toc-item { text-decoration: none; }
 /* the full outline: every chapter's sections under it, numbered, with their pages */
 .toc-outline { display: none; list-style: none; margin: 0 0 6px; padding: 0 0 0 30px; }
 .toc-panel.with-outline .toc-outline { display: block; }
+/* Finding in the outline: a box at its top narrows Contents, or the Library's outline, to the chapters and headings
+   whose names hold the words, each heading under its chapter; the rest step aside until the box is cleared. */
+.o-find { flex: none; display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.o-find input { flex: 1; min-width: 0; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); font: inherit; font-size: 13px; color: var(--ink); }
+.o-find input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.o-count { flex: none; font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.o-findbtn { margin-right: auto; padding: 3px 6px; border: 0; border-radius: 5px; background: none; font: inherit; font-size: 11.5px; color: var(--ink-soft); cursor: pointer; }
+.o-findbtn:hover, .o-findbtn[aria-pressed="true"] { color: var(--ink); }
+.toc-panel.filtering .toc-outline { display: block; }
+.toc-panel.filtering .toc-group, #tocList li.f-out, .lib-outline.filtering .grp, .lib-outline li.f-out { display: none; }
+.lib-outline.filtering.chapters-only li.sub:not(.f-out) { display: list-item; }
+.lib-outline .o-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.lib-outline .o-findbtn { margin: 0; }
 /* at the foot of Contents, a quiet switch: chapters alone, or with their headings */
-.toc-foot { flex: none; display: flex; justify-content: flex-end; padding: 3px 4px max(5px, env(safe-area-inset-bottom, 0px)); }
+.toc-foot { flex: none; display: flex; justify-content: flex-end; align-items: center; padding: 3px 4px max(5px, env(safe-area-inset-bottom, 0px)); }
 .toc-heads { display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px; border: 0; border-radius: 5px; background: none; font: inherit; font-size: 11.5px; color: var(--ink-soft); cursor: pointer; }
 .toc-heads::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.2px solid currentColor; box-sizing: border-box; }
 .toc-heads[aria-pressed="true"] { color: var(--ink); }
@@ -1062,8 +1075,9 @@ a.toc-item { text-decoration: none; }
   <div class="body">
 
     <aside class="panel toc-panel" id="tocPanel" aria-label="Contents">
+      <div class="o-find" id="tocFindBox" hidden><input id="tocFind" type="search" placeholder="Find a chapter or heading" autocomplete="off" spellcheck="false" aria-label="Find a chapter or heading"><span class="o-count" id="tocFindN" aria-live="polite"></span></div>
       <div class="toc-pane" id="tocPane"><ol class="toc-list" id="tocList"></ol></div>
-      <div class="toc-foot"><button type="button" class="toc-heads" id="outlineBtn" aria-pressed="false" title="Show the headings under each chapter (cc)">Headings</button></div>
+      <div class="toc-foot"><button type="button" class="o-findbtn" id="tocFindBtn" aria-pressed="false" title="Find a chapter or heading (L, then /)">Find</button><button type="button" class="toc-heads" id="outlineBtn" aria-pressed="false" title="Show the headings under each chapter (cc)">Headings</button></div>
     </aside>
 
     <main class="stage" id="stage">
@@ -1301,13 +1315,15 @@ a.toc-item { text-decoration: none; }
     <li><a href="#strip"><span class="n">4</span><span class="t">Strip</span></a></li>
     <li><a href="#scroll"><span class="n">5</span><span class="t">Scroll</span></a></li>
     <li><a href="#thumbs"><span class="n">6</span><span class="t">Thumbnails</span></a></li>
-    <li><a href="#find"><span class="n">7</span><span class="t">Search</span></a></li>
-    <li><a href="#place"><span class="n">8</span><span class="t">Keeping your place</span></a></li>
-    <li><a href="#listen"><span class="n">9</span><span class="t">Listening</span></a></li>
-    <li><a href="#screen"><span class="n">10</span><span class="t">The screen</span></a></li>
-    <li><a href="#keys"><span class="n">11</span><span class="t">Keys</span></a></li>
-    <li><a href="#built"><span class="n">12</span><span class="t">How it is built</span></a></li>
-    <li><a href="#open"><span class="n">13</span><span class="t">Open questions</span></a></li>
+    <li><a href="#outline"><span class="n">7</span><span class="t">Contents and the outline</span></a></li>
+    <li><a href="#minimap"><span class="n">8</span><span class="t">The minimap</span></a></li>
+    <li><a href="#find"><span class="n">9</span><span class="t">Search</span></a></li>
+    <li><a href="#place"><span class="n">10</span><span class="t">Keeping your place</span></a></li>
+    <li><a href="#listen"><span class="n">11</span><span class="t">Listening</span></a></li>
+    <li><a href="#screen"><span class="n">12</span><span class="t">The screen</span></a></li>
+    <li><a href="#keys"><span class="n">13</span><span class="t">Keys</span></a></li>
+    <li><a href="#built"><span class="n">14</span><span class="t">How it is built</span></a></li>
+    <li><a href="#open"><span class="n">15</span><span class="t">Open questions</span></a></li>
   </ol>
   <p class="note">paged.js filled in these page numbers after laying out the book. Click a line to go there, or press <code>l</code> or → to turn the page.</p>
 </section>
@@ -1430,7 +1446,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="gliding">Gliding</h3>
 <p id="scroll-glide">The glide comes from Surfingkeys, the browser extension for vim-style keys. A press doesn’t jump: the text travels its distance at a steady speed, in about a tenth of a second for <code>j</code> and only a little longer for <code>d</code>, so your eye can stay on the line it was reading. Hold the key and the text keeps gliding at that same speed, smooth rather than stuttering with the keyboard’s repeat, and it stops the moment you let go. Press again mid-glide and it simply goes further. Glide speed under Options makes all of it quicker or slower.</p>
 <h3 id="placed">What it gives up</h3>
-<p id="scroll-cost">What Scroll gives up is the book as an object. In Flow and Pile the piles and the page slider show how much lies behind and ahead, like a book’s thickness in your hands. A scrolled column has no visible beginning or end, so there the contents, the minimap and the percentage beside the arrows keep you placed, along with the ways of keeping your place in chapter 8.</p>
+<p id="scroll-cost">What Scroll gives up is the book as an object. In Flow and Pile the piles and the page slider show how much lies behind and ahead, like a book’s thickness in your hands. A scrolled column has no visible beginning or end, so there the contents, the minimap and the percentage beside the arrows keep you placed, along with the ways of keeping your place in chapter 10.</p>
 
 <h2 id="thumbs" data-n="6">Thumbnails</h2>
 <p id="thumbs-why">Press <code>t</code>, click All pages in the top bar, or click just below the middle of the current page, and every page appears at once: where chapters start, which pages carry figures, how long each part runs. It is the quickest way to jump a long distance. Pick a page with the mouse, or with <code>h</code> <code>j</code> <code>k</code> <code>l</code> and Enter, and it opens in the view you came from. Click empty space or press Esc to go back.</p>
@@ -1477,7 +1493,19 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 6. All pages: the whole book at once, the current page outlined, each chapter opening easy to spot.</figcaption>
 </figure>
 
-<h2 id="find" data-n="7">Search</h2>
+<h2 id="outline" data-n="7">Contents and the outline</h2>
+<p id="outline-what">Contents, the panel on the left, lists the chapters with the page each starts on. Turn on Headings at its foot, or press <code>cc</code>, and each chapter’s headings appear under it, numbered as the book numbers them: that fuller list is the outline. A rail runs down the chapter you are in, and the heading you are reading is tinted, along with every other heading on the pages in view.</p>
+<p id="outline-keys"><code>c</code> peeks at Contents and <code>c</code> again puts it away; <code>C</code> keeps it open or closes it. <code>L</code> moves the keys into it: <code>j</code> and <code>k</code> step through the chapters and headings, <code>g</code> and <code>G</code> go to the first and the last, Enter goes there, and <code>L</code> or Esc gives the keys back to the page.</p>
+<p id="outline-find">To find a heading by name, press <code>/</code> while <code>L</code> has the keys, or tap Find at the foot of Contents. As you type, the outline narrows to the chapters and headings whose names hold your words, each heading under its chapter; ↓ or Enter steps into them. Esc clears the words, and Esc again closes the box. It looks only at names: Search, in chapter 9, looks through the text.</p>
+<p id="outline-library">The Library keeps an outline too, of the book selected, beside its books. The same keys work there, <code>/</code> finds a chapter in it, and while the Library’s find is in use it counts the places found in each chapter.</p>
+<p id="outline-parts">A book that loads in parts lists every chapter in Contents. Those in parts not yet loaded sit back at half strength, and opening one loads its part.</p>
+
+<h2 id="minimap" data-n="8">The minimap</h2>
+<p id="map-what">The minimap, on the right, draws the whole book small. In the page views it is a column of little pages; in plain text it is the text itself, shrunk to one narrow column, so headings, code and paragraphs keep their shapes. A box on it marks what is on the screen, and a faint percentage in the box says how far through the book you are.</p>
+<p id="map-move">Click or drag along it to move. Search matches show as small marks at its edge, so you can see where in the book they gather.</p>
+<p id="map-options"><code>m</code> shows or hides it. <code>M</code> moves it from the side to a strip across the top, beside Contents, where it runs from left to right and sits in the middle when the book is short. Under Options, Minimap mark sets how strong the percentage is, or hides it.</p>
+
+<h2 id="find" data-n="9">Search</h2>
 <p id="find-list">Press <code>/</code> or Ctrl+f. Matches are listed with a line of context, their chapter and page. The arrow keys preview each one in the text; Enter stays there and Esc goes back. Every match is highlighted, marked on the minimap and flagged on the page slider. <code>n</code> and <code>N</code> step through them, and Esc again or <code>:noh</code> clears them. Try <code>/</code> now and type <code>flow</code>, or <code>c4.2</code> for chapter 4’s second page.</p>
 <h3 id="find-typing">What to type</h3>
 <table id="find-syntax">
@@ -1498,7 +1526,7 @@ a.toc-item { text-decoration: none; }
 </table>
 
 
-<h2 id="place" data-n="8">Keeping your place</h2>
+<h2 id="place" data-n="10">Keeping your place</h2>
 <p id="place-why">A screen gives you no thumb to hold a page and no finger to run along a line. Three things stand in for them here: a highlighter that marks where you are reading, a way back from every jump, and a book that remembers where you stopped. Listening, the next chapter, follows along for you.</p>
 <h3 id="highlighter">The highlighter</h3>
 <p id="place-mark">Press <code>H</code>, or turn on Highlighter under Options on a phone, then click or tap a sentence. It stays marked as you read on, turn pages or scroll, until you mark another. <code>q</code> and <code>w</code> move the mark back and forward a sentence at a time, and <code>Q</code> and <code>W</code> switch it between sentences and whole paragraphs. In Strip, a click on a page beside marks it where it lies, without sliding the row.</p>
@@ -1508,12 +1536,12 @@ a.toc-item { text-decoration: none; }
 <h3 id="left-off">Where you left off</h3>
 <p id="place-saved">Each book keeps its place in your browser, so opening it again, after closing the tab or the next day, brings you back to the page you left. The place stays on your device; nothing is sent anywhere.</p>
 
-<h2 id="listen" data-n="9">Listening</h2>
+<h2 id="listen" data-n="11">Listening</h2>
 <p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>[</code> and <code>]</code>, or <code>q</code> and <code>w</code>, step by sentence, and <code>Q</code> and <code>W</code> by paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
 <p id="listen-stay">You can read elsewhere while Listen carries on: the page stays where you scroll, and <code>r</code> brings you back to the sentence being read. Options can make the page follow Listen instead.</p>
 <p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
 
-<h2 id="screen" data-n="10">The screen</h2>
+<h2 id="screen" data-n="12">The screen</h2>
 <h3 id="parts">The parts</h3>
 <figure class="fig" id="fig-screen">
   <svg viewBox="0 0 320 204" role="img" aria-label="Diagram of the reader: the contents button and All pages at the top left; the title and chapter in the middle; Search, Listen, Full screen, Theme and the minimap button at the top right; contents panel on the left; pages in the middle with a strip below them; the minimap on the right as a column of little pages with a faint percentage; bottom bar with the view switch, page slider, page box, Expand, Focus and Options.">
@@ -1569,12 +1597,12 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 7. The parts of the reader, numbered as in the list below.</figcaption>
 </figure>
 <ol id="screen-parts">
-  <li>Top bar: title and chapter in the middle; the contents button and All pages button on the left; search, Listen, full screen, Theme and the minimap button on the right. Each panel’s button sits above its panel. On a phone, Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
-  <li>Contents. <code>c</code> peeks at the panel, and <code>cc</code> or Headings at its foot shows chapters alone or with their headings; <code>C</code> shows or hides it.</li>
+  <li>Top bar: title and chapter in the middle; Contents, the Library, All pages and Zen on the left; Search, Listen, Full screen, Theme and the minimap on the right. Each panel’s button sits above its panel. On a phone, Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
+  <li>Contents, with the outline, in chapter 7: <code>c</code> peeks at it and <code>C</code> shows or hides it.</li>
   <li>The desk: the current page, with the pages in Flow on either side.</li>
-  <li>Minimap: the book drawn small, as a column of little pages in the page views and as the text itself in plain text. Click or drag on it to move. A faint percentage in its box shows how far through you are; Options sets how faint, or turns it off. <code>m</code> hides or shows the minimap.</li>
+  <li>The minimap, in chapter 8: the book drawn small. Click or drag along it to move; <code>m</code> hides or shows it.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
-  <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Flow or Pile.</li>
+  <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip. When the bar runs out of room, each group folds into one button that opens it.</li>
   <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
@@ -1586,7 +1614,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="look-options">Theme and Options</h3>
 <p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, the default; Sepia; Paper, a soft cream; and Gray, after Firefox’s Reader View. On a phone its settings are grouped in tabs: All, Look &amp; Pages, Listen &amp; Scroll, and Panels.</p>
 
-<h2 id="keys" data-n="11">Keys</h2>
+<h2 id="keys" data-n="13">Keys</h2>
 <p id="keys-intro">Press <code>?</code> anywhere for these keys on a page of their own, where you can find one by what it does, or, on a computer, set keys of your own. Where a key works differently in Scroll, the tables say how.</p>
 <h3 id="keys-moving">Turning pages</h3>
 <table id="keys-table">
@@ -1667,7 +1695,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="keys-touch">Mouse and touch</h3>
 <p id="keys-mouse">With a mouse, the wheel turns pages, or scrolls in Scroll. Drag along the page slider to move quickly, and click a page beside the current one to bring it forward. On a touch screen, swipe.</p>
 
-<h2 id="built" data-n="12">How it is built</h2>
+<h2 id="built" data-n="14">How it is built</h2>
 <p id="built-passes">The text is plain HTML. paged.js, an open-source implementation of CSS Paged Media, flows it into pages from <code>@page</code> rules, with running heads, page numbers, a page break before each chapter and a contents page whose numbers come from <code>target-counter()</code>. A short script then stacks those pages and gives each a 3D transform from its distance to the current page.</p>
 <pre>d = index - current
 x = side * (edge + (|d| - 1) * step)
@@ -1677,7 +1705,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 <p id="print">Printing gives those pages and nothing else: no panels, no piles, light colours. That works wherever the reader is the page being printed, as on your own website; a viewer that shows it inside a frame prints a picture of the screen instead.</p>
 <p id="site-weight">On a website the cost is mostly paged.js, about 95 KB compressed. The reader adds about 23 KB: 16 KB of script and 7 KB of styles. Any static host will do.</p>
 
-<h2 id="open" data-n="13">Open questions</h2>
+<h2 id="open" data-n="15">Open questions</h2>
 <ul id="open-list">
   <li><em>Length.</em> paged.js sets the whole book before you can read; a few hundred pages would need setting on demand.</li>
   <li><em>Selection.</em> Text can’t be selected across a page break.</li>
@@ -4814,10 +4842,12 @@ window.bookReady = (async () => {
   let tocLastC = 0;
   function tocKey(e) {
     if (e.altKey || e.ctrlKey || e.metaKey) return false;
-    // cc shows or hides the headings, as it does outside, and Contents keeps the keys, on the same place or its chapter
+    if (e.key === "/") { e.preventDefault(); openTocFind(true); return true; }
+    // cc shows or hides the headings, as it does outside, and Contents keeps the keys, on the same place or its chapter;
+    // timed by the keys' own stamps, so a busy page doesn't split the pair
     if (e.key === "c") {
       e.preventDefault();
-      const now = performance.now();
+      const now = e.timeStamp;
       if (now - tocLastC < 300) {
         tocLastC = 0;
         const was = tocLinks()[tSel];
@@ -4835,8 +4865,8 @@ window.bookReady = (async () => {
     if (e.key === "Enter") { e.preventDefault(); const el = tocLinks()[tSel]; tocNav = false; tocLinks().forEach(x => x.classList.remove("k-sel")); if (el) el.click(); if (tocPeeked) closeOverlays(); tocPeeked = false; return true; }
     if (e.key === "L") { e.preventDefault(); enterToc(false); return true; }
     if (e.key === "h" || e.key === "l" || e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); return true; }
-    if (e.key.length > 1 && e.key !== "/") return true;   // Shift and the like change nothing
-    // Any other key, o or / or a, leaves Contents and does what it always does.
+    if (e.key.length > 1) return true;   // Shift and the like change nothing
+    // Any other key, o or a, leaves Contents and does what it always does; / finds in it, above.
     enterToc(false);
     return false;
   }
@@ -4847,6 +4877,77 @@ window.bookReady = (async () => {
     tocLinks().forEach(x => x.classList.remove("k-sel"));
     tocPeeked = false;
   }, true);
+  // rows: [{ el, text, parent }]; a row shows when its words hold the query, and a heading's chapter shows with it
+  function filterRows(rows, q) {
+    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    let n = 0;
+    rows.forEach(r => r.el.classList.add("f-out"));
+    for (const r of rows) {
+      if (!words.every(w => r.text.includes(w))) continue;
+      n++;
+      r.el.classList.remove("f-out");
+      if (r.parent) r.parent.el.classList.remove("f-out");
+    }
+    return n;
+  }
+  const tocFindBox = $("tocFindBox"), tocFind = $("tocFind");
+  let tocFindFrom = false;   // whether L had the keys when the box opened, so closing it gives them back
+  function tocRows() {
+    const rows = [];
+    tocList.querySelectorAll(":scope > li").forEach(li => {
+      const head = li.querySelector(":scope > .toc-item");
+      if (!head) return;
+      const ch = { el: li, text: head.textContent.toLowerCase(), parent: null };
+      rows.push(ch);
+      li.querySelectorAll(".toc-outline li").forEach(h => rows.push({ el: h, text: h.textContent.toLowerCase(), parent: ch }));
+    });
+    return rows;
+  }
+  function filterToc() {
+    const q = tocFind.value.trim(), on = !!q;
+    tocPanel.classList.toggle("filtering", on);
+    if (!on) { tocList.querySelectorAll(".f-out").forEach(el => el.classList.remove("f-out")); $("tocFindN").textContent = ""; return; }
+    const n = filterRows(tocRows(), q);
+    $("tocFindN").textContent = n ? String(n) : "none";
+  }
+  function openTocFind(on) {
+    if (on) {
+      tocFindFrom = tocNav;
+      if (tocPanel.hidden) peek("toc");
+      tocNav = false;
+      tocLinks().forEach(el => el.classList.remove("k-sel"));
+      tocFindBox.hidden = false;
+      $("tocFindBtn").setAttribute("aria-pressed", "true");
+      tocFind.focus();
+      tocFind.select();
+      return;
+    }
+    tocFind.value = "";
+    filterToc();
+    tocFindBox.hidden = true;
+    $("tocFindBtn").setAttribute("aria-pressed", "false");
+    if (tocFindFrom) enterToc(true); else focusReader();
+    tocFindFrom = false;
+  }
+  tocFind.addEventListener("input", filterToc);
+  tocFind.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" || e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!tocLinks().length) return;
+      tocNav = true;
+      tocSelect(0);
+      if (e.key === "Enter" && tocLinks().length === 1) tocKey(new KeyboardEvent("keydown", { key: "Enter" }));
+      return;
+    }
+    // Esc clears the words, then closes the box
+    if (isEsc(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (tocFind.value) { tocFind.value = ""; filterToc(); } else openTocFind(false);
+    }
+  });
+  $("tocFindBtn").addEventListener("click", () => openTocFind(tocFindBox.hidden));
   function toggleOutline() {
     setSetting("outline", outlineOn() ? "off" : "on");
     applySettings();
@@ -5322,6 +5423,10 @@ window.bookReady = (async () => {
   // the keys select a book and the panel shows it; a double-click or Enter opens it; Esc lets go.
   const libFind = $("libFind");
   const elt = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); e.append(...kids.filter(k => k !== null && k !== undefined)); return e; };
+  // the outline's own find box (see filterOutline), made before the outline is first drawn
+  const oFindBox = elt("div", { className: "o-find", hidden: true }), oFind = elt("input", { type: "search", placeholder: "Find a chapter", autocomplete: "off", spellcheck: false, ariaLabel: "Find a chapter in the outline" }), oFindN = elt("span", { className: "o-count", ariaLive: "polite" });
+  oFindBox.append(oFind, oFindN);
+  let oFindFrom = false;
   const COLOURS = { own: "var(--cover)" };
   const PALETTE = ["#20384a", "#3b4a2e", "#5a2f3f", "#2f3f5a", "#4a3a26", "#25474a", "#463252"];
   const colourOf = s => PALETTE[[...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
@@ -5588,7 +5693,10 @@ window.bookReady = (async () => {
     const close = elt("button", { type: "button", className: "tog icon o-close", ariaLabel: "Close the outline" });
     close.innerHTML = '<svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
     close.addEventListener("click", () => openSheet(false));
-    const box = [close, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts" }, "Outline"), elt("p", { className: "o-title" }, title)];
+    const findBtn = elt("button", { type: "button", className: "o-findbtn", title: "Find a chapter (L, then /)" }, "Find");
+    findBtn.setAttribute("aria-pressed", String(!oFindBox.hidden));
+    findBtn.addEventListener("click", () => openOFind(oFindBox.hidden));
+    const box = [close, elt("div", { className: "o-head" }, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts; / finds a chapter" }, "Outline"), findBtn), elt("p", { className: "o-title" }, title), oFindBox];
     const marks = foundQ ? foundBy.get(b ? b.href : info.own ? location.pathname : `?${info.ref}`) : null;
     if (foundQ) box.push(elt("p", { className: "o-found" }, marks ? `${marks.size} ${marks.size === 1 ? "chapter holds" : "chapters hold"} “${libFind.value.trim()}”` : `No chapter holds “${libFind.value.trim()}”`));
     if (!entries.length) box.push(elt("p", { className: "empty" }, "No chapters to show."));
@@ -5616,7 +5724,10 @@ window.bookReady = (async () => {
       if (n) { a.classList.add("o-hit"); a.append(elt("span", { className: "hc", title: `${n} ${n === 1 ? "place" : "places"}` }, String(n))); }
       ol.append(elt("li", { className: /\./.test(e.shown || "") ? "sub" : "" }, a));
     }
+    const typingThere = document.activeElement === oFind, caret = oFind.selectionStart;
     outlineEl.replaceChildren(...box);
+    if (typingThere) { oFind.focus({ preventScroll: true }); oFind.setSelectionRange(caret, caret); }
+    filterOutline();
     outlineEl.classList.toggle("chapters-only", !outlineOn());
     outlineEl.classList.toggle("finding", !!marks);
     if (inOutline) enterOutline(true);
@@ -5771,6 +5882,57 @@ window.bookReady = (async () => {
   // and last chapter, Enter opens, and L or Esc goes back to the books.
   let inOutline = false, oSel = -1, libLastC = 0, outlineFrom = null;
   const oLinks = () => [...outlineEl.querySelectorAll("a")].filter(a => a.offsetParent !== null);
+  // Finding in the outline, as in Contents: its own box, kept across redraws, narrowing the chapters shown
+  function filterOutline() {
+    const q = oFind.value.trim(), on = !!q && !oFindBox.hidden;
+    outlineEl.classList.toggle("filtering", on);
+    if (!on) { outlineEl.querySelectorAll(".f-out").forEach(el => el.classList.remove("f-out")); oFindN.textContent = ""; return; }
+    let chapter = null;
+    const rows = [...outlineEl.querySelectorAll("ol > li")].map(li => {
+      const r = { el: li, text: li.textContent.toLowerCase(), parent: li.classList.contains("sub") ? chapter : null };
+      if (!li.classList.contains("sub")) chapter = r;
+      return r;
+    });
+    const n = filterRows(rows, q);
+    oFindN.textContent = n ? String(n) : "none";
+  }
+  function openOFind(on) {
+    if (on) {
+      oFindFrom = inOutline;
+      inOutline = false;   // the box has the keys now
+      oLinks().forEach(a => a.classList.remove("o-sel"));
+      if (narrowLib()) openSheet(true);
+      oFindBox.hidden = false;
+      outlineEl.querySelector(".o-findbtn")?.setAttribute("aria-pressed", "true");
+      oFind.focus();
+      oFind.select();
+      return;
+    }
+    oFind.value = "";
+    oFindBox.hidden = true;
+    filterOutline();
+    outlineEl.querySelector(".o-findbtn")?.setAttribute("aria-pressed", "false");
+    if (oFindFrom) enterOutline(true); else libFind.focus();
+    oFindFrom = false;
+  }
+  oFind.addEventListener("input", filterOutline);
+  oFind.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" || e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!oLinks().length) return;
+      inOutline = true;
+      outlineEl.classList.add("active");
+      outlineSelect(0);
+      if (e.key === "Enter" && oLinks().length === 1) oLinks()[0].click();
+      return;
+    }
+    if (isEsc(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (oFind.value) { oFind.value = ""; filterOutline(); } else openOFind(false);
+    }
+  });
   const narrowLib = () => matchMedia("(max-width: 860px)").matches;
   function openSheet(on) {
     outlineEl.classList.toggle("sheet", on);
@@ -5804,6 +5966,7 @@ window.bookReady = (async () => {
   }
   function libKey(e, typing) {
     if (e.altKey) return;
+    if (e.key === "/" && !typing && inOutline) { e.preventDefault(); openOFind(true); return; }   // with L, / finds in the outline
     if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") || (e.key === "/" && !typing)) { e.preventDefault(); libFind.focus(); libFind.select(); return; }
     if (e.ctrlKey || e.metaKey) return;
     if (typing) {
@@ -5838,7 +6001,7 @@ window.bookReady = (async () => {
     if (e.key === "c") {
       // cc, as in the reader: the outline shows chapters alone or with their parts, and Contents follows.
       e.preventDefault();
-      const now = performance.now();
+      const now = e.timeStamp;
       if (now - libLastC < 300) {
         libLastC = 0;
         setSetting("outline", outlineOn() ? "off" : "on");
