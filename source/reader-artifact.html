@@ -1541,6 +1541,7 @@ a.toc-item { text-decoration: none; }
 <h2 id="listen" data-n="11">Listening</h2>
 <p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>[</code> and <code>]</code>, or <code>q</code> and <code>w</code>, step by sentence, and <code>Q</code> and <code>W</code> by paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
 <p id="listen-stay">You can read elsewhere while Listen carries on: the page stays where you scroll, and <code>r</code> brings you back to the sentence being read. Options can make the page follow Listen instead.</p>
+<p id="listen-parts">In a book that loads in parts, Listen opens the next part when it reaches the end of one, and reads on from its first chapter. Some browsers won’t speak in a newly opened page until you press a key or tap; a note then says so, and <code>a</code> or Listen carries on.</p>
 <p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
 
 <h2 id="screen" data-n="12">The screen</h2>
@@ -4323,7 +4324,7 @@ window.bookReady = (async () => {
   function sayNext() {
     if (!reading) return;
     const it = queue[qi];
-    if (!it) { stopReading(); return; }
+    if (!it) { if (!listenOnInNextPart()) stopReading(); return; }
     const u = new SpeechSynthesisUtterance(it.text), v = pickVoice();
     u.rate = S.rate;
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en";
@@ -4331,7 +4332,9 @@ window.bookReady = (async () => {
     u.onerror = ev => {
       if (utter !== u || ev.error === "interrupted" || ev.error === "canceled") return;
       stopReading();
-      toast(`The browser stopped reading aloud (${ev.error}).`);
+      // a part just opened by Listen may not speak until you press or tap something: the browser's rule, not a fault
+      if (carriedOn && ev.error === "not-allowed") toast(carryNote(), 6000);
+      else toast(`The browser stopped reading aloud (${ev.error}).`);
     };
     utter = u;
     showSpoken(it);
@@ -4456,8 +4459,21 @@ window.bookReady = (async () => {
     $("listenPrev").hidden = $("listenNext").hidden = !on;
     $("app").classList.toggle("listening", on);
   }
-  function startReading() {
+  // At the end of a part, Listen opens the next part at its first chapter and reads on there (?listen=on).
+  let carriedOn = false;
+  const carryNote = () => `Part ${window.bookInfo.part} is open. Press a, or tap Listen, to read on.`;
+  function listenOnInNextPart() {
+    const info = window.bookInfo, n = info && info.parts ? info.parts.length : 1;
+    if (!info || !info.ref || !info.part || info.part >= n) return false;
+    const first = (info.toc || []).find(t => t.part === info.part + 1);
+    stopReading();
+    toast(`Reading on in part ${info.part + 1}…`, 2400);
+    location.href = `?${info.ref}&part=${info.part + 1}&listen=on${first ? "#" + first.id : ""}`;
+    return true;
+  }
+  function startReading(carry) {
     if (!synth || !ready) return;
+    carriedOn = carry === true;
     // Listen reads on from the highlighted sentence, and the highlight gives way to Listen's
     const fromTrace = tracing ? ti : -1;
     if (tracing && hasHL) CSS.highlights.delete("trace");   // Listen's own mark stands in for it while it reads
@@ -4471,7 +4487,7 @@ window.bookReady = (async () => {
     synth.cancel();
     utterTimer = setTimeout(() => {
       sayNext();
-      setTimeout(() => { if (reading && !synth.speaking && !synth.pending) { stopReading(); toast("This browser didn’t start speaking. It may have no voices installed."); } }, 2500);
+      setTimeout(() => { if (reading && !synth.speaking && !synth.pending) { stopReading(); toast(carriedOn ? carryNote() : "This browser didn’t start speaking. It may have no voices installed.", carriedOn ? 6000 : undefined); } }, 2500);
     }, 60);
   }
   function stopReading() {
@@ -6213,6 +6229,12 @@ window.bookReady = (async () => {
   build().then(() => {
     if (ready && S.highlighter !== "off") applyHighlighter();   // left on, it comes back on, at the place you are
     const P = new URLSearchParams(location.search), find = P.get("find"), nth = Math.max(0, parseInt(P.get("at"), 10) || 0);
+    // Listen, reading on from the part before: it starts again here, at this part's first chapter
+    if (P.get("listen") === "on") {
+      P.delete("listen");
+      history.replaceState(history.state, "", `${location.pathname}${P.toString() ? "?" + P : ""}${location.hash}`);
+      if (ready) setTimeout(() => startReading(true), 300);
+    }
     if (!find || !ready) return;
     P.delete("find");
     P.delete("at");
