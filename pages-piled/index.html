@@ -793,13 +793,6 @@ a.toc-item { text-decoration: none; }
 .library .lib-sec-head h3 { margin: 0; }
 #clearBox { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 12.5px; color: var(--ink); }
 #clearBox .reset.danger { color: #a33f3f; }
-.lib-back { display: none; }
-/* on a phone, a way back under the thumb, where the right of the slider (the way into All pages) sits */
-@media (max-width: 600px), (max-height: 500px) and (pointer: coarse) {
-  .library { padding-bottom: 96px; }
-  .lib-back { display: grid; place-items: center; position: fixed; z-index: 3; left: var(--back-x); top: var(--back-y); transform: translate(-50%, -50%); width: 46px; height: 46px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--bar); color: var(--ink); box-shadow: 0 2px 10px color-mix(in srgb, var(--ink) 18%, transparent); -webkit-tap-highlight-color: transparent; }
-  .lib-back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
-}
 .lib-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 26px; align-items: start; }
 .lib-main { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
 .lib-outline { position: sticky; top: 64px; max-height: calc(100vh - 96px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 10px 14px 14px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
@@ -1235,7 +1228,6 @@ a.toc-item { text-decoration: none; }
       <aside class="lib-outline" id="libOutline" aria-label="Outline"></aside>
       </div>
     </div>
-    <button type="button" class="lib-back" id="libBack" aria-label="Back to the book" title="Back to the book (Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
   </div>
 
   <div class="keyhelp" id="keyHelp" role="dialog" aria-label="Keys" hidden>
@@ -5262,7 +5254,6 @@ window.bookReady = (async () => {
   $("libView").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (b) setLibView(b.dataset.v); });
   setLibView(libView);
   $("libClose").addEventListener("click", () => { setBooks(false); focusReader(); });
-  $("libBack").addEventListener("click", () => { setBooks(false); focusReader(); });
   // A click on empty space goes back to the book, as in All pages; with the find box focused, the first one only leaves the box.
   let findHeld = false;   // a touch takes the focus before its click arrives, so whether the box had it is read as the finger lands
   booksEl.addEventListener("pointerdown", () => { findHeld = document.activeElement === libFind; }, true);
@@ -5677,11 +5668,6 @@ window.bookReady = (async () => {
     if (open) { selected = null; askingClear = false; inOutline = false; outlineEl.classList.remove("active", "sheet"); renderShelf(); renderPanel(); setOptions(false); closeSearch(true); }
     booksEl.hidden = !open;
     app.classList.toggle("lib-on", open);
-    if (open) {
-      const r = statR.getBoundingClientRect(), shown = r.width > 0 && r.bottom > innerHeight / 2;
-      booksEl.style.setProperty("--back-x", Math.min(shown ? r.left + r.width / 2 : Infinity, innerWidth - 40) + "px");
-      booksEl.style.setProperty("--back-y", (shown ? r.top + r.height / 2 : innerHeight - 40) + "px");
-    }
   }
   const toggleBooks = () => setBooks(booksEl.hidden);
   // The keys page, ?: the Keys chapter's tables, kept from the reader's own book, and the Library's keys.
