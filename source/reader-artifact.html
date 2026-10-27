@@ -1295,14 +1295,16 @@ a.toc-item { text-decoration: none; }
     <li><a href="#why"><span class="n">1</span><span class="t">Why pages</span></a></li>
     <li><a href="#pile"><span class="n">2</span><span class="t">One page, two piles</span></a></li>
     <li><a href="#flow"><span class="n">3</span><span class="t">Flow</span></a></li>
-    <li><a href="#scroll"><span class="n">4</span><span class="t">Scroll</span></a></li>
-    <li><a href="#thumbs"><span class="n">5</span><span class="t">Thumbnails</span></a></li>
-    <li><a href="#find"><span class="n">6</span><span class="t">Search</span></a></li>
-    <li><a href="#listen"><span class="n">7</span><span class="t">Listening</span></a></li>
-    <li><a href="#screen"><span class="n">8</span><span class="t">The screen</span></a></li>
-    <li><a href="#keys"><span class="n">9</span><span class="t">Keys</span></a></li>
-    <li><a href="#built"><span class="n">10</span><span class="t">How it is built</span></a></li>
-    <li><a href="#open"><span class="n">11</span><span class="t">Open questions</span></a></li>
+    <li><a href="#strip"><span class="n">4</span><span class="t">Strip</span></a></li>
+    <li><a href="#scroll"><span class="n">5</span><span class="t">Scroll</span></a></li>
+    <li><a href="#thumbs"><span class="n">6</span><span class="t">Thumbnails</span></a></li>
+    <li><a href="#find"><span class="n">7</span><span class="t">Search</span></a></li>
+    <li><a href="#place"><span class="n">8</span><span class="t">Keeping your place</span></a></li>
+    <li><a href="#listen"><span class="n">9</span><span class="t">Listening</span></a></li>
+    <li><a href="#screen"><span class="n">10</span><span class="t">The screen</span></a></li>
+    <li><a href="#keys"><span class="n">11</span><span class="t">Keys</span></a></li>
+    <li><a href="#built"><span class="n">12</span><span class="t">How it is built</span></a></li>
+    <li><a href="#open"><span class="n">13</span><span class="t">Open questions</span></a></li>
   </ol>
   <p class="note">paged.js filled in these page numbers after laying out the book. Click a line to go there, or press <code>l</code> or → to turn the page.</p>
 </section>
@@ -1377,13 +1379,34 @@ a.toc-item { text-decoration: none; }
 <p id="flow-tune">Spread, under Options, sets how far apart the turned pages sit: low packs them like a card index, high fans them out. Try <code>-</code> and <code>=</code> now, and <code>0</code> to reset. Six pages show on each side; the page slider at the bottom covers the rest.</p>
 <p id="flow-motion">Turning a page only changes which page is current. Every page then moves from its old place to its new one, so the page leaving one side and the page arriving from the other travel together. Press <code>l</code> a few times quickly to watch, then <code>h</code> to come back.</p>
 
-<h2 id="scroll" data-n="4">Scroll</h2>
+<h2 id="strip" data-n="4">Strip</h2>
+<p id="strip-what">Strip lays the pages flat and side by side, full size, in one long row. The page you are reading sits in the middle, and a step slides the whole row along by a page, or by a spread in facing pages, so the next page moves into the middle while its neighbours stay in sight on either side. Click a page beside to bring it to the middle.</p>
+<figure class="fig" id="fig-strip">
+  <svg viewBox="0 0 320 130" role="img" aria-label="Strip from the front: the current page in the middle at full size, and the pages before and after it lying flat beside it in one row, a small gap apart, running off both edges.">
+    <rect class="pg" x="-4" y="18" width="56" height="80" rx="1"/><rect class="sh" x="-4" y="18" width="56" height="80" rx="1" fill-opacity=".22"/>
+    <rect class="pg" x="64" y="18" width="56" height="80" rx="1"/><rect class="sh" x="64" y="18" width="56" height="80" rx="1" fill-opacity=".14"/>
+    <rect class="pg" x="200" y="18" width="56" height="80" rx="1"/><rect class="sh" x="200" y="18" width="56" height="80" rx="1" fill-opacity=".14"/>
+    <rect class="pg" x="268" y="18" width="56" height="80" rx="1"/><rect class="sh" x="268" y="18" width="56" height="80" rx="1" fill-opacity=".22"/>
+    <path class="ln" d="M3 30h42M3 36h42M3 42h42M3 48h42M3 54h42M3 60h42M3 66h42M3 72h42M3 78h42M3 84h28M71 30h42M71 36h42M71 42h42M71 48h42M71 54h42M71 60h42M71 66h42M71 72h42M71 78h42M71 84h42M71 90h20M207 30h42M207 36h42M207 42h42M207 48h42M207 54h42M207 60h42M207 66h42M207 72h42M207 78h42M207 84h42M207 90h30M275 30h42M275 36h42M275 42h42M275 48h42M275 54h42M275 60h42M275 66h36"/>
+    <rect class="pg" x="132" y="18" width="56" height="80" rx="1"/><rect class="now" x="132" y="18" width="56" height="80" rx="1"/>
+    <path class="ln" d="M139 30h42M139 36h42M139 42h42M139 48h42M139 54h42M139 60h42M139 66h42M139 72h42M139 78h42M139 84h42M139 90h28"/>
+    <path class="ln" d="M226 106h-58M173 103l-5 3 5 3"/>
+    <text class="fig-label" x="64" y="122">← already read</text>
+    <text class="fig-label strong" x="160" y="122" text-anchor="middle">current page</text>
+    <text class="fig-label" x="256" y="122" text-anchor="end">still to come →</text>
+  </svg>
+  <figcaption>Figure 4. Strip from the front. The pages lie flat in one row, a gap apart, and a step slides the row by one page.</figcaption>
+</figure>
+<p id="strip-history">It comes from PaperWM, a window manager for the GNOME desktop that sets windows side by side on an endless strip and scrolls the strip to bring the window you are working in into view, rather than squeezing them all onto one screen. It is not a carousel: nothing turns or loops, and every page keeps its size. Only your view travels along the row.</p>
+<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
+
+<h2 id="scroll" data-n="5">Scroll</h2>
 <p id="scroll-why">Pages are not always the best way to read. Many people read a long web page by keeping their line at one height and scrolling the text up to meet their eyes. The eyes barely move; the text comes to them.</p>
 <h3 id="scroll-styles">Two styles</h3>
 <p id="scroll-how">Scroll keeps that habit, in two styles. Scrolled pages sets the pages one under another, as a word processor does; plain text drops the pages and reads like an ordinary web page, with room at both ends so any line can sit at whatever height you read. Either way the page number follows you, so “page twelve” means the same words in every view. Only a new page size renumbers the book, since a larger page holds more words.</p>
 <p id="scroll-pages">From a paged view, <code>s</code> opens scrolled pages and <code>s</code> again comes back. In Scroll, <code>v</code> switches between pages and plain text. The switch at the bottom left has all four: one page, facing pages, scrolled pages, plain text.</p>
 <figure class="fig" id="fig-scroll">
-  <svg viewBox="0 0 320 146" role="img" aria-label="Scroll in its two styles side by side: on the left the pages one under another; on the right the text as one column with a reading zone across the middle.">
+  <svg viewBox="0 0 320 146" role="img" aria-label="Scroll in its two styles side by side: on the left the pages one under another; on the right the text as one column.">
     <g transform="translate(-152 0)">
       <rect class="d-desk" x="176" y="10" width="120" height="112" rx="2"/>
       <rect class="pg" x="208" y="10" width="56" height="20"/><path class="ln" d="M215 14h42M215 20h30"/>
@@ -1393,23 +1416,20 @@ a.toc-item { text-decoration: none; }
     </g>
     <g transform="translate(152 0)">
       <rect class="d-desk" x="24" y="10" width="120" height="112" rx="2"/>
-      <rect class="d-band" x="25" y="59" width="118" height="12"/>
       <path class="ln" d="M40 18h88M40 25h88M40 32h88M40 39h60M40 46h88M40 53h88M40 60h88M40 67h88M40 74h60M40 81h88M40 88h88M40 95h88M40 102h88M40 109h60M40 116h88"/>
       <path class="ln" d="M154 44v44M150 50l4-6 4 6M150 82l4 6 4-6"/>
     </g>
     <text class="fig-label strong" x="84" y="138" text-anchor="middle">Pages</text>
     <text class="fig-label strong" x="236" y="138" text-anchor="middle">Text</text>
   </svg>
-  <figcaption>Figure 4. Scroll’s two styles, switched with v: the pages one under another, and the text as one column with the reading zone across the middle.</figcaption>
+  <figcaption>Figure 5. Scroll’s two styles, switched with v: the pages one under another, and the text as one column.</figcaption>
 </figure>
 <h3 id="gliding">Gliding</h3>
 <p id="scroll-glide">The glide comes from Surfingkeys, the browser extension for vim-style keys. A press doesn’t jump: the text travels its distance at a steady speed, in about a tenth of a second for <code>j</code> and only a little longer for <code>d</code>, so your eye can stay on the line it was reading. Hold the key and the text keeps gliding at that same speed, smooth rather than stuttering with the keyboard’s repeat, and it stops the moment you let go. Press again mid-glide and it simply goes further. Glide speed under Options makes all of it quicker or slower.</p>
-<h3 id="reading-zone">Reading zone</h3>
-<p id="scroll-zone">In either style, a reading zone can mark the height you read at: a fine line, or a soft band up to five lines tall. Turn it on under Options, size it, and place it anywhere from the top of the screen to the bottom.</p>
-<h3 id="placed">Keeping your place</h3>
-<p id="scroll-cost">What Scroll gives up is the book as an object. In Flow and Pile the piles and the page slider show how much lies behind and ahead, like a book’s thickness in your hands. A scrolled column has no visible beginning or end, so there the contents, the minimap and the percentage beside the arrows keep you placed.</p>
+<h3 id="placed">What it gives up</h3>
+<p id="scroll-cost">What Scroll gives up is the book as an object. In Flow and Pile the piles and the page slider show how much lies behind and ahead, like a book’s thickness in your hands. A scrolled column has no visible beginning or end, so there the contents, the minimap and the percentage beside the arrows keep you placed, along with the ways of keeping your place in chapter 8.</p>
 
-<h2 id="thumbs" data-n="5">Thumbnails</h2>
+<h2 id="thumbs" data-n="6">Thumbnails</h2>
 <p id="thumbs-why">Press <code>t</code>, click All pages in the top bar, or click just below the middle of the current page, and every page appears at once: where chapters start, which pages carry figures, how long each part runs. It is the quickest way to jump a long distance. Pick a page with the mouse, or with <code>h</code> <code>j</code> <code>k</code> <code>l</code> and Enter, and it opens in the view you came from. Click empty space or press Esc to go back.</p>
 <p id="thumbs-spreads">Opened from facing pages, All pages shows the book in spreads, paired as in facing pages. Press <code>f</code> there to switch between spreads and single pages.</p>
 <figure class="fig" id="fig-thumbs">
@@ -1451,10 +1471,10 @@ a.toc-item { text-decoration: none; }
     <rect class="pg" x="283" y="52" width="26" height="36" rx="1"/>
     <path class="ln" d="M287 58h18M287 62h18M287 66h18M287 70h18M287 74h18M287 78h18M287 82h10"/>
   </svg>
-  <figcaption>Figure 5. All pages: the whole book at once, the current page outlined, each chapter opening easy to spot.</figcaption>
+  <figcaption>Figure 6. All pages: the whole book at once, the current page outlined, each chapter opening easy to spot.</figcaption>
 </figure>
 
-<h2 id="find" data-n="6">Search</h2>
+<h2 id="find" data-n="7">Search</h2>
 <p id="find-list">Press <code>/</code> or Ctrl+f. Matches are listed with a line of context, their chapter and page. The arrow keys preview each one in the text; Enter stays there and Esc goes back. Every match is highlighted, marked on the minimap and flagged on the page slider. <code>n</code> and <code>N</code> step through them, and Esc again or <code>:noh</code> clears them. Try <code>/</code> now and type <code>flow</code>, or <code>c4.2</code> for chapter 4’s second page.</p>
 <h3 id="find-typing">What to type</h3>
 <table id="find-syntax">
@@ -1473,15 +1493,24 @@ a.toc-item { text-decoration: none; }
     <tr><td>a typo</td> <td>close spellings</td></tr>
   </tbody>
 </table>
-<h3 id="going-back">Going back</h3>
-<p id="back">After any jump, whether a search, <code>gg</code>, <code>G</code> or a drag along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes back. Try <code>G</code> now, then <code>r</code>.</p>
 
-<h2 id="listen" data-n="7">Listening</h2>
+
+<h2 id="place" data-n="8">Keeping your place</h2>
+<p id="place-why">A screen gives you no thumb to hold a page and no finger to run along a line. Three things stand in for them here: a highlighter that marks where you are reading, a way back from every jump, and a book that remembers where you stopped. Listening, the next chapter, follows along for you.</p>
+<h3 id="highlighter">The highlighter</h3>
+<p id="place-mark">Press <code>H</code>, or turn on Highlighter under Options on a phone, then click or tap a sentence. It stays marked as you read on, turn pages or scroll, until you mark another. <code>q</code> and <code>w</code> move the mark back and forward a sentence at a time, and <code>Q</code> and <code>W</code> switch it between sentences and whole paragraphs. In Strip, a click on a page beside marks it where it lies, without sliding the row.</p>
+<p id="place-listen">The mark and Listen share a place: with the highlighter on, Listen starts from the marked sentence, and when you stop it the mark waits on the last sentence it read.</p>
+<h3 id="going-back">Going back</h3>
+<p id="back">After any jump, whether a search, <code>gg</code>, <code>G</code> or a drag along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes further back. <code>R</code> goes forward again, as a browser’s Forward does. If you have moved away from the mark, or from the sentence Listen is reading, <code>r</code> goes there first. Try <code>G</code> now, then <code>r</code>, then <code>R</code>.</p>
+<h3 id="left-off">Where you left off</h3>
+<p id="place-saved">Each book keeps its place in your browser, so opening it again, after closing the tab or the next day, brings you back to the page you left. The place stays on your device; nothing is sent anywhere.</p>
+
+<h2 id="listen" data-n="9">Listening</h2>
 <p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>[</code> and <code>]</code>, or <code>q</code> and <code>w</code>, step by sentence, and <code>Q</code> and <code>W</code> by paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
 <p id="listen-stay">You can read elsewhere while Listen carries on: the page stays where you scroll, and <code>r</code> brings you back to the sentence being read. Options can make the page follow Listen instead.</p>
 <p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
 
-<h2 id="screen" data-n="8">The screen</h2>
+<h2 id="screen" data-n="10">The screen</h2>
 <h3 id="parts">The parts</h3>
 <figure class="fig" id="fig-screen">
   <svg viewBox="0 0 320 204" role="img" aria-label="Diagram of the reader: the contents button and All pages at the top left; the title and chapter in the middle; Search, Listen, Full screen, Theme and the minimap button at the top right; contents panel on the left; pages in the middle with a strip below them; the minimap on the right as a column of little pages with a faint percentage; bottom bar with the view switch, page slider, page box, Expand, Focus and Options.">
@@ -1534,7 +1563,7 @@ a.toc-item { text-decoration: none; }
     <g class="d-num"><circle cx="219.5" cy="191" r="6"/><text x="219.5" y="193.5">8</text></g>
     <g class="d-num"><circle cx="267" cy="191" r="6"/><text x="267" y="193.5">9</text></g>
   </svg>
-  <figcaption>Figure 6. The parts of the reader, numbered as in the list below.</figcaption>
+  <figcaption>Figure 7. The parts of the reader, numbered as in the list below.</figcaption>
 </figure>
 <ol id="screen-parts">
   <li>Top bar: title and chapter in the middle; the contents button and All pages button on the left; search, Listen, full screen, Theme and the minimap button on the right. Each panel’s button sits above its panel. On a phone, Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
@@ -1554,7 +1583,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="look-options">Theme and Options</h3>
 <p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, the default; Sepia; Paper, a soft cream; and Gray, after Firefox’s Reader View. On a phone its settings are grouped in tabs: All, Look &amp; Pages, Listen &amp; Scroll, and Panels.</p>
 
-<h2 id="keys" data-n="9">Keys</h2>
+<h2 id="keys" data-n="11">Keys</h2>
 <h3 id="keys-moving">Moving</h3>
 <table id="keys-table">
   <thead><tr><th>Key</th> <th>In pages</th> <th>In Scroll</th></tr></thead>
@@ -1615,7 +1644,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="keys-touch">Mouse and touch</h3>
 <p id="keys-mouse">With a mouse, the wheel turns pages, or scrolls in Scroll. Drag along the page slider to move quickly, and click a page beside the current one to bring it forward. On a touch screen, swipe.</p>
 
-<h2 id="built" data-n="10">How it is built</h2>
+<h2 id="built" data-n="12">How it is built</h2>
 <p id="built-passes">The text is plain HTML. paged.js, an open-source implementation of CSS Paged Media, flows it into pages from <code>@page</code> rules, with running heads, page numbers, a page break before each chapter and a contents page whose numbers come from <code>target-counter()</code>. A short script then stacks those pages and gives each a 3D transform from its distance to the current page.</p>
 <pre>d = index - current
 x = side * (edge + (|d| - 1) * step)
@@ -1625,7 +1654,7 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 <p id="print">Printing gives those pages and nothing else: no panels, no piles, light colours. That works wherever the reader is the page being printed, as on your own website; a viewer that shows it inside a frame prints a picture of the screen instead.</p>
 <p id="site-weight">On a website the cost is mostly paged.js, about 95 KB compressed. The reader adds about 23 KB: 16 KB of script and 7 KB of styles. Any static host will do.</p>
 
-<h2 id="open" data-n="11">Open questions</h2>
+<h2 id="open" data-n="13">Open questions</h2>
 <ul id="open-list">
   <li><em>Length.</em> paged.js sets the whole book before you can read; a few hundred pages would need setting on demand.</li>
   <li><em>Selection.</em> Text can’t be selected across a page break.</li>
@@ -2846,7 +2875,8 @@ window.bookReady = (async () => {
     }
 
     const unitOf = i => (facing ? Math.floor((i + 1) / 2) : i);
-    const gapX = Math.max(24, pw * 0.08), gapY = Math.max(24, H * s * 0.05);
+    // Strip's gap between pages follows Spread: as it is at the default, and down to none, the pages touching, at 0
+    const gs = S.pagedSpread / DEFAULTS.pagedSpread, gapX = Math.max(24, pw * 0.08) * gs, gapY = Math.max(24, H * s * 0.05) * gs;
     const vs = pages.map((p, i) => {
       if (strip) {
         const d = unitOf(i) - unitOf(first), ad = Math.abs(d);
