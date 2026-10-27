@@ -365,6 +365,16 @@ a.toc-item { text-decoration: none; }
 .thumb:hover .thumb-page { transform: translateY(-3px); }
 .thumb.on .thumb-page { box-shadow: 0 0 0 2px var(--accent), var(--thumb-shadow); }
 .thumb:focus-visible .thumb-page { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px color-mix(in srgb, var(--accent) 28%, transparent); }
+/* In spreads the ring and the lift go round both pages together, as one opening. */
+.spread { position: relative; }
+.spread::before { content: ""; position: absolute; z-index: 1; left: 0; right: 0; top: 0; height: var(--th); border-radius: 2px; pointer-events: none; transition: transform .2s var(--ease), box-shadow .2s ease; }
+.spread.cover::before { left: auto; width: var(--tw); }
+.spread:not(.cover):has(> .thumb:only-child)::before { right: auto; width: var(--tw); }
+.grid.spreads .thumb:is(.on, :focus-visible) .thumb-page { box-shadow: var(--thumb-shadow); }
+.grid.spreads .thumb:hover .thumb-page { transform: none; }
+.spread:has(.thumb.on)::before { box-shadow: 0 0 0 2px var(--accent); }
+.spread:has(.thumb:focus-visible)::before { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px color-mix(in srgb, var(--accent) 28%, transparent); }
+.spread:hover :is(.thumb-page), .spread:hover::before { transform: translateY(-3px); }
 .thumb-cap { display: flex; align-items: baseline; gap: 7px; min-width: 0; font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .thumb-cap b { position: relative; font-weight: 600; color: var(--ink); }
 .thumb-cap span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -799,7 +809,7 @@ a.toc-item { text-decoration: none; }
   .narrow-only { display: inline-flex; }
 }
 .lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-.lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
+.lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: color-mix(in srgb, var(--surface) 40%, var(--desk)); }
 .lib-card h3 { margin: 0; }
 @media (pointer: coarse) { .fine-only { display: none; } }
 @media (pointer: fine) { .coarse-only { display: none; } }
@@ -1190,9 +1200,9 @@ a.toc-item { text-decoration: none; }
           <p class="bm-help">Or drop them on the page. Nothing leaves your browser.</p>
         </div>
         <div class="lib-card" id="bmCard">
-          <h3>Read any docs page</h3>
+          <h3>Bookmarklet: read any docs page</h3>
           <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a></div>
-          <p class="bm-help fine-only">Drag it to your bookmarks bar, then click it on any docs page.</p>
+          <p class="bm-help fine-only">Drag it to your bookmarks bar, then use it on any docs page: the page opens here as a book, pictures and all.</p>
           <p class="bm-help coarse-only">Bookmarklets work on a computer.</p>
         </div>
       </section>
