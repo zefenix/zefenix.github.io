@@ -806,6 +806,9 @@ a.toc-item { text-decoration: none; }
 .lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: color-mix(in srgb, var(--surface) 40%, var(--desk)); }
 .lib-card h3 { margin: 0; }
+/* A shelf book you hid, shown again by Show them: faded, until it is put back. */
+.lib-book.put-away { opacity: .45; }
+#shelfHidden { font-size: 12px; color: var(--ink-soft); }
 /* A book's line drawings, black on clear, would vanish on dark paper; there they are turned light, their colours kept. */
 :root[data-theme="dark"] :is(.pagedjs_page, .article) img[src$=".svg"] { filter: invert(.88) hue-rotate(180deg); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.pagedjs_page, .article) img[src$=".svg"] { filter: invert(.88) hue-rotate(180deg); } }
@@ -1183,7 +1186,7 @@ a.toc-item { text-decoration: none; }
       <div class="lib-main">
       <section class="lib-now" id="booksNow"></section>
       <section class="lib-sec">
-        <h3>On the shelf</h3>
+        <div class="lib-sec-head"><h3>On the shelf</h3><span id="shelfHidden"></span></div>
         <div class="lib-books" id="shelfList" role="listbox" aria-label="On the shelf"></div>
       </section>
       <section class="lib-sec" id="openedSec" hidden>
@@ -5169,6 +5172,19 @@ window.bookReady = (async () => {
   const hostOf = u => { try { return new URL(u).hostname; } catch { return ""; } };
 
   // Each book on the shelf: a cover, and in the list a row of details.
+  // Shelf books you hide stay hidden in this browser: the site's own files can't be deleted, but they needn't be in your way.
+  const shelfKey = b => (b.kind === "own" ? "own" : b.kind === "card" ? "card" : b.kind === "shelf" ? b.id : null);
+  let putAway = new Set((() => { const v = store.get("hiddenShelf", []); return Array.isArray(v) ? v.filter(x => typeof x === "string") : []; })()), showPutAway = false;
+  const isPutAway = b => { const k = shelfKey(b); return !!k && putAway.has(k); };
+  function setPutAway(b, hide) {
+    const k = shelfKey(b);
+    if (!k) return;
+    if (hide) putAway.add(k); else putAway.delete(k);
+    store.set("hiddenShelf", [...putAway]);
+    toast(hide ? `${b.title} is off your shelf. “Show them” by the shelf brings it back.` : `${b.title} is back on your shelf.`, 2400);
+    if (hide && !showPutAway) selected = null;
+    renderShelf();
+  }
   function libItem(book) {
     const row = elt("div", { className: "lib-book", role: "option", tabIndex: -1, title: book.title });
     row._book = book;
@@ -5292,6 +5308,11 @@ window.bookReady = (async () => {
     acts.append(open);
     if (b.kind !== "card") acts.append(chaptersButton());
     if (b.kind === "shelf") acts.append(copyLink(`${readerUrl}?book=${b.id}`));
+    if (shelfKey(b)) {
+      const away = isPutAway(b), h = elt("button", { type: "button", className: "bm-copy" }, away ? "Show on your shelf" : "Hide from your shelf");
+      h.addEventListener("click", () => setPutAway(b, !away));
+      acts.append(h);
+    }
     if (b.kind === "opened") {
       const rm = elt("button", { type: "button", className: "bm-copy" }, "Remove from this browser");
       rm.addEventListener("click", async () => { await window.bookTools.deleteBook(b.key); selected = null; renderShelf(); });
@@ -5338,6 +5359,13 @@ window.bookReady = (async () => {
       acts.append(back);
     }
     if (info.from === "shelf") acts.append(copyLink(`${readerUrl}?${info.ref}`));
+    // the book being read, picked on the shelf, can be hidden from it too
+    const here = info.own ? { kind: "own", title: "Pages, Piled" } : info.from === "shelf" ? { kind: "shelf", id: info.key, title: info.title } : null;
+    if (isSelected && here) {
+      const away = isPutAway(here), h = elt("button", { type: "button", className: "bm-copy" }, away ? "Show on your shelf" : "Hide from your shelf");
+      h.addEventListener("click", () => setPutAway(here, !away));
+      acts.append(h);
+    }
     if (info.index && info.chapters === 1) {
       const msg = elt("p", { className: "msg" }, `This site lists ${info.index.pages} pages in its llms.txt.`);
       const btn = elt("button", { type: "button", className: "bm-copy" }, "Read the whole site as a book");
@@ -5409,9 +5437,21 @@ window.bookReady = (async () => {
   // that hold the words, a few per book; the outline marks the chapters that hold them.
   function filterShelf() {
     const q = libFind.value.trim().toLowerCase();
-    booksEl.querySelectorAll(".lib-books .lib-book").forEach(b => { b.hidden = !!q && !b.dataset.find.includes(q); });
+    booksEl.querySelectorAll(".lib-books .lib-book").forEach(b => {
+      const away = isPutAway(b._book);
+      b.classList.toggle("put-away", away);
+      b.hidden = (away && !showPutAway) || (!!q && !b.dataset.find.includes(q));
+    });
+    const n = putAway.size, box = $("shelfHidden");
+    if (!n) box.replaceChildren();
+    else {
+      const t = elt("button", { type: "button", className: "reset" }, showPutAway ? "Hide them" : "Show them");
+      t.addEventListener("click", () => { showPutAway = !showPutAway; filterShelf(); });
+      box.replaceChildren(elt("span", { className: "s" }, `${n} hidden · `), t);
+    }
     // a section with no book left to show keeps out of the way of the words found
-    $("shelfList").closest("section").hidden = !$("shelfList").querySelector(".lib-book:not([hidden])");
+    // the shelf's heading stays while books are hidden, so Show them can bring them back
+    $("shelfList").closest("section").hidden = !$("shelfList").querySelector(".lib-book:not([hidden])") && (!!q || !putAway.size);
     $("openedSec").hidden = !openedCount || !$("openedList").querySelector(".lib-book:not([hidden])");
     if (selected && selected.hidden) select(-1);
   }
@@ -5434,7 +5474,7 @@ window.bookReady = (async () => {
   async function runFound() {
     const raw = libFind.value.trim(), q = raw.toLowerCase(), run = ++foundRun, sec = $("libFound");
     if (q.length < 2) { foundBy = new Map(); foundQ = ""; outlineFor = null; sec.hidden = true; sec.replaceChildren(); renderOutline(); return; }
-    const books = [...booksEl.querySelectorAll(".lib-books .lib-book")].map(r => r._book).filter(b => b.kind !== "card");
+    const books = [...booksEl.querySelectorAll(".lib-books .lib-book")].map(r => r._book).filter(b => b.kind !== "card" && !isPutAway(b));
     const by = new Map(), groups = [];
     let total = 0;
     for (const b of books) {
