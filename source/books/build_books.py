@@ -29,20 +29,10 @@ OUTPUT_LINES = 24   # a code cell's text output is shown up to this many lines
 # States, and its author, translator and illustrator died more than seventy years ago, so it is free where a work
 # is protected for seventy years after its author's death as well. files: a selection, else the whole spine.
 SE_BOOKS = [
-    {"id": "martian-odyssey", "author": "Stanley G. Weinbaum", "repo": "stanley-g-weinbaum_short-fiction", "commit": "d9f83a574f4ed64969bb11ab1dca4b3e854dee4d",
-     "title": "A Martian Odyssey", "byline": "Stanley G. Weinbaum, with its sequel, Valley of Dreams", "files": ["a-martian-odyssey.xhtml", "valley-of-dreams.xhtml"]},
     {"id": "sherlock-holmes", "author": "Arthur Conan Doyle", "repo": "arthur-conan-doyle_the-adventures-of-sherlock-holmes", "commit": "48ec456ea50987a81f564821457b9fb32cc2bfc6",
      "title": "The Adventures of Sherlock Holmes", "byline": "Arthur Conan Doyle"},
-    {"id": "south", "author": "Ernest Shackleton", "repo": "ernest-shackleton_south", "commit": "233aa69e707ecc348ceef2eb1c167ada6a28ac24",
-     "title": "South", "byline": "Ernest Shackleton: the story of the Endurance expedition, 1914–1917"},
     {"id": "meditations", "author": "Marcus Aurelius", "repo": "marcus-aurelius_meditations_george-long", "commit": "3a47d37d9f1df94de235d53839f4b254ce2953d5",
      "title": "Meditations", "byline": "Marcus Aurelius, translated by George Long"},
-    {"id": "the-prince", "author": "Niccolò Machiavelli", "repo": "niccolo-machiavelli_the-prince_w-k-marriott", "commit": "25742ea76e27337369abe273447519c1b6eb9d3c",
-     "title": "The Prince", "byline": "Niccolò Machiavelli, translated by W. K. Marriott"},
-    {"id": "gold-bug", "author": "Edgar Allan Poe", "repo": "edgar-allan-poe_short-fiction", "commit": "f0a51689d795e5a0807d9901f69d8b14cd467048",
-     "title": "The Gold-Bug", "byline": "Edgar Allan Poe", "files": ["the-gold-bug.xhtml"]},
-    {"id": "money-getting", "author": "P. T. Barnum", "repo": "p-t-barnum_the-art-of-money-getting", "commit": "73e90fe0a78e3f2e3d15cf9ba622c7bdaed2fac8",
-     "title": "The Art of Money Getting", "byline": "P. T. Barnum: golden rules for making money"},
 ]
 SE_SKIP = {"titlepage.xhtml", "imprint.xhtml", "halftitlepage.xhtml", "colophon.xhtml", "uncopyright.xhtml", "loi.xhtml"}
 

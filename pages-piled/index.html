@@ -629,6 +629,10 @@ a.toc-item { text-decoration: none; }
 }
 /* Zen (z, the strip at the top, a swipe on a bar): the menus hidden, the slider kept */
 .app.tucked .top, .app.tucked .dock-ctl, .app.tucked .dock-page { display: none; }
+/* With a mouse, the pointer at the top edge in Zen brings the top bar back over the page, its z button lit, so a
+   click leaves Zen; it tucks away again soon after the pointer goes. */
+.app.tucked.zen-peek .top { display: grid; position: fixed; top: 0; left: 0; right: 0; z-index: 25; box-shadow: 0 8px 24px -12px var(--shadow); animation: zen-peek .18s ease; }
+@keyframes zen-peek { from { transform: translateY(-100%); } }
 @media (min-width: 861px) { .app.tucked .dock .nav { grid-column: 2; } }   /* the slider stays in the middle when the controls beside it go */
 /* ---------- phones: the same bars, regrouped; Options in tabs; Listen adds a row ---------- */
 .tray, .tray-listen, .menu-strip { display: none; }
@@ -1763,9 +1767,8 @@ window.bookReady = (async () => {
   });
   const LIMIT = 80000;   // characters in a part, some 55 pages; see prepare()
   // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
-  const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/", "martian-odyssey": "books/martian-odyssey/",
-    "sherlock-holmes": "books/sherlock-holmes/", "south": "books/south/", "meditations": "books/meditations/",
-    "the-prince": "books/the-prince/", "gold-bug": "books/gold-bug/", "money-getting": "books/money-getting/" };
+  const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/", "meditations": "books/meditations/",
+    "sherlock-holmes": "books/sherlock-holmes/" };
   const P = new URLSearchParams(location.search);
   const BM = P.get("from") === "bookmarklet";
   if (!BM && !P.has("book") && !P.has("opened")) return { own: true };
@@ -4380,6 +4383,8 @@ window.bookReady = (async () => {
     $("menuStrip").setAttribute("aria-label", on ? "Show the menus" : "Hide the menus");
     $("zenBtn").setAttribute("aria-pressed", String(on));
     if (on === was) return;
+    if (!on) app.classList.remove("zen-peek");
+    else if (!phoneMQ.matches) toast(matchMedia("(pointer: fine)").matches ? "Zen. Point at the top edge, or press z, to come back." : "Zen. Press z to come back.", 2600);
     zenSetting = true;
     if (on) {
       zenPanels = { toc: S.toc, map: S.map };
@@ -4394,6 +4399,15 @@ window.bookReady = (async () => {
     zenSetting = false;
   }
   $("zenBtn").addEventListener("click", e => { if (e.detail) $("zenBtn").blur(); setTucked(!app.classList.contains("tucked")); });
+  // In Zen, with a mouse: the top edge brings the top bar back for a moment (see .zen-peek).
+  let zenPeekTimer = 0;
+  const zenPeek = on => { clearTimeout(zenPeekTimer); if (!on) zenPeekTimer = setTimeout(() => app.classList.remove("zen-peek"), 700); else app.classList.add("zen-peek"); };
+  document.addEventListener("mousemove", e => {
+    if (!app.classList.contains("tucked") || phoneMQ.matches) return;
+    if (e.clientY <= 6) zenPeek(true);
+    else if (app.classList.contains("zen-peek") && !top.contains(e.target)) zenPeek(false);
+  });
+  top.addEventListener("mouseenter", () => { if (app.classList.contains("zen-peek")) zenPeek(true); });
   $("menuStrip").addEventListener("click", e => {
     if (e.detail) $("menuStrip").blur();   // a tap leaves no focus ring; the keyboard keeps its own
     setTucked(!app.classList.contains("tucked"));
