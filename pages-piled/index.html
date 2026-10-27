@@ -1409,7 +1409,7 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 4. Strip from the front. The pages lie flat in one row, a gap apart, and a step slides the row by one page.</figcaption>
 </figure>
 <p id="strip-history">It is inspired by PaperWM, a window manager for the GNOME desktop that sets windows side by side on an endless strip and scrolls the strip to bring the window you are working in into view, rather than squeezing them all onto one screen. It is not a carousel: nothing turns or loops, and every page keeps its size. Only your view travels along the row.</p>
-<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. The current page need not sit in the middle: <code>_</code> and <code>+</code> rest it further left or right, or up and down in a column, so the pages on one side get more room, and <code>|</code> brings it back. Strip rests, under Options, does the same, and Page shading lightens the pages beside the current one, down to none, in every view. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
+<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. The current page need not sit in the middle: <code>_</code> and <code>+</code> rest it further left or right, or up and down in a column, so the pages on one side get more room, and <code>)</code> brings it back. Strip rests, under Options, does the same, and Page shading lightens the pages beside the current one, down to none, in every view. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
 
 <h2 id="scroll" data-n="5">Scroll</h2>
 <p id="scroll-why">Pages are not always the best way to read. Many people read a long web page by keeping their line at one height and scrolling the text up to meet their eyes. The eyes barely move; the text comes to them.</p>
@@ -1629,7 +1629,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>V</code></td> <td>Next colours: Slate, Sepia, Paper, Gray</td> <td>Same</td></tr>
     <tr><td><code>t</code></td> <td>All pages as <b>t</b>humbnails</td> <td>Same</td></tr>
     <tr><td><code>-</code> <code>=</code> <code>0</code></td> <td>Less, more spread, or in Strip a narrower, wider gap; reset</td> <td>–</td></tr>
-    <tr><td><code>_</code> <code>+</code> <code>|</code></td> <td>In Strip, rest the page further left, further right; back to the middle</td> <td>–</td></tr>
+    <tr><td><code>_</code> <code>+</code> <code>)</code></td> <td>In Strip, rest the page further left, further right; back to the middle</td> <td>–</td></tr>
   </tbody>
 </table>
 <h3 id="keys-panels">Panels and screen</h3>
@@ -2885,7 +2885,7 @@ window.bookReady = (async () => {
     const narrow = r.width < 700, facing = !!S.facing;
     // Strip: pages lie flat in a row (across) or a column (down), and a step slides it a page or a spread.
     const strip = S.arrange === "strip", down = strip && S.stripDir === "down";
-    // where Strip rests its current page: the middle, or off to one side by a share of the desk (_ + and |, or Options)
+    // where Strip rests its current page: the middle, or off to one side by a share of the desk (_ + and ), or Options)
     const restX = strip && !down ? (S.stripAt / 100) * r.width : 0, restY = down ? (S.stripAt / 100) * r.height : 0;
     const fitW = facing ? (r.width * (narrow ? 0.96 : strip ? 0.7 : 0.82)) / (2 * W) : (r.width * (narrow ? 0.8 : 0.56)) / W;
     // Expanded, the page (or spread) is as large as the desk allows: its full height, or its full width if that runs out first.
@@ -4984,11 +4984,11 @@ window.bookReady = (async () => {
       else { skipSentence(k === "]" ? 1 : -1); pageKey = { key: k, at: now }; }
       return;
     }
-    // _ and + move where Strip rests its page, a step to the left or up and to the right or down; | brings it back to the middle
-    if (k === "_" || k === "+" || k === "|") {
+    // _ and + move where Strip rests its page, a step to the left or up and to the right or down; ) brings it back to the middle
+    if (k === "_" || k === "+" || k === ")") {
       e.preventDefault();
-      if (S.view !== "paged" || S.arrange !== "strip") { toast("_ + and | move the page in Strip", 1400); return; }
-      const v = k === "|" ? 0 : clamp(S.stripAt + (k === "_" ? -5 : 5), -40, 40);
+      if (S.view !== "paged" || S.arrange !== "strip") { toast("_ + and ) move the page in Strip", 1400); return; }
+      const v = k === ")" ? 0 : clamp(S.stripAt + (k === "_" ? -5 : 5), -40, 40);
       setSetting("stripAt", v);
       toast(`Strip rests ${stripAtText(v)}`, 1200);
       return;
