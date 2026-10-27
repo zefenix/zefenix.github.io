@@ -1218,7 +1218,8 @@ a.toc-item { text-decoration: none; }
         <tr><td><code>L</code></td> <td>Keys into the outline and back</td></tr>
         <tr><td><code>cc</code></td> <td>Outline as chapters, or with their parts</td></tr>
         <tr><td><code>B</code> <code>o</code></td> <td>Close the Library</td></tr>
-        <tr><td>Esc</td> <td>Cancel Remove all, leave the outline, let go of the book, then close</td></tr>
+        <tr><td><code>L</code> from a place found</td> <td>That book's outline, from the first chapter holding the words; <code>L</code> again comes back to the place</td></tr>
+        <tr><td>Esc</td> <td>One step back each time: cancel Remove all; leave the outline; from a book or a place found to the find box; clear the find; leave the box; then close</td></tr>
       </tbody></table>
     </div>
   </div>
@@ -4953,6 +4954,7 @@ window.bookReady = (async () => {
   const libItems = () => [...booksEl.querySelectorAll(".lib-books .lib-book:not([hidden])")];
   let selected = null;
   function select(i, focus) {
+    outlineFor = null;
     const items = libItems();
     items.forEach(r => r.removeAttribute("aria-selected"));
     selected = items[i] || null;
@@ -5119,8 +5121,9 @@ window.bookReady = (async () => {
   // The outline, beside the books: the chapters of the book selected, or of the one being read, under its own
   // groups. A chapter opens where it is; in the book being read, one in this part is a jump, not a reload.
   const outlineEl = $("libOutline");
+  let outlineFor = null;   // the book of the place found you are on, which the outline shows while you are there
   function renderOutline() {
-    const b = selected && selected._book;
+    const b = outlineFor || (selected && selected._book);
     const cur = !b || b.current;
     let title, entries;
     if (cur && info.own) { title = "Pages, Piled"; entries = chapters.map(c => ({ title: c.title, shown: String(c.n), href: `#${c.id}`, jump: c.b })); }
@@ -5198,7 +5201,7 @@ window.bookReady = (async () => {
   function findWords() { clearTimeout(foundTimer); foundTimer = setTimeout(runFound, 220); }
   async function runFound() {
     const raw = libFind.value.trim(), q = raw.toLowerCase(), run = ++foundRun, sec = $("libFound");
-    if (q.length < 2) { foundBy = new Map(); foundQ = ""; sec.hidden = true; sec.replaceChildren(); renderOutline(); return; }
+    if (q.length < 2) { foundBy = new Map(); foundQ = ""; outlineFor = null; sec.hidden = true; sec.replaceChildren(); renderOutline(); return; }
     const books = [...booksEl.querySelectorAll(".lib-books .lib-book")].map(r => r._book).filter(b => b.kind !== "card");
     const by = new Map(), groups = [];
     let total = 0;
@@ -5236,7 +5239,7 @@ window.bookReady = (async () => {
         const a = Math.max(0, at - 60), z = Math.min(u.text.length, at + q.length + 90);
         const m = elt("mark", {}, u.text.slice(at, at + q.length));
         const snip = elt("span", { className: "r-snip" }, (a ? "…" : "") + plainMd(u.text.slice(a, at)), m, plainMd(u.text.slice(at + q.length, z)) + (z < u.text.length ? "…" : ""));
-        return elt("a", { className: "f-row", href: hitHref(g.b, u, raw) }, elt("span", { className: "r-meta" }, u.title), snip);
+        return Object.assign(elt("a", { className: "f-row", href: hitHref(g.b, u, raw) }, elt("span", { className: "r-meta" }, u.title), snip), { _book: g.b });
       })));
       if (g.count > g.hits.length) out.push(elt("p", { className: "f-more" }, "Select the book to see every chapter that holds them."));
     }
@@ -5245,6 +5248,11 @@ window.bookReady = (async () => {
     renderOutline();
   }
   libFind.addEventListener("input", () => { filterShelf(); findWords(); });
+  $("libFound").addEventListener("focusin", e => {
+    const row = e.target.closest(".f-row");
+    if (row && row._book !== outlineFor) { outlineFor = row._book; renderOutline(); }
+  });
+  libFind.addEventListener("focus", () => { if (outlineFor) { outlineFor = null; renderOutline(); } });
 
   // Keys in the Library. In the find box, ↓ or Enter steps into the books; there h j k l and the arrows move,
   // ↑ from the top row goes back to the box, Enter opens, v switches the view, / finds, b closes.
@@ -5275,7 +5283,7 @@ window.bookReady = (async () => {
   const KEYMOVE = { j: "j", ArrowDown: "j", k: "k", ArrowUp: "k", h: "h", ArrowLeft: "h", l: "l", ArrowRight: "l" };
   // L moves the keys between the books and the outline; there j and k (or the arrows) move, g and G go to the first
   // and last chapter, Enter opens, and L or Esc goes back to the books.
-  let inOutline = false, oSel = -1, libLastC = 0;
+  let inOutline = false, oSel = -1, libLastC = 0, outlineFrom = null;
   const oLinks = () => [...outlineEl.querySelectorAll("a")].filter(a => a.offsetParent !== null);
   const narrowLib = () => matchMedia("(max-width: 860px)").matches;
   function openSheet(on) {
@@ -5296,12 +5304,16 @@ window.bookReady = (async () => {
     inOutline = on && oLinks().length > 0;
     outlineEl.classList.toggle("active", inOutline);
     if (inOutline) {
-      const cur = oLinks().findIndex(a => a.getAttribute("aria-current") === "true");
-      outlineSelect(cur >= 0 ? cur : 0);
+      // while finding, the keys start at the first chapter that holds the words
+      const links = oLinks(), hit = links.findIndex(a => a.classList.contains("o-hit")), cur = links.findIndex(a => a.getAttribute("aria-current") === "true");
+      outlineSelect(hit >= 0 ? hit : cur >= 0 ? cur : 0);
     } else {
       oLinks().forEach(a => a.classList.remove("o-sel"));
       if (outlineEl.classList.contains("sheet")) outlineEl.classList.remove("sheet");
-      if (selected) selected.focus({ preventScroll: true });
+      const back = outlineFrom;
+      outlineFrom = null;
+      if (back && back.isConnected && back !== document.body && !outlineEl.contains(back)) back.focus({ preventScroll: true });
+      else if (selected) selected.focus({ preventScroll: true });
     }
   }
   function libKey(e, typing) {
@@ -5326,7 +5338,7 @@ window.bookReady = (async () => {
       if (e.key === "Enter") return;   // the link opens
       if (["h", "l", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); return; }
     }
-    if (e.key === "L") { e.preventDefault(); enterOutline(!inOutline); return; }
+    if (e.key === "L") { e.preventDefault(); if (!inOutline) outlineFrom = document.activeElement; enterOutline(!inOutline); return; }
     if (inOutline) {
       const step = { j: 1, ArrowDown: 1, k: -1, ArrowUp: -1 }[e.key];
       if (step) { e.preventDefault(); outlineSelect(oSel + step); return; }
@@ -5510,13 +5522,21 @@ window.bookReady = (async () => {
   $("booksFromOpts").addEventListener("click", () => setBooks(true));
   if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "Options, then Library," : "The Library (B)"} reads them all.`, 3600), 1800);
 
-  // A result from another part opens that part with the reader's search already run.
+  // A place found in the Library, or in another part, opens with the search carried on: the words highlighted,
+  // the chip showing which match this is, at the first match in the chapter picked; n and N go on from there.
   build().then(() => {
-    const find = new URLSearchParams(location.search).get("find");
+    const P = new URLSearchParams(location.search), find = P.get("find");
     if (!find || !ready) return;
-    openSearch();
-    $("q").value = find;
-    $("q").dispatchEvent(new Event("input"));
+    P.delete("find");
+    history.replaceState(history.state, "", `${location.pathname}${P.toString() ? "?" + P : ""}${location.hash}`);
+    q.value = find;
+    runSearch(find);
+    if (!results.length) { openSearch(); return; }
+    let id = "";
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch {}
+    const b0 = id ? blockOfId(id) : -1, ri = b0 >= 0 ? results.findIndex(r => r.b >= b0) : 0;
+    showResult(jumps.length + Math.max(0, ri), false);
+    updateChip();
   });
 })();
 </script>
