@@ -3262,15 +3262,15 @@ window.bookReady = (async () => {
     const guide = document.querySelector(".guide");
     if (linear()) guide.style.setProperty("--guide-line", (20.4 * (parseFloat(desk.style.getPropertyValue("--lz")) || 1)).toFixed(1) + "px");
     else guide.style.removeProperty("--guide-line");
-    // as wide as what is read, the page or the text column, with a little to spare each side
+    // exactly as wide as what is read, the page or the text column, never past it
     requestAnimationFrame(() => {
       const host = guide.offsetParent, col = linear() ? pages[0] : textScroll() ? article : null;
       if (!host || !col) { guide.style.removeProperty("--guide-x"); guide.style.removeProperty("--guide-w"); return; }
       const hr = host.getBoundingClientRect(), cr = col.getBoundingClientRect();
       if (!cr.width) return;
-      const pad = Math.min(16, cr.width * 0.03);
-      guide.style.setProperty("--guide-x", Math.max(0, cr.left - hr.left - pad) + "px");
-      guide.style.setProperty("--guide-w", Math.min(hr.width, cr.width + 2 * pad) + "px");
+      const x = Math.max(0, cr.left - hr.left);
+      guide.style.setProperty("--guide-x", x + "px");
+      guide.style.setProperty("--guide-w", Math.min(hr.width - x, cr.width) + "px");
     });
   }
   function nextTheme(value) {
