@@ -5738,7 +5738,16 @@ window.bookReady = (async () => {
     const row = e.target.closest(".f-row");
     if (row && row._book !== outlineFor) { outlineFor = row._book; renderOutline(); }
   });
-  libFind.addEventListener("focus", () => { if (outlineFor) { outlineFor = null; renderOutline(); } });
+  libFind.addEventListener("focus", () => {
+    // The find box takes the keys: the outline lets go of them where it is, so a redraw while typing can't pull the focus back.
+    if (inOutline) {
+      inOutline = false;
+      outlineFrom = null;
+      outlineEl.classList.remove("active", "sheet");
+      oLinks().forEach(a => a.classList.remove("o-sel"));
+    }
+    if (outlineFor) { outlineFor = null; renderOutline(); }
+  });
 
   // Keys in the Library. In the find box, ↓ or Enter steps into the books; there h j k l and the arrows move,
   // ↑ from the top row goes back to the box, Enter opens, v switches the view, / finds, b closes.
