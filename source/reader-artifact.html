@@ -176,8 +176,16 @@ a.toc-item { text-decoration: none; }
 .toc-item .n { font-size: 11px; font-weight: 600; color: var(--accent); }
 .toc-item .t { font-family: var(--f-book); font-size: 14.5px; line-height: 1.3; color: var(--ink-soft); }
 .toc-item .p { font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.toc-item[aria-current="true"] { background: var(--surface); }
+.toc-item[aria-current="true"]:not(.sub-here) { background: var(--surface); }
 .toc-item[aria-current="true"] .t { color: var(--ink); }
+/* The chapter you are in carries a rail down its side, through its sub-chapters and headings, and the sub-chapter
+   or heading you are in is tinted with the accent: the rail says which chapter, the tint where in it. */
+#tocList li.cur { position: relative; }
+#tocList li.cur::before { content: ""; position: absolute; left: 1px; top: -4px; bottom: -4px; width: 3px; background: color-mix(in srgb, var(--accent) 60%, transparent); pointer-events: none; }
+#tocList li.cur.cur-first::before { top: 5px; border-top-left-radius: 2px; border-top-right-radius: 2px; }
+#tocList li.cur.cur-last::before { bottom: 7px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; }
+:is(.toc-item.sub-here, .toc-outline a[aria-current="true"]) { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--ink); }
+:is(.toc-item.sub-here, .toc-outline a[aria-current="true"]) .t { color: var(--accent); font-weight: 600; }
 /* the full outline: every chapter's sections under it, numbered, with their pages */
 .toc-outline { display: none; list-style: none; margin: 0 0 6px; padding: 0 0 0 30px; }
 .toc-panel.with-outline .toc-outline { display: block; }
@@ -793,6 +801,36 @@ a.toc-item { text-decoration: none; }
 .lib-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .lib-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); }
 .lib-card h3 { margin: 0; }
+@media (pointer: coarse) { .fine-only { display: none; } }
+@media (pointer: fine) { .coarse-only { display: none; } }
+/* Words found in the books: below the books, smaller than them. */
+.lib-found .f-book { margin: 14px 0 4px; display: flex; align-items: baseline; gap: 10px; }
+.lib-found .f-book button { padding: 0; border: 0; background: none; cursor: pointer; font: 400 15px/1.3 var(--f-book); color: var(--ink); text-align: left; }
+.lib-found .f-book button:hover { color: var(--accent); }
+.lib-found .f-count { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.lib-found .f-rows { display: flex; flex-direction: column; border-top: 1px solid var(--hair); }
+.lib-found .f-row { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr); gap: 14px; padding: 6px 10px; border-bottom: 1px solid var(--hair); text-decoration: none; color: inherit; border-radius: 0; }
+.lib-found .f-row:hover, .lib-found .f-row:focus-visible { background: color-mix(in srgb, var(--ink) 4%, transparent); outline: 0; }
+.lib-found .f-row:focus { box-shadow: inset 0 0 0 2px var(--accent); outline: 0; }
+.lib-found .r-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-soft); font-weight: 500; }
+.lib-found .r-snip { font-size: 13.5px; line-height: 1.4; }
+.lib-found .f-more { margin: 4px 10px 0; font-size: 12px; color: var(--ink-soft); }
+.lib-found .empty { margin: 0; font-size: 13px; color: var(--ink-soft); }
+@media (max-width: 700px) { .lib-found .f-row { grid-template-columns: 1fr; gap: 2px; } }
+/* The outline marks the chapters that hold the words found. */
+.lib-outline a.o-hit { grid-template-columns: minmax(18px, auto) 1fr auto; color: var(--ink); }
+.lib-outline a.o-hit .hc { align-self: center; min-width: 18px; padding: 0 5px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 18%, transparent); font: 600 10.5px/16px var(--f-ui); color: var(--accent); text-align: center; font-variant-numeric: tabular-nums; }
+.lib-outline .o-found { margin: -4px 0 10px; font-size: 12px; color: var(--ink-soft); }
+.lib-outline.finding a:not(.o-hit) { opacity: .55; }
+/* The keys page (?). */
+.keyhelp { position: fixed; inset: 0; z-index: 32; overflow-y: auto; overscroll-behavior: contain; background: var(--desk); padding: max(18px, env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) 48px max(18px, env(safe-area-inset-left, 0px)); }
+.kh-inner { max-width: 860px; margin: 0 auto; }
+.keyhelp h3 { margin: 26px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.keyhelp table { width: 100%; border-collapse: collapse; font-size: 13.5px; color: var(--ink); }
+.keyhelp th { padding: 6px 10px; text-align: left; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
+.keyhelp td { padding: 6px 10px; vertical-align: top; border-bottom: 1px solid var(--hair); line-height: 1.4; }
+.keyhelp td:first-child { white-space: nowrap; width: 11em; }
+.keyhelp code { padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); font: 12.5px var(--f-mono); }
 .lib-card.flash { outline: 2px solid var(--accent); outline-offset: 2px; }
 .link-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .bm-row { display: flex; align-items: center; gap: 10px; }
@@ -1017,8 +1055,8 @@ a.toc-item { text-decoration: none; }
         <button type="button" data-value="text" aria-label="Plain text" title="Plain text, no pages (v in Scroll)"><svg viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h10M3 12.5h6"/></svg></button>
       </div>
       <div class="seg" role="group" aria-label="Arrangement" data-setting="arrange" id="arrangeSeg">
-        <button type="button" data-value="flow" aria-label="Flow" title="Flow: pages turned inward (v)"><svg viewBox="0 0 16 16"><rect x="5.8" y="3" width="4.4" height="10" rx=".6"/><path d="M1.5 4.2 4.3 5.4v5.2L1.5 11.8zM14.5 4.2l-2.8 1.2v5.2l2.8 1.2z"/></svg></button>
         <button type="button" data-value="pile" aria-label="Pile" title="Pile: pages lying flat (v)"><svg viewBox="0 0 16 16"><rect x="5.5" y="3" width="5" height="10" rx=".6"/><path d="M3.7 4v8.4M1.9 5v6.6M12.3 4v8.4M14.1 5v6.6"/></svg></button>
+        <button type="button" data-value="flow" aria-label="Flow" title="Flow: pages turned inward (v)"><svg viewBox="0 0 16 16"><rect x="5.8" y="3" width="4.4" height="10" rx=".6"/><path d="M1.5 4.2 4.3 5.4v5.2L1.5 11.8zM14.5 4.2l-2.8 1.2v5.2l2.8 1.2z"/></svg></button>
         <button type="button" data-value="strip" aria-label="Strip" title="Strip: pages side by side, a page a step (v)"><svg viewBox="0 0 16 16"><rect x="5.6" y="3.5" width="4.8" height="9" rx=".6"/><rect x="-.6" y="3.5" width="4.8" height="9" rx=".6"/><rect x="11.8" y="3.5" width="4.8" height="9" rx=".6"/></svg></button>
       </div>
     </div>
@@ -1064,7 +1102,7 @@ a.toc-item { text-decoration: none; }
     <section>
       <h3>Pages</h3>
       <div class="row"><span>View</span>
-        <div class="seg" data-setting="arrange"><button type="button" data-value="flow">Flow</button><button type="button" data-value="pile">Pile</button><button type="button" data-value="strip">Strip</button></div></div>
+        <div class="seg" data-setting="arrange"><button type="button" data-value="pile">Pile</button><button type="button" data-value="flow">Flow</button><button type="button" data-value="strip">Strip</button></div></div>
       <div class="row strip-opt"><span>Strip goes</span>
         <div class="seg" data-setting="stripDir"><button type="button" data-value="across">Across</button><button type="button" data-value="down">Down</button></div></div>
       <div class="row"><label for="pagedSpread">Spread</label><input type="range" id="pagedSpread" data-setting="pagedSpread" min="0" max="100" step="1"><output for="pagedSpread"></output></div>
@@ -1106,8 +1144,9 @@ a.toc-item { text-decoration: none; }
       <div class="row"><span>Contents side</span>
         <div class="seg" data-setting="swap"><button type="button" data-value="0">Left</button><button type="button" data-value="1">Right</button></div></div>
     </section>
-    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (flow, pile or strip; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · J K page down, up · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
+    <p class="note">Keys: O options · s scroll pages or return · r back to where you were, or to Listen · f facing · F focus · FF full screen · z Zen · t thumbnails · v view (pile, flow or strip; in Scroll, pages or plain text) · V colours · - = 0 spread · B or o library (b inside switches its view) · c peek at contents · cc chapters or headings · C sidebar · L keys into contents · m minimap · a listen · [ ] or q w sentence · Q W or { } paragraph · [[ ]] page back, forward while listening · / search · h j k l move · J K page down, up · gg start · G end · in Scroll, d and u move half a screen. Settings and your place are saved in this browser.</p>
     <button type="button" class="reset" id="booksFromOpts">Library</button>
+    <button type="button" class="reset" id="keysFromOpts">Keys</button>
     <button type="button" class="reset" id="reset">Reset to defaults</button>
   </div>
 
@@ -1115,7 +1154,7 @@ a.toc-item { text-decoration: none; }
     <div class="lib-inner">
       <header class="lib-head">
         <h2>Library</h2>
-        <input id="libFind" type="search" placeholder="Find a book (/)" autocomplete="off" spellcheck="false" aria-label="Find a book">
+        <input id="libFind" type="search" placeholder="Find a book or words in one (/)" autocomplete="off" spellcheck="false" aria-label="Find a book or words in one">
         <div class="seg small" role="group" aria-label="Show books as" id="libView">
           <button type="button" data-v="shelf" title="Shelf (b or v)">Shelf</button><button type="button" data-v="list" title="List (b or v)">List</button>
         </div>
@@ -1132,6 +1171,7 @@ a.toc-item { text-decoration: none; }
         <div class="lib-sec-head"><h3>Opened in this browser</h3><span id="clearBox"><button type="button" class="reset" id="clearAll">Remove all</button></span></div>
         <div class="lib-books" id="openedList" role="listbox" aria-label="Opened in this browser"></div>
       </section>
+      <section class="lib-sec lib-found" id="libFound" aria-live="polite" hidden></section>
       <section class="lib-add">
         <div class="lib-card">
           <h3>Open your own</h3>
@@ -1141,18 +1181,36 @@ a.toc-item { text-decoration: none; }
             <input type="file" id="fileIn" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden>
             <input type="file" id="folderIn" webkitdirectory multiple hidden>
           </div>
-          <p class="bm-help">Or drop files or a folder anywhere on the page. A folder becomes one book, its files the chapters, in the order of its SUMMARY.md if it has one. Files are read here and never uploaded.</p>
+          <p class="bm-help">Or drop them on the page. Nothing leaves your browser.</p>
         </div>
         <div class="lib-card" id="bmCard">
           <h3>Read any docs page</h3>
           <div class="bm-row"><a class="bm-link" id="bmLink" href="#">Read in Pages, Piled</a></div>
-          <p class="bm-help">Drag the link to your bookmarks bar. Then, on any documentation page, click it: the page opens here as a book, with its pictures, and the site’s other pages can follow.</p>
-          <p class="bm-help">The bookmarklet is for computers. On a phone, read the shelf’s books or open a file. Your browser fetches the page as it does when you read it; nothing is sent to a server, and the book stays in this browser.</p>
+          <p class="bm-help fine-only">Drag it to your bookmarks bar, then click it on any docs page.</p>
+          <p class="bm-help coarse-only">Bookmarklets work on a computer.</p>
         </div>
       </section>
       </div>
       <aside class="lib-outline" id="libOutline" aria-label="Outline"></aside>
       </div>
+    </div>
+  </div>
+
+  <div class="keyhelp" id="keyHelp" role="dialog" aria-label="Keys" hidden>
+    <div class="kh-inner">
+      <header class="lib-head"><h2>Keys</h2><button type="button" class="tog icon" id="khClose" aria-label="Close the keys" title="Close (? or Esc)"><svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></header>
+      <div class="kh-body" id="khBody"></div>
+      <h3>In the Library</h3>
+      <table class="kh-lib"><thead><tr><th>Key</th> <th>What it does</th></tr></thead><tbody>
+        <tr><td><code>/</code> Ctrl+f</td> <td>Find a book, or words in every book</td></tr>
+        <tr><td><code>h</code> <code>j</code> <code>k</code> <code>l</code>, arrows</td> <td>Move between books, and down into the words found</td></tr>
+        <tr><td>Enter, double-click</td> <td>Open</td></tr>
+        <tr><td><code>b</code> <code>v</code></td> <td>Shelf or List</td></tr>
+        <tr><td><code>L</code></td> <td>Keys into the outline and back</td></tr>
+        <tr><td><code>cc</code></td> <td>Outline as chapters, or with their parts</td></tr>
+        <tr><td><code>B</code> <code>o</code></td> <td>Close the Library</td></tr>
+        <tr><td>Esc</td> <td>Cancel Remove all, leave the outline, let go of the book, then close</td></tr>
+      </tbody></table>
     </div>
   </div>
 
@@ -1468,7 +1526,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>r</code></td> <td><b>R</b>eturn: to Listen’s sentence if you moved away, otherwise to before your last jump; again to come back</td> <td>Same</td></tr>
     <tr><td><code>s</code></td> <td><b>S</b>witch to <b>s</b>crolled pages</td> <td><b>S</b>witch back to pages</td></tr>
     <tr><td><code>f</code></td> <td><b>F</b>acing pages on, off; in All pages, spreads or single pages</td> <td>Open at facing pages</td></tr>
-    <tr><td><code>v</code></td> <td>Flow, Pile or Strip <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
+    <tr><td><code>v</code></td> <td>Pile, Flow or Strip <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
     <tr><td><code>V</code></td> <td>Next colours: Slate, Sepia, Paper, Gray</td> <td>Same</td></tr>
     <tr><td><code>t</code></td> <td>All pages as <b>t</b>humbnails</td> <td>Same</td></tr>
     <tr><td><code>-</code> <code>=</code> <code>0</code></td> <td>Less, more spread; reset</td> <td>–</td></tr>
@@ -1490,6 +1548,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>FF</code></td> <td><b>F</b>ull screen on, off</td></tr>
     <tr><td><code>e</code></td> <td><b>E</b>xpand pages to fill the screen</td></tr>
     <tr><td><code>O</code></td> <td><b>O</b>ptions</td></tr>
+    <tr><td><code>?</code></td> <td>These keys, on a page of their own</td></tr>
     <tr><td><code>a</code></td> <td>Listen, stop <b>a</b>udio</td></tr>
     <tr><td><code>/</code> Ctrl+f</td> <td>Search</td></tr>
     <tr><td><code>n</code> <code>N</code></td> <td><b>N</b>ext, previous match</td></tr>
@@ -1651,9 +1710,20 @@ transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
 // browser's IndexedDB under ?opened=KEY. The site takes no address from a link. Without either, the reader's own book stays.
 window.bookReady = (async () => {
   const $ = id => document.getElementById(id);
-  window.bookTools = { checkBook, saveBook, listBooks, deleteBook, deleteAll, prepare, chapterIds };
+  window.bookTools = { checkBook, saveBook, listBooks, loadBook, deleteBook, deleteAll, prepare, chapterIds };
   // The reader's own chapters, for the Library's outline once another book fills the template.
   window.ownToc = [...$("book").content.querySelectorAll(".bk > h2")].map(h => ({ title: h.textContent.trim(), id: h.id, shown: h.dataset.n }));
+  // Its text by chapter, for the Library's search, and its Keys tables, for the keys page (?).
+  window.ownText = [];
+  for (const el of $("book").content.querySelectorAll(".bk > *")) {
+    if (el.tagName === "H2") window.ownText.push({ title: el.textContent.trim(), id: el.id, text: "" });
+    else if (window.ownText.length && !el.classList.contains("colophon")) window.ownText[window.ownText.length - 1].text += el.textContent + "\n\n";
+  }
+  window.ownKeys = [...$("book").content.querySelectorAll("#keys-moving, #keys-table, #keys-panels, #keys-tools, #keys-listening, #keys-listen")].map(el => {
+    const c = el.cloneNode(true);
+    c.removeAttribute("id");
+    return c;
+  });
   const LIMIT = 80000;   // characters in a part, some 55 pages; see prepare()
   // The shelf's books by name. A name maps to its folder here and nowhere else; a link never names an address.
   const SHELF = { "rust-book": "books/rust-book/", "claude-cookbooks": "books/claude-cookbooks/" };
@@ -2175,7 +2245,7 @@ window.bookReady = (async () => {
 
   // swap 0: contents on the left, minimap on the right.
   const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 3, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["flow", "pile", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -2569,7 +2639,7 @@ window.bookReady = (async () => {
   /* ---------- contents ---------- */
 
   // Each chapter row can carry its headings underneath, shown when Contents lists them (cc, or the switch at its foot).
-  let tocItems = [], curChapter = -1, places = [];
+  let tocItems = [], curChapter = -1, curSection = null, places = [];
   const outlineOn = () => S.outline === "on";
   function buildToc() {
     const entries = [{ b: 0, n: "", title: "Cover", id: "summary" }, ...chapters];
@@ -3053,8 +3123,33 @@ window.bookReady = (async () => {
       el.title = el === statL ? "Peek at the contents" : "All pages";
       if (title === "Chapter and page") el.dataset.where = ""; else delete el.dataset.where;
     });
-    tocItems.forEach((t, i) => { t.btn.setAttribute("aria-current", String(i === ci)); t.li.classList.toggle("cur", i === ci); });
-    if (ci !== curChapter) { curChapter = ci; keepInView(tocItems[ci].li); }
+    // The chapter: in a book with its own numbering, a sub-chapter's chapter is the one numbered as its start (5 for 5.2).
+    const shownOf = i => tocItems[i].btn.querySelector(".n").textContent;
+    let top = ci;
+    const sh = shownOf(ci);
+    if (sh.includes(".")) {
+      const major = sh.split(".")[0];
+      for (let j = ci - 1; j >= 0 && shownOf(j).startsWith(major); j--) if (shownOf(j) === major) { top = j; break; }
+    }
+    let end = top;
+    if (shownOf(top)) while (end + 1 < tocItems.length && shownOf(end + 1).startsWith(shownOf(top) + ".")) end++;
+    // the heading you are in: the last one in this chapter that starts at or before where you are
+    let sec = null;
+    tocItems[ci].li.querySelectorAll(".toc-outline a").forEach(x => { if (+x.dataset.b <= a.b) sec = x; });
+    tocItems.forEach((t, i) => {
+      t.btn.setAttribute("aria-current", String(i === ci || i === top));
+      t.btn.classList.toggle("sub-here", i === ci && ci !== top && !(sec && outlineOn()));
+      t.li.classList.toggle("cur", i >= top && i <= end);
+      t.li.classList.toggle("cur-first", i === top);
+      t.li.classList.toggle("cur-last", i === end);
+    });
+    if (sec !== curSection) {
+      if (curSection) curSection.removeAttribute("aria-current");
+      if (sec) sec.setAttribute("aria-current", "true");
+      curSection = sec;
+      if (sec && outlineOn() && ci === curChapter) keepInView(sec);
+    }
+    if (ci !== curChapter) { curChapter = ci; keepInView(sec && outlineOn() ? sec : tocItems[ci].li); }
   }
 
   // Click or drag anywhere along the page slider; a tip names the page under the pointer.
@@ -4380,7 +4475,7 @@ window.bookReady = (async () => {
       tocPeeked = tocPanel.hidden || (app.classList.contains("narrow") && !overlay.toc);
       if (tocPeeked) peek("toc");
       tocNav = true;
-      const links = tocLinks(), cur = links.findIndex(el => el.getAttribute("aria-current") === "true");
+      const links = tocLinks(), cur = links.findLastIndex(el => el.getAttribute("aria-current") === "true");   // the heading, if shown, else the chapter
       tocSelect(cur >= 0 ? cur : 0);
       return;
     }
@@ -4420,7 +4515,7 @@ window.bookReady = (async () => {
   // v changes the view within the current mode: Flow or Pile in pages, text or pages in Scroll.
   function switchView() {
     if (S.view === "scroll") setSetting("scrollStyle", S.scrollStyle === "pages" ? "text" : "pages");
-    else setSetting("arrange", { flow: "pile", pile: "strip", strip: "flow" }[S.arrange] || "flow");
+    else setSetting("arrange", { pile: "flow", flow: "strip", strip: "pile" }[S.arrange] || "flow");
     toast(S.view === "scroll" ? (S.scrollStyle === "pages" ? "Scroll: pages" : "Scroll: text") : { flow: "Flow view", pile: "Pile view", strip: S.stripDir === "down" ? "Strip view, down" : "Strip view, across" }[S.arrange], 1200);
   }
   function goEdge(dir) {
@@ -4435,6 +4530,11 @@ window.bookReady = (async () => {
     const t = e.target;
     const typing = !!(t.closest && t.closest("input, textarea, select")) && t.offsetParent !== null;   // a hidden search box doesn't count
     // In the Library, / and Ctrl+F find a book or words in this one; b and Esc close it; other keys wait.
+    if (!$("keyHelp").hidden) {
+      if (e.key === "?" || isEsc(e)) { e.preventDefault(); showKeys(false); }
+      return;
+    }
+    if (e.key === "?" && !typing && booksEl.hidden) { e.preventDefault(); showKeys(true); return; }
     if (!booksEl.hidden && !isEsc(e)) { libKey(e, typing); return; }
     if (tocNav && !isEsc(e) && tocKey(e)) return;
     if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "f") {
@@ -4698,7 +4798,7 @@ window.bookReady = (async () => {
     tocList.replaceChildren();
     buildToc();
     buildTicks();
-    curChapter = -1;
+    curChapter = -1; curSection = null;
     ready = true;
     thumbsBtn.disabled = false;
     status.hidden = true;
@@ -5029,6 +5129,8 @@ window.bookReady = (async () => {
     close.innerHTML = '<svg viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
     close.addEventListener("click", () => openSheet(false));
     const box = [close, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts" }, "Outline"), elt("p", { className: "o-title" }, title)];
+    const marks = foundQ ? foundBy.get(b ? b.href : info.own ? location.pathname : `?${info.ref}`) : null;
+    if (foundQ) box.push(elt("p", { className: "o-found" }, marks ? `${marks.size} ${marks.size === 1 ? "chapter holds" : "chapters hold"} “${libFind.value.trim()}”` : `No chapter holds “${libFind.value.trim()}”`));
     if (!entries.length) box.push(elt("p", { className: "empty" }, b && b.kind === "card" ? "Open the docs with the bookmarklet to see their outline here." : "No chapters to show."));
     let group = null, ol = null;
     for (const e of entries) {
@@ -5047,21 +5149,93 @@ window.bookReady = (async () => {
         if (blk < 0) return;
         setBooks(false); markPlace(); jump({ b: blk, f: 0 });
       });
+      // a chapter counts its sub-chapters too (4 for 4.1, 4.2), so it is marked when they are folded away
+      const n = marks && (marks.get(e.title) || 0) + (e.shown && !e.shown.includes(".") ? entries.filter(x => x !== e && x.shown && x.shown.startsWith(e.shown + ".")).reduce((t, x) => t + (marks.get(x.title) || 0), 0) : 0);
+      if (n) { a.classList.add("o-hit"); a.append(elt("span", { className: "hc", title: `${n} ${n === 1 ? "place" : "places"}` }, String(n))); }
       ol.append(elt("li", { className: /\./.test(e.shown || "") ? "sub" : "" }, a));
     }
     outlineEl.replaceChildren(...box);
     outlineEl.classList.toggle("chapters-only", !outlineOn());
+    outlineEl.classList.toggle("finding", !!marks);
     if (inOutline) enterOutline(true);
     requestAnimationFrame(() => { const c = outlineEl.querySelector('[aria-current="true"]'); if (c) outlineEl.scrollTop = c.offsetTop - outlineEl.offsetTop - 60; });
   }
 
-  // Find narrows the shelf to matching books.
+  // Find narrows the shelf to books whose names match, and below them lists the places in every book's text
+  // that hold the words, a few per book; the outline marks the chapters that hold them.
   function filterShelf() {
     const q = libFind.value.trim().toLowerCase();
     booksEl.querySelectorAll(".lib-books .lib-book").forEach(b => { b.hidden = !!q && !b.dataset.find.includes(q); });
+    // a section with no book left to show keeps out of the way of the words found
+    $("shelfList").closest("section").hidden = !$("shelfList").querySelector(".lib-book:not([hidden])");
+    $("openedSec").hidden = !openedCount || !$("openedList").querySelector(".lib-book:not([hidden])");
     if (selected && selected.hidden) select(-1);
   }
-  libFind.addEventListener("input", filterShelf);
+  const textCache = new Map();
+  function textOf(book) {
+    if (!textCache.has(book.href)) textCache.set(book.href, (async () => {
+      if (book.kind === "own") return window.ownText.map(c => ({ title: c.title, text: c.text, id: c.id, part: 1 }));
+      const data = book.kind === "shelf" ? await (await fetch(`books/${book.id}/book.json`)).json() : await window.bookTools.loadBook(book.key);
+      if (!data) return [];
+      const { list, parts } = window.bookTools.prepare(data), ids = window.bookTools.chapterIds(list.map(c => c.title));
+      return parts.flatMap((p, pi) => p.units.map(u => ({ title: list[u.i].title, text: u.text, id: ids[u.i], part: pi + 1 })));
+    })().catch(() => []));
+    return textCache.get(book.href);
+  }
+  const plainMd = t => t.replace(/data:image\/[^)\s"]+/g, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\]\([^)]*\)/g, "]").replace(/<[^>]+>/g, "").replace(/[*_`#>\[\]]/g, "").replace(/\s+/g, " ");
+  const hitHref = (book, u, q) => `${book.kind === "own" ? location.pathname + "?" : `?${book.kind === "shelf" ? "book=" + book.id : "opened=" + book.key}&`}${u.part > 1 ? `part=${u.part}&` : ""}find=${encodeURIComponent(q)}${u.id ? "#" + u.id : ""}`;
+  let foundBy = new Map(), foundQ = "", foundRun = 0, foundTimer = 0;
+  const foundRows = () => [...$("libFound").querySelectorAll(".f-row")];
+  function findWords() { clearTimeout(foundTimer); foundTimer = setTimeout(runFound, 220); }
+  async function runFound() {
+    const raw = libFind.value.trim(), q = raw.toLowerCase(), run = ++foundRun, sec = $("libFound");
+    if (q.length < 2) { foundBy = new Map(); foundQ = ""; sec.hidden = true; sec.replaceChildren(); renderOutline(); return; }
+    const books = [...booksEl.querySelectorAll(".lib-books .lib-book")].map(r => r._book).filter(b => b.kind !== "card");
+    const by = new Map(), groups = [];
+    let total = 0;
+    for (const b of books) {
+      const units = await textOf(b);
+      if (run !== foundRun) return;
+      const hits = [], chapters = new Map();
+      let count = 0;
+      for (const u of units) {
+        u.low ??= u.text.toLowerCase();
+        for (let at = u.low.indexOf(q); at >= 0; at = u.low.indexOf(q, at + q.length)) {
+          count++;
+          chapters.set(u.title, (chapters.get(u.title) || 0) + 1);
+          if (hits.length < 5 && !hits.some(h => h.u === u)) hits.push({ u, at });
+        }
+      }
+      if (!count) continue;
+      total += count;
+      by.set(b.href, chapters);
+      groups.push({ b, hits, count, chapters });
+    }
+    foundBy = by;
+    foundQ = q;
+    const head = elt("h3", {}, groups.length ? `Words found · ${total} ${total === 1 ? "place" : "places"} in ${groups.length} ${groups.length === 1 ? "book" : "books"}` : "Words found");
+    const out = [head];
+    if (!groups.length) out.push(elt("p", { className: "empty" }, `No book holds “${raw}”.`));
+    for (const g of groups) {
+      const name = elt("button", { type: "button", title: "Select this book; its outline marks the chapters" }, g.b.title);
+      name.addEventListener("click", () => {
+        const row = [...booksEl.querySelectorAll(".lib-books .lib-book")].find(r => r._book.href === g.b.href);
+        if (row) { row.hidden = false; row.closest("section").hidden = false; select(libItems().indexOf(row), true); }
+      });
+      out.push(elt("div", { className: "f-book" }, name, elt("span", { className: "f-count" }, `${g.count} ${g.count === 1 ? "place" : "places"} in ${g.chapters.size} ${g.chapters.size === 1 ? "chapter" : "chapters"}`)));
+      out.push(elt("div", { className: "f-rows" }, ...g.hits.map(({ u, at }) => {
+        const a = Math.max(0, at - 60), z = Math.min(u.text.length, at + q.length + 90);
+        const m = elt("mark", {}, u.text.slice(at, at + q.length));
+        const snip = elt("span", { className: "r-snip" }, (a ? "…" : "") + plainMd(u.text.slice(a, at)), m, plainMd(u.text.slice(at + q.length, z)) + (z < u.text.length ? "…" : ""));
+        return elt("a", { className: "f-row", href: hitHref(g.b, u, raw) }, elt("span", { className: "r-meta" }, u.title), snip);
+      })));
+      if (g.count > g.hits.length) out.push(elt("p", { className: "f-more" }, "Select the book to see every chapter that holds them."));
+    }
+    sec.replaceChildren(...out);
+    sec.hidden = false;
+    renderOutline();
+  }
+  libFind.addEventListener("input", () => { filterShelf(); findWords(); });
 
   // Keys in the Library. In the find box, ↓ or Enter steps into the books; there h j k l and the arrows move,
   // ↑ from the top row goes back to the box, Enter opens, v switches the view, / finds, b closes.
@@ -5073,12 +5247,17 @@ window.bookReady = (async () => {
     if (libView === "list" || dir === "h" || dir === "l") {
       const next = i + (dir === "j" || dir === "l" ? 1 : -1);
       if (next < 0) { if (key === "ArrowUp") { select(-1); libFind.focus(); } return; }
+      if (next >= items.length && dir === "j" && foundRows().length) { foundRows()[0].focus(); foundRows()[0].scrollIntoView({ block: "nearest" }); return; }
       return select(Math.min(items.length - 1, next), true);
     }
     // On shelves, j and k go to the nearest cover in the next or previous row.
     const r = selected.getBoundingClientRect(), x = r.left + r.width / 2;
     const rows = items.filter(el => { const t = el.getBoundingClientRect().top; return dir === "j" ? t > r.top + 4 : t < r.top - 4; });
-    if (!rows.length) { if (key === "ArrowUp") { select(-1); libFind.focus(); } return; }
+    if (!rows.length) {
+      if (key === "ArrowUp") { select(-1); libFind.focus(); }
+      else if (dir === "j" && foundRows().length) { foundRows()[0].focus(); foundRows()[0].scrollIntoView({ block: "nearest" }); }
+      return;
+    }
     const rowTop = dir === "j" ? Math.min(...rows.map(el => el.getBoundingClientRect().top)) : Math.max(...rows.map(el => el.getBoundingClientRect().top));
     const inRow = rows.filter(el => Math.abs(el.getBoundingClientRect().top - rowTop) < 4);
     const best = inRow.reduce((a, el) => { const c = el.getBoundingClientRect(); const dx = Math.abs(c.left + c.width / 2 - x); return !a || dx < a.dx ? { el, dx } : a; }, null);
@@ -5121,8 +5300,22 @@ window.bookReady = (async () => {
     if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") || (e.key === "/" && !typing)) { e.preventDefault(); libFind.focus(); libFind.select(); return; }
     if (e.ctrlKey || e.metaKey) return;
     if (typing) {
-      if (e.target === libFind && (e.key === "ArrowDown" || e.key === "Enter")) { e.preventDefault(); select(0, true); }
+      if (e.target === libFind && (e.key === "ArrowDown" || e.key === "Enter")) { e.preventDefault(); if (libItems().length) select(0, true); else if (foundRows().length) foundRows()[0].focus(); }
       return;
+    }
+    if (e.key === "?") { e.preventDefault(); showKeys(true); return; }
+    const fr = foundRows(), fi = fr.indexOf(document.activeElement);
+    if (fi >= 0) {
+      const step = { j: 1, ArrowDown: 1, k: -1, ArrowUp: -1 }[e.key];
+      if (step) {
+        e.preventDefault();
+        if (fi + step >= 0) { (fr[fi + step] || fr[fi]).focus(); fr[Math.min(fr.length - 1, fi + step)].scrollIntoView({ block: "nearest" }); }
+        else if (libItems().length) select(libItems().length - 1, true);
+        else libFind.focus();
+        return;
+      }
+      if (e.key === "Enter") return;   // the link opens
+      if (["h", "l", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); return; }
     }
     if (e.key === "L") { e.preventDefault(); enterOutline(!inOutline); return; }
     if (inOutline) {
@@ -5154,6 +5347,7 @@ window.bookReady = (async () => {
   // Esc: first a pending Remove all, then the selection, then the Library itself.
   function libEsc() {
     if (askingClear) { askClear(false); return; }
+    if (foundRows().includes(document.activeElement)) { libFind.focus(); return; }
     if (inOutline || outlineEl.classList.contains("sheet")) { enterOutline(false); openSheet(false); return; }
     if (selected) { select(-1); return; }
     setBooks(false);
@@ -5166,6 +5360,19 @@ window.bookReady = (async () => {
     app.classList.toggle("lib-on", open);
   }
   const toggleBooks = () => setBooks(booksEl.hidden);
+  // The keys page, ?: the Keys chapter's tables, kept from the reader's own book, and the Library's keys.
+  const keyHelp = $("keyHelp");
+  let keysFrom = null;
+  function showKeys(on) {
+    if (on && !$("khBody").children.length) $("khBody").replaceChildren(...(window.ownKeys || []).map(el => el.cloneNode(true)));
+    if (on) { keysFrom = document.activeElement; setOptions(false); }
+    keyHelp.hidden = !on;
+    if (on) $("khClose").focus({ preventScroll: true });
+    else if (keysFrom && keysFrom.isConnected && keysFrom !== document.body) keysFrom.focus({ preventScroll: true });
+    else focusReader();
+  }
+  $("khClose").addEventListener("click", () => showKeys(false));
+  $("keysFromOpts").addEventListener("click", () => showKeys(true));
   $("nameBtn").addEventListener("click", toggleBooks);
 
   // The bookmarklet's tab fetches the site's pages, since only a page on that site may read them; it must still be open.
