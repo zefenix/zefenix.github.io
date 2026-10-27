@@ -283,7 +283,7 @@ a.toc-item { text-decoration: none; }
 .view-paged.linear { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 .view-paged.stacked.linear .pagedjs_pages {
   position: static; inset: auto; perspective: none; zoom: var(--lz, 1);
-  display: flex; flex-direction: column; align-items: center; gap: var(--lgap, 25px); padding: 24px 0 48px;   /* the gap is Spread's */
+  display: flex; flex-direction: column; align-items: center; gap: var(--lgap, 28px); padding: 24px 0 48px;   /* the gap is Spread's */
 }
 .view-paged.stacked.linear .pagedjs_page {
   position: relative !important; left: auto; top: auto; flex: none;
@@ -547,6 +547,8 @@ a.toc-item { text-decoration: none; }
 .popover .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13.5px; }
 .popover .row input[type="range"] { flex: 1; max-width: 150px; accent-color: var(--accent); }
 .popover output { min-width: 3.2em; text-align: right; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.popover output.to-default { cursor: pointer; border-radius: 4px; }
+.popover output.to-default:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .popover .seg button { padding: 4px 10px; font-size: 12.5px; }
 .popover .note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
 .reset { align-self: flex-start; border: 0; background: none; padding: 0; font-size: 12.5px; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -2350,7 +2352,7 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", listenCode: "read", highlighter: "off", pagedSpread: 25, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
   const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
@@ -2888,7 +2890,7 @@ window.bookReady = (async () => {
     if (!r.width) return;
     if (linear()) {
       desk.classList.add("linear");
-      desk.style.setProperty("--lgap", S.pagedSpread + "px");   // Spread sets the gap between scrolled pages: 25 by default, none at 0
+      desk.style.setProperty("--lgap", S.pagedSpread + "px");   // Spread sets the gap between scrolled pages: 28 by default, none at 0
       desk.style.setProperty("--lz", (S.expand ? Math.min((r.height - 12) / H, (r.width - 12) / W, 3) : Math.min((r.height - 48) / H, (r.width - 40) / W, 1.7)).toFixed(4));
       pages.forEach((p, i) => {
         ["transform", "opacity", "z-index", "zoom"].forEach(x => p.style.removeProperty(x));
@@ -3553,7 +3555,22 @@ window.bookReady = (async () => {
       setSetting(inp.dataset.setting, v);
     });
   });
-  // the place's readout puts the zone back in the middle
+  // A slider's readout, such as 25% or 1×, puts that one setting back to its default.
+  document.querySelectorAll("input[type=range][data-setting] + output").forEach(out => {
+    const key = out.previousElementSibling.dataset.setting;
+    out.classList.add("to-default");
+    out.tabIndex = 0;
+    out.setAttribute("role", "button");
+    out.title = "Back to the default";
+    const back = () => {
+      if (S[key] === DEFAULTS[key]) return;
+      setSetting(key, DEFAULTS[key]);
+      toast(`${out.closest(".row").querySelector("label").textContent}: back to ${out.textContent}`, 1200);
+    };
+    out.addEventListener("click", back);
+    out.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); back(); } });
+  });
+  // Reset to defaults: every setting back, keeping the place in the book
   $("reset").addEventListener("click", () => {
     const a = currentAnchor(), paper = S.paper, size = S.textSize;
     S = Object.assign({}, DEFAULTS);
