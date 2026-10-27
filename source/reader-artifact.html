@@ -283,7 +283,7 @@ a.toc-item { text-decoration: none; }
 .view-paged.linear { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 .view-paged.stacked.linear .pagedjs_pages {
   position: static; inset: auto; perspective: none; zoom: var(--lz, 1);
-  display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 24px 0 48px;
+  display: flex; flex-direction: column; align-items: center; gap: var(--lgap, 28px); padding: 24px 0 48px;   /* the gap is Spread's */
 }
 .view-paged.stacked.linear .pagedjs_page {
   position: relative !important; left: auto; top: auto; flex: none;
@@ -1423,7 +1423,7 @@ a.toc-item { text-decoration: none; }
 <p id="scroll-why">Pages are not always the best way to read. Many people read a long web page by keeping their line at one height and scrolling the text up to meet their eyes. The eyes barely move; the text comes to them.</p>
 <h3 id="scroll-styles">Two styles</h3>
 <p id="scroll-how">Scroll keeps that habit, in two styles. Scrolled pages sets the pages one under another, as a word processor does; plain text drops the pages and reads like an ordinary web page, with room at both ends so any line can sit at whatever height you read. Either way the page number follows you, so “page twelve” means the same words in every view. Only a new page size renumbers the book, since a larger page holds more words.</p>
-<p id="scroll-pages">From a paged view, <code>s</code> opens scrolled pages and <code>s</code> again comes back. In Scroll, <code>v</code> switches between pages and plain text. The switch at the bottom left has all four: one page, facing pages, scrolled pages, plain text.</p>
+<p id="scroll-pages">From a paged view, <code>s</code> opens scrolled pages and <code>s</code> again comes back. In Scroll, <code>v</code> switches between pages and plain text. The switch at the bottom left has all four: one page, facing pages, scrolled pages, plain text. Spread, under Options, sets the gap between scrolled pages, down to none.</p>
 <figure class="fig" id="fig-scroll">
   <svg viewBox="0 0 320 146" role="img" aria-label="Scroll in its two styles side by side: on the left the pages one under another; on the right the text as one column.">
     <g transform="translate(-152 0)">
@@ -1496,7 +1496,7 @@ a.toc-item { text-decoration: none; }
 <h2 id="outline" data-n="7">Contents and the outline</h2>
 <p id="outline-what">Contents, the panel on the left, lists the chapters with the page each starts on. Turn on Headings at its foot, or press <code>cc</code>, and each chapter’s headings appear under it, numbered as the book numbers them: that fuller list is the outline. A rail runs down the chapter you are in, and the heading you are reading is tinted, along with every other heading on the pages in view.</p>
 <p id="outline-keys"><code>c</code> peeks at Contents and <code>c</code> again puts it away; <code>C</code> keeps it open or closes it. <code>L</code> moves the keys into it: <code>j</code> and <code>k</code> step through the chapters and headings, <code>g</code> and <code>G</code> go to the first and the last, Enter goes there, and <code>L</code> or Esc gives the keys back to the page.</p>
-<p id="outline-find">To find a heading by name, press <code>/</code> while <code>L</code> has the keys, or tap Find at the foot of Contents. As you type, the outline narrows to the chapters and headings whose names hold your words, each heading under its chapter; ↓ or Enter steps into them. Esc clears the words, and Esc again closes the box. It looks only at names: Search, in chapter 9, looks through the text.</p>
+<p id="outline-find">To find a heading by name, press <code>/</code> while <code>L</code> has the keys, or tap Find at the foot of Contents. As you type, the outline narrows to the chapters and headings whose names hold your words, each heading under its chapter; ↓ or Enter steps into them. Esc steps back a stage at a time: from what was found to the box, then clears the words, then closes the box. It looks only at names: Search, in chapter 9, looks through the text.</p>
 <p id="outline-library">The Library keeps an outline too, of the book selected, beside its books. The same keys work there, <code>/</code> finds a chapter in it, and while the Library’s find is in use it counts the places found in each chapter.</p>
 <p id="outline-parts">A book that loads in parts lists every chapter in Contents. Those in parts not yet loaded sit back at half strength, and opening one loads its part.</p>
 
@@ -2888,6 +2888,7 @@ window.bookReady = (async () => {
     if (!r.width) return;
     if (linear()) {
       desk.classList.add("linear");
+      desk.style.setProperty("--lgap", S.pagedSpread + "px");   // Spread sets the gap between scrolled pages: 28 by default, none at 0
       desk.style.setProperty("--lz", (S.expand ? Math.min((r.height - 12) / H, (r.width - 12) / W, 3) : Math.min((r.height - 48) / H, (r.width - 40) / W, 1.7)).toFixed(4));
       pages.forEach((p, i) => {
         ["transform", "opacity", "z-index", "zoom"].forEach(x => p.style.removeProperty(x));
@@ -5029,6 +5030,8 @@ window.bookReady = (async () => {
       escAt = performance.now();
       if (e.key === "[") e.preventDefault();
       if (!booksEl.hidden) { e.preventDefault(); libEsc(); }   // not the search box's own clearing: Esc there is a step of its own
+      // in what the outline's find found, Esc goes back to its box first, keeping the words; Esc there clears them, then closes it
+      else if (tocNav && !tocFindBox.hidden) { e.preventDefault(); tocNav = false; tocLinks().forEach(el => el.classList.remove("k-sel")); tocFind.focus(); }
       else if (tocNav) enterToc(false);
       else if (!opts.hidden) { setOptions(false); if (focusMode) focusReader(); else optsBtn.focus(); }
       else if (!searchBox.hidden) closeSearch(false);
@@ -6018,6 +6021,8 @@ window.bookReady = (async () => {
   // then clears the find, then leaves the box, then closes the Library.
   function libEsc() {
     if (askingClear) { askClear(false); return; }
+    // in the outline, with its find box open, Esc goes back to the box first, as from the words found to the Library's find
+    if (inOutline && !oFindBox.hidden) { inOutline = false; outlineEl.classList.remove("active"); oLinks().forEach(a => a.classList.remove("o-sel")); oFind.focus(); return; }
     if (inOutline || outlineEl.classList.contains("sheet")) { enterOutline(false); openSheet(false); return; }
     if (foundRows().includes(document.activeElement)) { libFind.focus(); return; }
     if (selected) { select(-1); if (libFind.value) libFind.focus(); return; }
