@@ -420,19 +420,6 @@ a.toc-item { text-decoration: none; }
 .colophon .imagined { margin-top: 1.4em !important; }
 .colophon a { color: inherit; text-decoration: none; }
 .colophon a:hover, .colophon a:focus-visible { text-decoration: underline; text-underline-offset: .15em; }
-/* the reading zone: a hairline or a band a few text lines tall, held anywhere from the top of the screen to the bottom, and always whole */
-.guide {
-  box-sizing: border-box;   /* its edges count in its height, so at either end it stays inside the reading area */
-  --guide-line: calc(19px * 1.68);
-  --guide-h: min(calc(var(--guide-lines, 3) * var(--guide-line) + 4px), 100%);   /* the lines, a pixel of air above and below, and its two edges; never taller than the screen */
-  display: none; position: absolute; left: var(--guide-x, 0px); width: var(--guide-w, 100%); height: var(--guide-h);
-  top: clamp(calc(var(--guide-h) / 2), var(--guide-at, 50%), calc(100% - var(--guide-h) / 2));
-  transform: translateY(-50%); pointer-events: none;
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-  border-block: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-}
-.guide.line { --guide-h: 2px; border: 0; background: color-mix(in srgb, var(--accent) 45%, transparent); }
-.app.guide-on:is([data-view="scroll"], [data-view="linear"]):not(.loading):not(.grid-on) .guide { display: block; }
 
 /* Focus mode: the bars and panels fade, everything still in place, until you point at them or tab into them. */
 .app.focus :is(.bar, .panel) { opacity: .3; transition: opacity .3s ease; }
@@ -544,7 +531,6 @@ a.toc-item { text-decoration: none; }
 .popover h3 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
 .popover .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13.5px; }
 .popover .row input[type="range"] { flex: 1; max-width: 150px; accent-color: var(--accent); }
-#guideAtOut { cursor: pointer; }
 .popover output { min-width: 3.2em; text-align: right; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .popover .seg button { padding: 4px 10px; font-size: 12.5px; }
 .popover .note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
@@ -592,7 +578,6 @@ a.toc-item { text-decoration: none; }
   .tog span, .tog kbd { display: none; }
   .tog { padding: 0 8px; }
   .article { font-size: 17px; }
-  .guide { --guide-line: calc(17px * 1.68); }
   .search-help span:last-child { display: none; }
   .grid { --tw: 100px; gap: 22px 14px; }
   .grid.spreads { --tw: 70px; }
@@ -694,7 +679,7 @@ a.toc-item { text-decoration: none; }
   @page { margin: 0; }
   html, body { overflow: visible !important; background: #fff !important; }
   .app, .body, .stage, .view-paged { display: contents !important; }
-  .bar, .panel, .popover, .search, .view-scroll, .view-grid, .zoom-strip, .guide, .status, .toast { display: none !important; }
+  .bar, .panel, .popover, .search, .view-scroll, .view-grid, .zoom-strip, .status, .toast { display: none !important; }
   .view-paged {
     --paper: #fff; --ink: #161a1d; --ink-soft: #5a646b; --accent: #2b5a7a; --line: #9aa5ab; --hair: #c9cfd2;
     --code-bg: #eef1f1; --cover: #20384a; --cover-ink: #eef2f3; --shade: #26303a; --surface: #eef1f2; --bar: #dde2e4; --desk: #e6eaec;
@@ -1069,7 +1054,6 @@ a.toc-item { text-decoration: none; }
     <main class="stage" id="stage">
       <div class="view view-paged" id="desk" tabindex="-1" aria-label="Book pages"></div>
       <div class="view view-scroll" id="scroller" tabindex="0" aria-label="Book text"><div class="article-pad"><div class="article" id="article"></div></div></div>
-      <div class="guide" aria-hidden="true"></div>
       <div class="toast" id="toast" role="status" hidden></div>
       <div class="zoom-strip" id="zoomStrip"><span>Click to see all pages</span></div>
       <button type="button" class="menu-strip" id="menuStrip" aria-label="Hide the menus" aria-pressed="false"></button>
@@ -1158,16 +1142,15 @@ a.toc-item { text-decoration: none; }
       <div class="row"><label for="rate">Speed</label><input type="range" id="rate" data-setting="rate" min="0.25" max="3" step="0.05"><output for="rate"></output></div>
       <div class="row"><span>When you move away</span>
         <div class="seg" data-setting="listenMode"><button type="button" data-value="stay">Stay</button><button type="button" data-value="follow">Follow</button></div></div>
+      <div class="row"><span>Highlighter</span>
+        <div class="seg" data-setting="highlighter"><button type="button" data-value="off">Off</button><button type="button" data-value="sentence">Sentences</button><button type="button" data-value="paragraph">Paragraphs</button></div></div>
       <div class="row"><span>Code blocks</span>
         <div class="seg" data-setting="listenCode"><button type="button" data-value="read">Read</button><button type="button" data-value="skip">Skip</button></div></div>
     </section>
     <section>
       <h3>Scroll</h3>
       <div class="row"><label for="glide">Glide speed</label><input type="range" id="glide" data-setting="glide" min="0.5" max="3" step="0.1"><output for="glide"></output></div>
-      <div class="row"><span>Reading zone</span>
-        <div class="seg" data-setting="guide"><button type="button" data-value="0">Off</button><button type="button" data-value="1">On</button></div></div>
-      <div class="row zone-opt"><label for="guideAt">Zone place</label><input type="range" id="guideAt" data-setting="guideAt" min="0" max="100" step="1"><output for="guideAt" id="guideAtOut" title="Back to the middle"></output></div>
-      <div class="row zone-opt"><label for="guideLines">Zone height</label><input type="range" id="guideLines" data-setting="guideLines" min="0" max="30" step="1"><output for="guideLines"></output></div>
+
     </section>
     <section>
       <h3>Panels</h3>
@@ -1574,7 +1557,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>gg</code> <code>G</code></td> <td><b>G</b>o to the first, last page</td> <td><b>G</b>o to the top, bottom</td></tr>
     <tr><td><code>gN</code> <code>gP</code></td> <td><b>G</b>o to the <b>n</b>ext, <b>p</b>revious part of a book in parts, at its first chapter</td> <td>Same</td></tr>
     <tr><td><code>gn</code> <code>gp</code></td> <td><b>G</b>o to the <b>n</b>ext chapter; to the start of this one, then the <b>p</b>revious; in a book in parts, opening the part it is in</td> <td>Same</td></tr>
-    <tr><td><code>r</code></td> <td><b>R</b>eturn: to Listen’s sentence if you moved away, otherwise to before your last jump; again to come back</td> <td>Same</td></tr>
+    <tr><td><code>r</code> <code>R</code></td> <td><b>R</b>eturn: back through your jumps one at a time, and <code>R</code> forward again; to Listen’s sentence or the highlight first, if you moved away from it</td> <td>Same</td></tr>
     <tr><td><code>s</code></td> <td><b>S</b>witch to <b>s</b>crolled pages</td> <td><b>S</b>witch back to pages</td></tr>
     <tr><td><code>f</code></td> <td><b>F</b>acing pages on, off; in All pages, spreads or single pages</td> <td>Open at facing pages</td></tr>
     <tr><td><code>v</code></td> <td>Pile, Flow or Strip <b>v</b>iew</td> <td>Pages or plain text <b>v</b>iew</td></tr>
@@ -1601,7 +1584,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>O</code></td> <td><b>O</b>ptions</td></tr>
     <tr><td><code>?</code></td> <td>These keys, on a page of their own</td></tr>
     <tr><td><code>a</code></td> <td>Listen, stop <b>a</b>udio</td></tr>
-    <tr><td><code>R</code></td> <td>A <b>r</b>eading highlight without the voice, stepped with Listen’s keys; in Scroll it keeps to the reading zone, and scrolling moves it</td></tr>
+    <tr><td><code>H</code></td> <td><b>H</b>ighlighter on, off: click or tap a sentence, or a paragraph, to mark it, and it stays as you read; <code>q</code> <code>w</code> step it, <code>Q</code> <code>W</code> switch sentences and paragraphs, <code>r</code> goes back to it</td></tr>
     <tr><td><code>/</code> Ctrl+f</td> <td>Search</td></tr>
     <tr><td><code>n</code> <code>N</code></td> <td><b>N</b>ext, previous match</td></tr>
     <tr><td>Enter</td> <td>In search, stay at the match; in the page box, go to the page</td></tr>
@@ -1610,7 +1593,7 @@ a.toc-item { text-decoration: none; }
 </table>
 <h3 id="keys-listening">Listening</h3>
 <table id="keys-listen">
-  <thead><tr><th>Key</th> <th>While Listen reads, or the reading highlight is on</th></tr></thead>
+  <thead><tr><th>Key</th> <th>While Listen reads, or the highlighter is on</th></tr></thead>
   <tbody>
     <tr><td><code>[</code> <code>]</code>, <code>q</code> <code>w</code></td> <td>Previous, next sentence</td></tr>
     <tr><td><code>Q</code> <code>W</code>, <code>{</code> <code>}</code></td> <td>Previous, next paragraph; back goes first to the start of this one</td></tr>
@@ -2301,8 +2284,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", zenExit: "off", listenCode: "read", pagedSpread: 28, guide: 0, listenMode: "stay", mapMark: 1, mapMarkOp: 30, guideAt: 50, guideLines: 12, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], listenCode: ["read", "skip"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", zenExit: "off", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -2319,7 +2302,7 @@ window.bookReady = (async () => {
     set(k, v) { try { localStorage.setItem("piled4:" + k, JSON.stringify(v)); } catch {} }
   };
   // the reading highlight (R): on or off, which sentence, and a short hold while it moves the page itself
-  let tracing = false, ti = 0, traceFollow = 0, traceTimer = 0, traceTarget = null;
+  let tracing = false, ti = 0, tracePage = -1;
   // the sidebars as Zen found them, and which of them you changed while in it (see setTucked)
   let zenPanels = null, zenSetting = false;
   const zenTouched = new Set();
@@ -2334,13 +2317,11 @@ window.bookReady = (async () => {
     s.rate = Number(s.rate) || 1;
     s.glide = clamp(Number(s.glide) || DEFAULTS.glide, 0.5, 3);
     s.voice = typeof s.voice === "string" ? s.voice : "";
-    s.guideAt = Number.isFinite(Number(s.guideAt)) ? clamp(Math.round(Number(s.guideAt)), 0, 100) : DEFAULTS.guideAt;
     s.mapMarkOp = Number.isFinite(Number(s.mapMarkOp)) ? clamp(Math.round(Number(s.mapMarkOp)), 5, 100) : DEFAULTS.mapMarkOp;
     s.textSize = Number.isFinite(Number(s.textSize)) ? clamp(Math.round(Number(s.textSize) / 5) * 5, 80, 150) : DEFAULTS.textSize;
-    s.guideLines = Number.isFinite(Number(s.guideLines)) ? clamp(Math.round(Number(s.guideLines)), 0, 30) : DEFAULTS.guideLines;
     for (const [k, list] of Object.entries(CHOICES)) if (!list.includes(s[k])) s[k] = DEFAULTS[k];
     delete s.listenStay;   // the old Follow-first switch; Stay is the default now
-    for (const k of ["facing", "pagedSpread", "guide", "mapMark", "toc", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
+    for (const k of ["facing", "pagedSpread", "mapMark", "toc", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
     delete s.notes;   // Topics are gone
     return s;
   }
@@ -2840,7 +2821,6 @@ window.bookReady = (async () => {
     if (linear()) {
       desk.classList.add("linear");
       desk.style.setProperty("--lz", (S.expand ? Math.min((r.height - 12) / H, (r.width - 12) / W, 3) : Math.min((r.height - 48) / H, (r.width - 40) / W, 1.7)).toFixed(4));
-      sizeGuide();
       pages.forEach((p, i) => {
         ["transform", "opacity", "z-index", "zoom"].forEach(x => p.style.removeProperty(x));
         p._s = 0;
@@ -2946,7 +2926,7 @@ window.bookReady = (async () => {
     updateChrome();
     updateMap();
     userMoved();
-    traceFollowView();
+    traceRedraw();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => store.set(ANCHOR, anchor), 250);
   }
@@ -3122,18 +3102,37 @@ window.bookReady = (async () => {
     toast(S.facing ? "Facing pages" : "Single page", 1000);
   }
 
-  // r goes back to where you were before the last jump (gg, G, search, contents, a link, the page slider,
-  // the minimap, the page box or All pages); r again comes back, like Vim's ``.
-  let backTo = null;
-  function markPlace(a) { if (ready) backTo = { ...(a || currentAnchor()) }; }
+  // r goes back through your jumps (gg, G, search, contents, a link, the page slider, the minimap, the page box,
+  // All pages), one at a time, and R forward again, as a browser's Back and Forward, or Vim's Ctrl-O and Ctrl-I.
+  // A new jump drops the places ahead, as a browser does.
+  let backStack = [], fwdStack = [];
+  const samePlace = (x, y) => x && y && x.b === y.b && Math.abs(x.f - y.f) < 1e-6;
+  function pushBack(a) { if (!samePlace(backStack[backStack.length - 1], a)) backStack.push(a); if (backStack.length > 50) backStack.shift(); }
+  function markPlace(a) { if (!ready) return; pushBack({ ...(a || currentAnchor()) }); fwdStack = []; }
   function goBack() {
     if (reading && listenAway) { backToListen(); return; }
-    if (!backTo) { toast("Nothing to return to yet. After a jump such as gg, G or a search, r takes you back.", 2600); return; }
-    const to = backTo;
-    backTo = currentAnchor();
+    if (tracing && !traceInView()) {
+      markPlace();
+      if (!textScroll() && !linear() && tracePage >= 0) goPage(tracePage); else showTrace(true);
+      toast("Back to the highlight", 1000);
+      return;
+    }
+    const here = currentAnchor();
+    while (backStack.length && samePlace(backStack[backStack.length - 1], here)) backStack.pop();
+    if (!backStack.length) { toast("Nothing to go back to yet. After a jump such as gg, G or a search, r takes you back.", 2600); return; }
+    const to = backStack.pop();
+    fwdStack.push(here);
     closeGrid(true);
     jump(to);
-    toast(`Back to p. ${unitAt(pageByBlock, to) + 1}`, 1000);
+    toast(`Back to p. ${unitAt(pageByBlock, to) + 1}${backStack.length ? "" : " (the first place)"}`, 1000);
+  }
+  function goForward() {
+    if (!fwdStack.length) { toast("Nothing ahead. R undoes an r.", 1600); return; }
+    const to = fwdStack.pop();
+    pushBack(currentAnchor());
+    closeGrid(true);
+    jump(to);
+    toast(`Forward to p. ${unitAt(pageByBlock, to) + 1}`, 1000);
   }
   thumbsBtn.addEventListener("click", () => gridOpen ? closeGrid() : openGrid());
   $("zoomStrip").addEventListener("click", openGrid);
@@ -3273,23 +3272,6 @@ window.bookReady = (async () => {
   /* ---------- settings ---------- */
 
   const THEME_NAMES = { system: "Auto", light: "Light", dark: "Dark" };
-  const zoneSize = v => (v ? `${v} ${v === 1 ? "line" : "lines"}` : "Line");   // a hairline, then one to thirty lines of text
-  // in scrolled pages a line of the zone is a line of the book at the pages' zoom (10.2pt type, 1.5 leading)
-  function sizeGuide() {
-    const guide = document.querySelector(".guide");
-    if (linear()) guide.style.setProperty("--guide-line", (20.4 * (parseFloat(desk.style.getPropertyValue("--lz")) || 1)).toFixed(1) + "px");
-    else guide.style.removeProperty("--guide-line");
-    // exactly as wide as what is read, the page or the text column, never past it
-    requestAnimationFrame(() => {
-      const host = guide.offsetParent, col = linear() ? pages[0] : textScroll() ? article : null;
-      if (!host || !col) { guide.style.removeProperty("--guide-x"); guide.style.removeProperty("--guide-w"); return; }
-      const hr = host.getBoundingClientRect(), cr = col.getBoundingClientRect();
-      if (!cr.width) return;
-      const x = Math.max(0, cr.left - hr.left);
-      guide.style.setProperty("--guide-x", x + "px");
-      guide.style.setProperty("--guide-w", Math.min(hr.width - x, cr.width) + "px");
-    });
-  }
   function nextTheme(value) {
     return CHOICES.theme[(CHOICES.theme.indexOf(value) + 1) % CHOICES.theme.length];
   }
@@ -3299,16 +3281,9 @@ window.bookReady = (async () => {
     app.dataset.view = linear() ? "linear" : S.view;
     app.classList.toggle("narrow", narrow);
     app.classList.toggle("swap", !!S.swap);
-    app.classList.toggle("guide-on", !!S.guide);
     mapEl.classList.toggle("marked", !!S.mapMark);
     mapEl.style.setProperty("--mark-op", S.mapMarkOp / 100);
     document.querySelectorAll(".mark-opt").forEach(row => { row.hidden = !S.mapMark; });
-    const guide = document.querySelector(".guide");
-    guide.style.setProperty("--guide-at", S.guideAt + "%");
-    guide.style.setProperty("--guide-lines", S.guideLines);
-    guide.classList.toggle("line", S.guideLines === 0);
-    sizeGuide();
-    document.querySelectorAll(".zone-opt").forEach(row => { row.hidden = !S.guide; });
     app.classList.toggle("flat", !S.shadows);
     applyLook();
     const themeBtn = $("themeBtn"), themeLabel = `Theme is ${THEME_NAMES[S.theme]}. Switch to ${THEME_NAMES[nextTheme(S.theme)]}.`;
@@ -3348,8 +3323,7 @@ window.bookReady = (async () => {
       inp.value = String(S[inp.dataset.setting]);
       const v = S[inp.dataset.setting];
       inp.nextElementSibling.textContent = inp.dataset.setting === "rate" || inp.dataset.setting === "glide" ? +v.toFixed(2) + "×"
-        : inp.dataset.setting === "guideLines" ? zoneSize(v)
-        : inp.dataset.setting === "guideAt" ? (v === 50 ? "Middle" : v + "%") : v + "%";
+        : v + "%";
     });
   }
 
@@ -3398,7 +3372,8 @@ window.bookReady = (async () => {
     if (!ready) return;
     if (key === "pagedSpread" || key === "arrange" || key === "stripDir") return layoutPages(false);
     if (key === "listenCode") { allSentences = null; return; }   // Listen's queue is built again, with or without the code
-    if (key === "guide" || key === "listenMode" || key === "mapMark" || key === "mapMarkOp" || key === "guideAt" || key === "guideLines" || key === "shadows" || key === "glide" || key === "theme" || key === "palette") return;
+    if (key === "highlighter") { applyHighlighter(); return; }
+    if (key === "listenMode" || key === "mapMark" || key === "mapMarkOp" || key === "shadows" || key === "glide" || key === "theme" || key === "palette") return;
     if (key === "expand") { if (linear()) relayoutAll(a, true); else layoutPages(false); return; }
     if (key === "stat" || key === "pct") { updateChrome(); return; }
     if (key === "paper") { repaginate(a); return; }
@@ -3444,12 +3419,10 @@ window.bookReady = (async () => {
     }
     inp.addEventListener("input", () => {
       let v = Number(inp.value);
-      if (inp.id === "guideAt" && Math.abs(v - 50) <= 3) { v = 50; inp.value = "50"; }   // the middle holds the thumb a little, so it is easy to find again
       setSetting(inp.dataset.setting, v);
     });
   });
   // the place's readout puts the zone back in the middle
-  $("guideAtOut").addEventListener("click", () => setSetting("guideAt", 50));
   $("reset").addEventListener("click", () => {
     const a = currentAnchor(), paper = S.paper, size = S.textSize;
     S = Object.assign({}, DEFAULTS);
@@ -4176,7 +4149,7 @@ window.bookReady = (async () => {
     app.classList.toggle("listen-away", on);
   }
   function backToListen() {
-    backTo = currentAnchor();
+    markPlace();
     setAway(false);
     showSpoken(queue[qi]);
     toast("Back to Listen", 1000);
@@ -4215,20 +4188,14 @@ window.bookReady = (async () => {
     sayAgain();
   }
   function skipSentence(d) {
-    if (tracing) { ti = clamp(ti + d, 0, sentencesAll().length - 1); showTrace(true); return; }
+    if (tracing && !reading) { traceStep(d); return; }   // [ ] step what is marked, as q w do
     if (!reading) return;
     qi = clamp(qi + d, 0, sentencesAll().length - 1);
     sayAgain();
   }
 
   function skipParagraph(d) {
-    if (tracing) {
-      const list = sentencesAll(), first = list[ti].paragraph;
-      if (d < 0) ti = ti > first ? first : ti > 0 ? list[ti - 1].paragraph : 0;
-      else { let next = ti + 1; while (next < list.length && list[next].paragraph === first) next++; if (next === list.length) return; ti = next; }
-      showTrace(true);
-      return;
-    }
+    if (tracing && !reading) { traceStep(d); return; }
     if (!reading) return;
     const first = queue[qi].paragraph;
     if (d < 0) qi = qi > first ? first : qi > 0 ? queue[qi - 1].paragraph : 0;
@@ -4242,7 +4209,7 @@ window.bookReady = (async () => {
   }
 
   function skipPage(d) {
-    if (tracing) {
+    if (tracing && !reading) {
       const list = sentencesAll(), current = paginatedSentence(list[ti]);
       if (!current) return;
       const showing = centerPages().includes(current.endPage) ? current.endPage : current.startPage;
@@ -4327,7 +4294,7 @@ window.bookReady = (async () => {
     if (!synth || !ready) return;
     // Listen reads on from the highlighted sentence, and the highlight gives way to Listen's
     const fromTrace = tracing ? ti : -1;
-    if (tracing) { tracing = false; app.classList.remove("tracing"); if (hasHL) CSS.highlights.delete("trace"); }
+    if (tracing && hasHL) CSS.highlights.delete("trace");   // Listen's own mark stands in for it while it reads
     clearTimeout(utterTimer);
     queue = sentencesAll();
     qi = fromTrace >= 0 ? fromTrace : indexAt(listenStart());
@@ -4342,7 +4309,9 @@ window.bookReady = (async () => {
     }, 60);
   }
   function stopReading() {
+    const last = reading ? qi : -1;
     reading = false;
+    if (tracing && last >= 0) { const list = sentencesAll(); ti = Math.min(last, list.length - 1); if (traceUnit() === "paragraph" && list[ti]) ti = list[ti].paragraph; setTimeout(() => showTrace(false)); }
     utter = null;
     clearTimeout(utterTimer);
     clearTimeout(relisten);
@@ -4353,93 +4322,123 @@ window.bookReady = (async () => {
     store.set(ANCHOR, anchor);
   }
 
-  /* ---------- the reading highlight (R) ---------- */
+  /* ---------- the highlighter (H) ---------- */
 
-  // Listen's sentences, highlighted without the voice, a sentence at a time as you read. Its keys are Listen's.
-  // In the Scroll views it keeps to the middle of the reading zone, or 40% down the screen without one: a step
-  // scrolls the sentence there, and scrolling by hand moves the highlight to the sentence that is there.
-  // In the page views a step turns the page when the sentence does, and a page turned by hand takes it along.
-  function traceLineY() {
-    const g = document.querySelector(".guide");
-    if (S.guide && g && getComputedStyle(g).display !== "none") { const r = g.getBoundingClientRect(); if (r.height) return r.top + r.height / 2; }
-    const box = (textScroll() ? scroller : desk).getBoundingClientRect();
-    return box.top + box.height * 0.4;
-  }
+  // A sentence, or a whole paragraph, marked where you are reading. Click or tap one to mark it; it stays there as you
+  // scroll or turn pages, until you mark another. q and w step it back and on, turning the page or scrolling only
+  // when the next is out of sight; Q and W switch between sentences and paragraphs; r takes you back to it.
+  // Highlighter in Options does the same for a phone: Off, Sentences or Paragraphs.
+  const traceUnit = () => (S.highlighter === "paragraph" ? "paragraph" : "sentence");
+  let traceRanges = null;
+  // A point on the page or in the scroll column, as a place in the text.
   function anchorAtPoint(x, y) {
     let node, off;
     if (document.caretPositionFromPoint) { const c = document.caretPositionFromPoint(x, y); if (!c) return null; node = c.offsetNode; off = c.offset; }
     else if (document.caretRangeFromPoint) { const r = document.caretRangeFromPoint(x, y); if (!r) return null; node = r.startContainer; off = r.startOffset; }
     else return null;
-    const el = node && (node.nodeType === 1 ? node : node.parentElement), block = el && el.closest("#desk .bk > [data-b]");
+    const el = node && (node.nodeType === 1 ? node : node.parentElement), block = el && el.closest("#desk .bk > [data-b], #article .ak > [data-b]");
     if (!block) return null;
-    const b = +block.dataset.b, map = tmap("p", b);
+    const b = +block.dataset.b, map = tmap(block.closest("#desk") ? "p" : "a", b);
     let at = 0;
     if (node.nodeType === 3) { const xn = map.nodes.find(xn => xn.n === node); if (xn) at = xn.at + off; }
     return { b, f: at / Math.max(1, map.text.length) };
   }
+  // The stretch marked: the sentence at ti, or the paragraph it begins.
+  function traceItem() {
+    const list = sentencesAll(), it = list[ti];
+    if (!it || traceUnit() === "sentence") return it;
+    let last = ti;
+    while (last + 1 < list.length && list[last + 1].paragraph === it.paragraph) last++;
+    return { ...it, e: list[last].e };
+  }
+  function traceInView() {
+    const it = traceItem(), pg = it && paginatedSentence(it);
+    if (!textScroll() && !linear()) return !!pg && (centerPages().includes(pg.startPage) || centerPages().includes(pg.endPage));
+    const range = textScroll() ? mkRange(it.am, it.s, it.e) : pg && pg.range;
+    if (!range) return false;
+    const r = range.getBoundingClientRect(), box = (textScroll() ? scroller : desk).getBoundingClientRect();
+    return r.bottom > box.top + 8 && r.top < box.bottom - 8;
+  }
+  // Mark it; with steer, bring it into sight if it is out of sight, by as little as will do.
   function showTrace(steer) {
-    const it = sentencesAll()[ti];
+    const it = traceItem();
     if (!it) return;
     const ranges = [mkRange(it.am, it.s, it.e)], pg = paginatedSentence(it);
     if (pg) ranges.push(pg.range);
-    if (hasHL) CSS.highlights.set("trace", new Highlight(...ranges));
+    traceRanges = ranges;
+    if (hasHL && !reading) CSS.highlights.set("trace", new Highlight(...ranges));
     anchor = { b: it.b, f: it.s / Math.max(1, it.am.text.length) };
-    if (!steer) return;
-    // Where the step's own scroll will end. Scrolling counts as yours only when it comes to rest somewhere else,
-    // however long the browser takes to glide there.
-    const aim = (el, r, go) => {
-      const top = clamp(el.scrollTop + r.top + r.height / 2 - traceLineY(), 0, el.scrollHeight - el.clientHeight);
-      traceTarget = { el, top };
-      const from = el.scrollTop;
-      go(top);
-      // a browser that doesn't glide (some won't, or the reader asked for less motion) gets there at once
-      setTimeout(() => { if (traceTarget && traceTarget.el === el && traceTarget.top === top && el.scrollTop === from && Math.abs(from - top) > 4) el.scrollTo({ top, behavior: "auto" }); }, 300);
-    };
-    if (textScroll()) aim(scroller, ranges[0].getBoundingClientRect(), top => scrollText(top, true));
-    else if (linear() && pg) aim(desk, firstRun(pg.range), top => desk.scrollTo({ top, behavior: "smooth" }));
-    else if (pg) { traceFollow = performance.now() + 800; const p = centerPages().includes(pg.endPage) ? pg.endPage : pg.startPage; if (p >= 0 && !centerPages().includes(p)) goPage(p); }
+    if (pg) tracePage = centerPages().includes(pg.endPage) ? pg.endPage : centerPages().includes(pg.startPage) ? pg.startPage : pg.startPage;
+    if (!steer || traceInView()) return;
+    if (textScroll() || linear()) {
+      const el = textScroll() ? scroller : desk, box = el.getBoundingClientRect(), r = (textScroll() ? ranges[0] : pg.range).getBoundingClientRect();
+      const by = r.top < box.top ? r.top - box.top - box.height * 0.15 : r.bottom - box.bottom + box.height * 0.15;
+      const top = clamp(el.scrollTop + by, 0, el.scrollHeight - el.clientHeight);
+      if (textScroll()) scrollText(top, true); else el.scrollTo({ top, behavior: "smooth" });
+    } else if (pg) {
+      const p = pg.startPage;
+      if (p >= 0) { goPage(p); tracePage = p; }
+    }
   }
-  // A sentence that runs on over a page break is placed by its part on the first page, not by both and the gap between.
-  function firstRun(range) {
-    const rects = [...range.getClientRects()].filter(r => r.width && r.height);
-    if (!rects.length) return range.getBoundingClientRect();
-    let top = rects[0].top, bottom = rects[0].bottom;
-    for (const r of rects.slice(1)) { if (r.top - bottom > 40) break; top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); }
-    return { top, height: bottom - top };
+  // After a relayout, the mark is drawn again on the new pages.
+  function traceRedraw() {
+    if (tracing && traceRanges && traceRanges.some(r => !r.startContainer.isConnected)) showTrace(false);
   }
-  function traceFollowView() {
-    if (!tracing || performance.now() < traceFollow) return;
-    clearTimeout(traceTimer);
-    traceTimer = setTimeout(() => {
-      if (!tracing || performance.now() < traceFollow) return;
-      // still on its way, or come to rest where the step sent it: the reader's own scroll, not yours
-      if (traceTarget) {
-        if (Math.abs(traceTarget.el.scrollTop - traceTarget.top) <= 4) return;
-      }
-      traceTarget = null;
-      let a = null;
-      if (textScroll()) a = anchorAtY(scroller.scrollTop - article.offsetTop + traceLineY() - scroller.getBoundingClientRect().top);
-      else if (linear()) { const pr = pages[curPage] && pages[curPage].getBoundingClientRect(); if (pr) a = anchorAtPoint(pr.left + pr.width / 2, traceLineY()); }
-      else {
-        const it = sentencesAll()[ti], pg = it && paginatedSentence(it);
-        if (pg && (centerPages().includes(pg.startPage) || centerPages().includes(pg.endPage))) return;
-        a = pageStartAnchor(centerPages()[0]);
-      }
-      if (!a) return;
-      const i = Math.min(indexAt(a), sentencesAll().length - 1);
-      if (i !== ti && i >= 0) { ti = i; showTrace(false); }
-    }, 140);
+  function traceStep(d) {
+    const list = sentencesAll();
+    if (traceUnit() === "paragraph") {
+      const first = list[ti].paragraph;
+      if (d < 0) ti = ti > first ? first : ti > 0 ? list[ti - 1].paragraph : 0;
+      else { let next = ti + 1; while (next < list.length && list[next].paragraph === first) next++; if (next === list.length) return; ti = next; }
+    } else ti = clamp(ti + d, 0, list.length - 1);
+    showTrace(true);
+  }
+  // Turned on, off, or to the other unit, from H, Q and W, or Options.
+  function applyHighlighter() {
+    const on = S.highlighter !== "off";
+    if (on && !ready) return;
+    if (!on) {
+      tracing = false;
+      traceRanges = null;
+      app.classList.remove("tracing");
+      if (hasHL) CSS.highlights.delete("trace");
+      return;
+    }
+    const list = sentencesAll();
+    if (!tracing) ti = Math.min(indexAt(listenStart()), list.length - 1);
+    tracing = true;
+    app.classList.add("tracing");
+    if (traceUnit() === "paragraph" && list[ti]) ti = list[ti].paragraph;
+    showTrace(true);
   }
   function setTrace(on) {
-    if (on && !ready) return;
-    if (on && reading) { toast("Listen is already marking each sentence.", 1600); return; }
-    tracing = on;
-    app.classList.toggle("tracing", on);
-    if (!on) { clearTimeout(traceTimer); if (hasHL) CSS.highlights.delete("trace"); toast("Reading highlight off", 900); return; }
-    ti = Math.min(indexAt(listenStart()), sentencesAll().length - 1);
-    showTrace(true);
-    toast("Reading highlight: ] [ a sentence, } { a paragraph, ]] [[ a page. R or Esc ends it.", 3200);
+    if (on) { setSetting("highlighter", store.get("traceUnit", "sentence") === "paragraph" ? "paragraph" : "sentence"); toast(`Highlighter: click or tap a ${traceUnit()} to mark it; q w step, Q W ${traceUnit() === "paragraph" ? "sentences" : "paragraphs"} instead. H ends it.`, 3200); }
+    else { setSetting("highlighter", "off"); toast("Highlighter off", 900); }
   }
+  function switchTraceUnit() {
+    const u = traceUnit() === "sentence" ? "paragraph" : "sentence";
+    store.set("traceUnit", u);
+    setSetting("highlighter", u);
+    toast(u === "paragraph" ? "Highlighting paragraphs" : "Highlighting sentences", 1000);
+  }
+  // A click or tap on the text marks the sentence or paragraph under it; a link, a selection or a drag doesn't.
+  function traceClick(e) {
+    if (!tracing || reading || e.defaultPrevented || e.button) return;
+    if (e.target.closest("a, button, input, .pagedjs_margin")) return;
+    const sel = document.getSelection();
+    if (sel && !sel.isCollapsed) return;
+    if (!textScroll()) { const p = e.target.closest(".pagedjs_page"); if (!p || (!linear() && !centerPages().includes(pages.indexOf(p)))) return; }
+    const a = anchorAtPoint(e.clientX, e.clientY);
+    if (!a) return;
+    const list = sentencesAll();
+    let i = Math.min(indexAt(a), list.length - 1);
+    if (i < 0) return;
+    if (traceUnit() === "paragraph") i = list[i].paragraph;
+    ti = i;
+    showTrace(false);
+  }
+  desk.addEventListener("click", traceClick);
+  scroller.addEventListener("click", traceClick);
 
   // While Listen is on, going somewhere else (turning pages, scrolling away, a search result, a thumbnail)
   // moves the reading there once you settle. Moves the reader makes itself to follow the voice don't count.
@@ -4794,7 +4793,6 @@ window.bookReady = (async () => {
       else if (!searchBox.hidden) closeSearch(false);
       else if (gridOpen) closeGrid();
       else if (peekSide || overlay.toc || overlay.map) closeOverlays();
-      else if (tracing) setTrace(false);
       else if (reading) stopReading();
       else if (hlOn && results.length) setHl(false);      // like :noh
       else if (focusMode) setFocus(false);
@@ -4822,11 +4820,13 @@ window.bookReady = (async () => {
     // gN and gP: the next and previous part of a book in parts, at its first chapter
     if ((k === "N" || k === "P") && e.timeStamp - lastG < 500) { lastG = 0; e.preventDefault(); goPart(k === "N" ? 1 : -1); return; }
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
-    const toggles = { R: () => setTrace(!tracing), L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), o: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), M: mapSides, a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
+    const toggles = { H: () => setTrace(!tracing), L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), o: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), M: mapSides, a: toggleReading, v: switchView, r: goBack, R: goForward, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && (reading || tracing)) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
     // the same steps for the left hand alone: q and w a sentence back and on, Q and W a paragraph
-    if ((k === "q" || k === "w") && (reading || tracing)) { e.preventDefault(); skipSentence(k === "w" ? 1 : -1); return; }
-    if ((k === "Q" || k === "W") && (reading || tracing)) { e.preventDefault(); skipParagraph(k === "W" ? 1 : -1); return; }
+    if ((k === "q" || k === "w") && tracing && !reading) { e.preventDefault(); traceStep(k === "w" ? 1 : -1); return; }
+    if ((k === "Q" || k === "W") && tracing && !reading) { e.preventDefault(); switchTraceUnit(); return; }
+    if ((k === "q" || k === "w") && reading) { e.preventDefault(); skipSentence(k === "w" ? 1 : -1); return; }
+    if ((k === "Q" || k === "W") && reading) { e.preventDefault(); skipParagraph(k === "W" ? 1 : -1); return; }
     // [ and ] step a sentence back and on; pressed twice quickly, [[ and ]] go a page back and on.
     if ((k === "[" || k === "]") && (reading || tracing)) {
       const now = e.timeStamp;   // timed from the key presses, as g's pairs are
@@ -5780,6 +5780,7 @@ window.bookReady = (async () => {
   // A place found in the Library, or in another part, opens with the search carried on: the words highlighted,
   // the chip showing which match this is, at the first match in the chapter picked; n and N go on from there.
   build().then(() => {
+    if (ready && S.highlighter !== "off") applyHighlighter();   // left on, it comes back on, at the place you are
     const P = new URLSearchParams(location.search), find = P.get("find");
     if (!find || !ready) return;
     P.delete("find");
