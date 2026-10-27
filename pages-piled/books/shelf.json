@@ -1,5 +1,162 @@
 [
  {
+  "id": "meditations",
+  "title": "Meditations",
+  "byline": "Marcus Aurelius, translated by George Long",
+  "author": "Marcus Aurelius",
+  "site": "Standard Ebooks",
+  "url": "https://github.com/standardebooks/marcus-aurelius_meditations_george-long/tree/3a47d37d9f1df94de235d53839f4b254ce2953d5",
+  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
+  "notice": "From the Standard Ebooks edition at commit 3a47d37d9f1d, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
+  "licenses": [
+   "LICENSE.md"
+  ],
+  "chapters": 13,
+  "toc": [
+   {
+    "title": "Book I",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book II",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book III",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book IV",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book V",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book VI",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book VII",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book VIII",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book IX",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book X",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book XI",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Book XII",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "Endnotes",
+    "group": "",
+    "shown": ""
+   }
+  ]
+ },
+ {
+  "id": "sherlock-holmes",
+  "title": "The Adventures of Sherlock Holmes",
+  "byline": "Arthur Conan Doyle",
+  "author": "Arthur Conan Doyle",
+  "site": "Standard Ebooks",
+  "url": "https://github.com/standardebooks/arthur-conan-doyle_the-adventures-of-sherlock-holmes/tree/48ec456ea50987a81f564821457b9fb32cc2bfc6",
+  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
+  "notice": "From the Standard Ebooks edition at commit 48ec456ea509, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
+  "licenses": [
+   "LICENSE.md"
+  ],
+  "chapters": 12,
+  "toc": [
+   {
+    "title": "A Scandal in Bohemia",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Redheaded League",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "A Case of Identity",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Boscombe Valley Mystery",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Five Orange Pips",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Man with the Twisted Lip",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Blue Carbuncle",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Speckled Band",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Engineer’s Thumb",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Noble Bachelor",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Beryl Coronet",
+    "group": "",
+    "shown": ""
+   },
+   {
+    "title": "The Adventure of the Copper Beeches",
+    "group": "",
+    "shown": ""
+   }
+  ]
+ },
+ {
   "id": "rust-book",
   "title": "The Rust Programming Language",
   "byline": "Steve Klabnik, Carol Nichols and Chris Krycho, with contributions from the Rust Community",
@@ -623,163 +780,6 @@
     "title": "Trace Claude API requests and Managed Agents sessions with OpenTelemetry",
     "group": "",
     "shown": null
-   }
-  ]
- },
- {
-  "id": "sherlock-holmes",
-  "title": "The Adventures of Sherlock Holmes",
-  "byline": "Arthur Conan Doyle",
-  "author": "Arthur Conan Doyle",
-  "site": "Standard Ebooks",
-  "url": "https://github.com/standardebooks/arthur-conan-doyle_the-adventures-of-sherlock-holmes/tree/48ec456ea50987a81f564821457b9fb32cc2bfc6",
-  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
-  "notice": "From the Standard Ebooks edition at commit 48ec456ea509, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
-  "licenses": [
-   "LICENSE.md"
-  ],
-  "chapters": 12,
-  "toc": [
-   {
-    "title": "A Scandal in Bohemia",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Redheaded League",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "A Case of Identity",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Boscombe Valley Mystery",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Five Orange Pips",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Man with the Twisted Lip",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Blue Carbuncle",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Speckled Band",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Engineer’s Thumb",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Noble Bachelor",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Beryl Coronet",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "The Adventure of the Copper Beeches",
-    "group": "",
-    "shown": ""
-   }
-  ]
- },
- {
-  "id": "meditations",
-  "title": "Meditations",
-  "byline": "Marcus Aurelius, translated by George Long",
-  "author": "Marcus Aurelius",
-  "site": "Standard Ebooks",
-  "url": "https://github.com/standardebooks/marcus-aurelius_meditations_george-long/tree/3a47d37d9f1df94de235d53839f4b254ce2953d5",
-  "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
-  "notice": "From the Standard Ebooks edition at commit 3a47d37d9f1d, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
-  "licenses": [
-   "LICENSE.md"
-  ],
-  "chapters": 13,
-  "toc": [
-   {
-    "title": "Book I",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book II",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book III",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book IV",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book V",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book VI",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book VII",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book VIII",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book IX",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book X",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book XI",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Book XII",
-    "group": "",
-    "shown": ""
-   },
-   {
-    "title": "Endnotes",
-    "group": "",
-    "shown": ""
    }
   ]
  }

@@ -29,10 +29,10 @@ OUTPUT_LINES = 24   # a code cell's text output is shown up to this many lines
 # States, and its author, translator and illustrator died more than seventy years ago, so it is free where a work
 # is protected for seventy years after its author's death as well. files: a selection, else the whole spine.
 SE_BOOKS = [
-    {"id": "sherlock-holmes", "author": "Arthur Conan Doyle", "repo": "arthur-conan-doyle_the-adventures-of-sherlock-holmes", "commit": "48ec456ea50987a81f564821457b9fb32cc2bfc6",
-     "title": "The Adventures of Sherlock Holmes", "byline": "Arthur Conan Doyle"},
     {"id": "meditations", "author": "Marcus Aurelius", "repo": "marcus-aurelius_meditations_george-long", "commit": "3a47d37d9f1df94de235d53839f4b254ce2953d5",
      "title": "Meditations", "byline": "Marcus Aurelius, translated by George Long"},
+    {"id": "sherlock-holmes", "author": "Arthur Conan Doyle", "repo": "arthur-conan-doyle_the-adventures-of-sherlock-holmes", "commit": "48ec456ea50987a81f564821457b9fb32cc2bfc6",
+     "title": "The Adventures of Sherlock Holmes", "byline": "Arthur Conan Doyle"},
 ]
 SE_SKIP = {"titlepage.xhtml", "imprint.xhtml", "halftitlepage.xhtml", "colophon.xhtml", "uncopyright.xhtml", "loi.xhtml"}
 
@@ -292,9 +292,11 @@ def main():
     rust, images = build_rust(rust_clone, out)
     cook = build_cookbooks(cook_clone, out)
     se = [build_se(spec, os.path.join(se_dir, spec["repo"]), out) for spec in SE_BOOKS]
+    # The shelf's order, after the reader's own book: the public-domain books, then the technical ones.
+    shelf_order = (*(b for b, _ in se), rust, cook)
     # The shelf lists each book's chapters too, for the Library's outline, without their text.
     shelf = [{k: b[k] for k in ("id", "title", "byline", "author", "site", "url", "copyright", "notice", "licenses") if k in b} | {"chapters": len(b["chapters"]),
-             "toc": [{"title": c["title"], "group": c.get("group", ""), "shown": c.get("shown")} for c in b["chapters"]]} for b in (rust, cook, *(b for b, _ in se))]
+             "toc": [{"title": c["title"], "group": c.get("group", ""), "shown": c.get("shown")} for c in b["chapters"]]} for b in shelf_order]
     json.dump(shelf, open(os.path.join(out, "shelf.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     for b in (rust, cook, *(b for b, _ in se)):
         size = sum(len(c.get("markdown") or c.get("html")) for c in b["chapters"])

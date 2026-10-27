@@ -1556,6 +1556,7 @@ a.toc-item { text-decoration: none; }
     <tr><td>Space, Shift+Space</td> <td>Next, previous page</td> <td>A screen down, up; in scrolled pages, the next or previous page, centred</td></tr>
     <tr><td><code>J</code> <code>K</code></td> <td>Next, previous page, as Page Down and Page Up</td> <td>The same; in scrolled pages, the page centred</td></tr>
     <tr><td><code>gg</code> <code>G</code></td> <td><b>G</b>o to the first, last page</td> <td><b>G</b>o to the top, bottom</td></tr>
+    <tr><td><code>gn</code> <code>gp</code></td> <td><b>G</b>o to the <b>n</b>ext chapter; to the start of this one, then the <b>p</b>revious; in a book in parts, opening the part it is in</td> <td>Same</td></tr>
     <tr><td><code>r</code></td> <td><b>R</b>eturn: to Listen’s sentence if you moved away, otherwise to before your last jump; again to come back</td> <td>Same</td></tr>
     <tr><td><code>s</code></td> <td><b>S</b>witch to <b>s</b>crolled pages</td> <td><b>S</b>witch back to pages</td></tr>
     <tr><td><code>f</code></td> <td><b>F</b>acing pages on, off; in All pages, spreads or single pages</td> <td>Open at facing pages</td></tr>
@@ -4567,6 +4568,21 @@ window.bookReady = (async () => {
     else setSetting("arrange", { pile: "flow", flow: "strip", strip: "pile" }[S.arrange] || "flow");
     toast(S.view === "scroll" ? (S.scrollStyle === "pages" ? "Scroll: pages" : "Scroll: text") : { flow: "Flow view", pile: "Pile view", strip: S.stripDir === "down" ? "Strip view, down" : "Strip view, across" }[S.arrange], 1200);
   }
+  // gn goes to the next chapter; gp to the start of this one, or from there to the one before. In a book in parts,
+  // a chapter in another part opens that part at it.
+  function goChapter(dir) {
+    const a = currentAnchor(), ci = chapterIndex(a.b), here = tocItems[ci];
+    let to = dir > 0 ? ci + 1 : ci;
+    if (dir < 0 && (a.b <= here.b + 1 || ci === 0)) to = ci - 1;
+    if (dir < 0 && to === ci) { markPlace(); jump({ b: here.b, f: 0 }); toast(here.title, 1000); return; }
+    const info = window.bookInfo, whole = info && info.toc && info.parts && info.parts.length > 1 ? info.toc : null;
+    // a later part's own cover is no chapter: back from its first chapter is the part before
+    if (tocItems[to] && to >= 0 && !(to === 0 && whole && info.part > 1)) { markPlace(); jump({ b: tocItems[to].b, f: 0 }); toast(tocItems[to].title, 1000); return; }
+    const wi = whole ? whole.findIndex(t => t.id === here.id) : -1, next = wi >= 0 ? whole[wi + dir] : null;
+    if (!next) { toast(dir > 0 ? "This is the last chapter." : "This is the first chapter.", 1400); return; }
+    toast(`${next.title}: opening part ${next.part}…`, 2000);
+    location.href = `?${info.ref}${next.part > 1 ? `&part=${next.part}` : ""}#${next.id}`;
+  }
   function goEdge(dir) {
     markPlace();
     if (textScroll()) scrollText(dir < 0 ? 0 : scroller.scrollHeight, true);
@@ -4622,6 +4638,8 @@ window.bookReady = (async () => {
       return;
     }
     if (k === "G") { e.preventDefault(); goEdge(1); return; }
+    // gn and gp: the next and previous chapter, loading the part it is in when it is not this one
+    if ((k === "n" || k === "p") && performance.now() - lastG < 500) { lastG = 0; e.preventDefault(); goChapter(k === "n" ? 1 : -1); return; }
     if ((k === "n" || k === "N") && hlOn && results.length) { e.preventDefault(); nextMatch(k === "n" ? 1 : -1); return; }
     const toggles = { L: () => enterToc(true), V: nextPalette, B: () => toggleBooks(), o: () => toggleBooks(), t: openGrid, c: cKey, C: () => showPanel("toc"), m: () => showPanel("map"), M: mapSides, a: toggleReading, v: switchView, r: goBack, f: toggleFacing, F: fKey, e: toggleExpand, z: () => setTucked(!app.classList.contains("tucked")) };
     if ((k === "{" || k === "}") && reading) { e.preventDefault(); skipParagraph(k === "}" ? 1 : -1); return; }
