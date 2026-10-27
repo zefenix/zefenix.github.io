@@ -515,7 +515,7 @@ a.toc-item { text-decoration: none; }
 
 /* options popover */
 .popover {
-  position: fixed; z-index: 20; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 64px;
+  position: fixed; z-index: 32; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 64px;
   width: min(350px, calc(100vw - 32px)); max-height: 74%; overflow-y: auto; box-sizing: border-box;
   padding: 16px 18px 18px; border: 1px solid var(--hair); border-radius: 10px; background: var(--surface);
   box-shadow: 0 18px 50px -12px var(--shadow);
@@ -711,7 +711,7 @@ a.toc-item { text-decoration: none; }
 .top-mid .name { border: 0; padding: 0; background: none; color: inherit; cursor: pointer; text-overflow: ellipsis; overflow: hidden; max-width: 30vw; }
 .top-mid .name:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 .library {
-  position: fixed; inset: 0; z-index: 30; overflow-y: auto; overscroll-behavior: contain; background: var(--desk);
+  position: fixed; inset: 0 0 var(--dock-h, 0px); z-index: 30; overflow-y: auto; overscroll-behavior: contain; background: var(--desk);
   touch-action: pan-y pinch-zoom;   /* a sideways swipe reaches the script, which switches Shelf and List */
   padding: max(18px, env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) 48px max(18px, env(safe-area-inset-left, 0px));
 }
@@ -754,6 +754,7 @@ a.toc-item { text-decoration: none; }
 @media (pointer: coarse) { .lib-book .x { opacity: .85; } }
 .lib-book .x.ask { width: auto; padding: 0 10px; border-radius: 13px; font-size: 12px; color: #fff; background: #a33f3f; border-color: transparent; }
 .library.v-list .lib-book .x { top: 50%; right: 8px; transform: translateY(-50%); width: 22px; height: 22px; }
+.library.v-list .lib-book:has(> .x) { padding-right: 40px; }   /* the × keeps a space of its own, clear of the size and date */
 .library.v-list .lib-book .x.ask { width: auto; }
 .lib-book .s a { color: var(--accent); }
 /* Shelf: covers only, standing on a shelf under each row */
@@ -1550,7 +1551,7 @@ a.toc-item { text-decoration: none; }
   <li>Minimap: the book drawn small, as a column of little pages in the page views and as the text itself in plain text. Click or drag on it to move. A faint percentage in its box shows how far through you are; Options sets how faint, or turns it off. <code>m</code> hides or shows the minimap.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Flow or Pile.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>
@@ -3039,6 +3040,11 @@ window.bookReady = (async () => {
     cur.focus({ preventScroll: true });
     requestAnimationFrame(() => app.classList.add("grid-on"));
   }
+  function gridTo(i) {
+    const t = thumbs[clamp(i, 0, thumbs.length - 1)];
+    t.focus({ preventScroll: true });
+    gridEl.scrollTop = t.offsetTop - gridEl.clientHeight / 2 + t.offsetHeight / 2;
+  }
   // quiet: leave focus where the caller is putting it
   function closeGrid(quiet) {
     if (!gridOpen) return;
@@ -3238,18 +3244,24 @@ window.bookReady = (async () => {
     clearTimeout(tipTimer);
     tipTimer = setTimeout(() => { scrubTip.hidden = true; }, delay);
   }
+  // Over the Library the slider scrolls the books, and over All pages it moves through the thumbnails; the book behind stays put.
   function scrubTo(e) {
+    if (!booksEl.hidden) {
+      const r = ticksEl.getBoundingClientRect();
+      booksEl.scrollTop = clamp((e.clientX - r.left) / r.width, 0, 1) * (booksEl.scrollHeight - booksEl.clientHeight);
+      return;
+    }
     const i = scrubIndex(e);
     showTip(i);
     if (i === scrubLast) return;
     scrubLast = i;
-    closeGrid(true);
+    if (gridOpen) { gridTo(i); return; }
     goUnit(i, S.view === "scroll");
   }
   ticksEl.addEventListener("pointerdown", e => {
     if (!ready) return;
     e.preventDefault();
-    markPlace();
+    if (booksEl.hidden && !gridOpen) markPlace();
     scrubbing = true;
     scrubLast = -1;
     ticksEl.setPointerCapture(e.pointerId);
@@ -3258,7 +3270,7 @@ window.bookReady = (async () => {
   ticksEl.addEventListener("pointermove", e => {
     if (!ready) return;
     if (scrubbing) scrubTo(e);
-    else if (e.pointerType === "mouse") showTip(scrubIndex(e));
+    else if (e.pointerType === "mouse" && booksEl.hidden) showTip(scrubIndex(e));
   });
   const endScrub = () => { scrubbing = false; hideTip(600); };
   ticksEl.addEventListener("pointerup", endScrub);
@@ -3432,6 +3444,7 @@ window.bookReady = (async () => {
     const tight = dock.scrollWidth > dock.clientWidth + 1 || meet(parts[0], parts[1]) || meet(parts[0], parts[2]) || meet(parts[1], parts[2]);
     dock.classList.toggle("compact", tight);
     if (!tight) openPick(null);
+    app.style.setProperty("--dock-h", dock.offsetHeight + "px");
   }
   // on any change of the bar's size or its page numbers; the page numbers and resize also ask directly, for engines that skip observers
   dock.fitter = new ResizeObserver(fitDock);
@@ -3626,13 +3639,17 @@ window.bookReady = (async () => {
   }
   optsBtn.addEventListener("click", () => setOptions(opts.hidden));
   // Left of the slider: a peek at Contents; again puts the peek away.
-  // Right of it: All pages, and back.
   statL.addEventListener("click", () => {
-    if (!ready) return;
+    if (!ready || !booksEl.hidden) return;
     if (peekSide === "toc") endPeek();
     else if (tocPanel.hidden) peek("toc");
   });
-  statR.addEventListener("click", () => { if (ready) (gridOpen ? closeGrid() : openGrid()); });
+  // Right of it: All pages, and back; over the Library, back to the book.
+  statR.addEventListener("click", () => {
+    if (!ready || upSwiped()) return;
+    if (!booksEl.hidden) { setBooks(false); focusReader(); return; }
+    gridOpen ? closeGrid() : openGrid();
+  });
   // A swipe up from the strip below the page, the way into All pages, opens the Library instead.
   let upSwipe = null, upSwipeAt = -1e9;
   const upSwiped = () => performance.now() - upSwipeAt < 500;
@@ -4610,12 +4627,12 @@ window.bookReady = (async () => {
     setTucked(!app.classList.contains("tucked"));
   });
   // On a phone, a swipe down on the bottom bar tucks the menus and a swipe up brings them back, for one thumb.
-  // The slider's own track is left out, so dragging it only ever scrubs.
+  // The slider's own track is left out, so dragging it only ever scrubs. Right of the slider, out of Zen, a swipe up opens the Library.
   // And a swipe up on the top bar tucks them too, a swipe toward the edge each bar sits on.
   let barSwipe = null;
   [dock, top].forEach(bar => {
     bar.addEventListener("pointerdown", e => {
-      barSwipe = phoneMQ.matches && e.isPrimary && !e.target.closest("#ticks") ? { x: e.clientX, y: e.clientY, id: e.pointerId, bar } : null;
+      barSwipe = phoneMQ.matches && e.isPrimary && !e.target.closest("#ticks") ? { x: e.clientX, y: e.clientY, id: e.pointerId, bar, stat: !!e.target.closest("#statR") } : null;
     });
     bar.addEventListener("pointercancel", () => { barSwipe = null; });
   });
@@ -4625,7 +4642,11 @@ window.bookReady = (async () => {
     if (!b || e.pointerId !== b.id) return;
     const dx = e.clientX - b.x, dy = e.clientY - b.y;
     if (Math.abs(dy) < 28 || Math.abs(dy) < 1.5 * Math.abs(dx)) return;
-    if (b.bar === dock) setTucked(dy > 0);
+    // Right of the slider a swipe up works in two steps: out of Zen first, then into the Library.
+    if (b.bar === dock && dy < 0 && b.stat && !app.classList.contains("tucked")) {
+      upSwipeAt = performance.now();
+      if (ready && booksEl.hidden) setBooks(true);
+    } else if (b.bar === dock) setTucked(dy > 0);
     else if (dy < 0) setTucked(true);
   });
   window.addEventListener("pagehide", () => { if (synth) synth.cancel(); });
@@ -4953,8 +4974,14 @@ window.bookReady = (async () => {
     }
   });
 
-  prevBtn.addEventListener("click", () => step(-1));
-  nextBtn.addEventListener("click", () => step(1));
+  // The arrows, too, work on what is shown: a screen of books in the Library, a thumbnail in All pages, else a page.
+  const barStep = d => {
+    if (!booksEl.hidden) booksEl.scrollBy({ top: d * 0.8 * booksEl.clientHeight, behavior: "smooth" });
+    else if (gridOpen) gridTo(Math.max(0, thumbs.indexOf(document.activeElement)) + d);
+    else step(d);
+  };
+  prevBtn.addEventListener("click", () => barStep(-1));
+  nextBtn.addEventListener("click", () => barStep(1));
   pageNum.addEventListener("keydown", e => {
     if (e.key === "Enter") { e.preventDefault(); pageNum.blur(); }
     if (e.key === "Escape") { pageNum.value = ""; pageNum.blur(); }
@@ -5742,6 +5769,7 @@ window.bookReady = (async () => {
     if (open) { selected = null; askingClear = false; inOutline = false; outlineEl.classList.remove("active", "sheet"); renderShelf(); renderPanel(); setOptions(false); closeSearch(true); }
     booksEl.hidden = !open;
     app.classList.toggle("lib-on", open);
+    if (open) app.style.setProperty("--dock-h", dock.offsetHeight + "px");
   }
   const toggleBooks = () => setBooks(booksEl.hidden);
   // The keys page, ?: the Keys chapter's tables, kept from the reader's own book, and the Library's keys.
