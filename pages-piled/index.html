@@ -469,6 +469,15 @@ a.toc-item { text-decoration: none; }
 .seg button svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .dock .seg button svg { stroke-width: 1.05; }   /* the views and styles along the bottom, drawn lighter */
 .dock .seg button { padding: 5px 11px; }
+/* a bottom bar that runs out of room folds the views and the styles into one button each, which opens its row above it */
+.dpick { position: relative; display: inline-flex; }
+.pick { display: none; }
+.dock.compact .pick { display: inline-grid; place-items: center; width: 40px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pick svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.05; stroke-linecap: round; stroke-linejoin: round; }
+.pick[aria-expanded="true"] { background: var(--sel); color: var(--sel-ink); }
+.dpick:has(> .seg.off) .pick { opacity: .35; pointer-events: none; }
+.dock.compact .dpick > .seg { display: none; }
+.dock.compact .dpick.open > .seg { display: inline-flex; position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 25; background: var(--bar); box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 16%, transparent); }
 .f-btn svg { display: block; width: 16px; height: 16px; margin: auto; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
 .step {
@@ -3144,6 +3153,8 @@ window.bookReady = (async () => {
     if (document.activeElement !== pageNum) pageNum.value = String(on[0] + 1);
     unitExtra.textContent = on.length > 1 ? `–${on[1] + 1}` : "";
     unitTotal.textContent = `/ ${n}`;
+    const fit = `${unitLabel.textContent}${pageNum.value.length}${unitExtra.textContent}${n}`;
+    if (dock.dataset.fit !== fit) { dock.dataset.fit = fit; fitDock(); }
     ticks.forEach((t, i) => {
       t.classList.toggle("read", i < on[0]);
       t.classList.toggle("on", on.includes(i));
@@ -3302,6 +3313,7 @@ window.bookReady = (async () => {
       const v = seg.dataset.setting === "mode" ? mode : String(S[seg.dataset.setting]);
       seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === v)));
     });
+    syncPicks();
     document.querySelectorAll("input[type=range][data-setting]").forEach(inp => {
       inp.value = String(S[inp.dataset.setting]);
       const v = S[inp.dataset.setting];
@@ -3383,6 +3395,48 @@ window.bookReady = (async () => {
     if (S.theme === "system") hostTheme = now;
     else if (now !== S.theme) applyLook();
   }).observe(docEl, { attributes: true, attributeFilter: ["data-theme"] });
+
+  // The bottom bar folds when its parts no longer fit side by side: the views and the styles become one button each,
+  // showing the current choice, that opens the whole row above it. Measured, not set by width, so long page numbers and large text fold it too.
+  function syncPicks() {
+    document.querySelectorAll(".dpick").forEach(w => {
+      const seg = w.querySelector(".seg"), on = seg.querySelector('[aria-pressed="true"]') || seg.querySelector("button");
+      w.firstChild.replaceChildren(on.querySelector("svg").cloneNode(true));
+      w.firstChild.title = `${seg.getAttribute("aria-label")}: ${on.getAttribute("aria-label")}`;
+    });
+  }
+  function openPick(open) {
+    document.querySelectorAll(".dpick").forEach(w => { w.classList.toggle("open", w === open); w.firstChild.setAttribute("aria-expanded", String(w === open)); });
+  }
+  const dockPage = dock.querySelector(".dock-page");
+  dock.querySelector(".dock-ctl").querySelectorAll(".seg[data-setting]").forEach(seg => {
+    const w = document.createElement("span"), pick = document.createElement("button");
+    w.className = "dpick";
+    pick.type = "button";
+    pick.className = "pick";
+    pick.setAttribute("aria-haspopup", "true");
+    pick.setAttribute("aria-expanded", "false");
+    pick.setAttribute("aria-label", seg.getAttribute("aria-label"));
+    seg.before(w);
+    w.append(pick, seg);
+    pick.addEventListener("click", () => openPick(w.classList.contains("open") ? null : w));
+    seg.addEventListener("click", e => { if (e.target.closest("button[data-value]")) openPick(null); });
+  });
+  syncPicks();
+  function fitDock() {
+    dock.classList.remove("compact");
+    const parts = [".dock-ctl", ".nav", ".dock-page"].map(q => dock.querySelector(q).getBoundingClientRect());
+    const meet = (a, b) => a.width && b.width && a.right > b.left - 6 && b.right > a.left - 6 && a.bottom > b.top && b.bottom > a.top;
+    const tight = dock.scrollWidth > dock.clientWidth + 1 || meet(parts[0], parts[1]) || meet(parts[0], parts[2]) || meet(parts[1], parts[2]);
+    dock.classList.toggle("compact", tight);
+    if (!tight) openPick(null);
+  }
+  // on any change of the bar's size or its page numbers; the page numbers and resize also ask directly, for engines that skip observers
+  dock.fitter = new ResizeObserver(fitDock);
+  [dock, dockPage].forEach(el => dock.fitter.observe(el));
+  addEventListener("resize", fitDock);
+  document.addEventListener("pointerdown", e => { if (!e.target.closest(".dpick")) openPick(null); }, true);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector(".dpick.open")) { openPick(null); e.stopImmediatePropagation(); } }, true);
 
   const coerce = (key, v) => (typeof DEFAULTS[key] === "number" ? Number(v) : v);
   document.querySelectorAll(".seg[data-setting]").forEach(seg => {
