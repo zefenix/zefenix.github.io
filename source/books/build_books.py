@@ -161,14 +161,15 @@ def build_rust(clone, out):
     for img in sorted(used):
         os.makedirs(os.path.join(dest, os.path.dirname(img)), exist_ok=True)
         shutil.copyfile(os.path.join(src, img), os.path.join(dest, img))
+    # Licences are hosted as .txt, which a browser shows; a file with no extension, or .md, it downloads instead.
     for f in ["LICENSE-MIT", "LICENSE-APACHE", "COPYRIGHT"]:
-        shutil.copyfile(os.path.join(clone, f), os.path.join(dest, f))
+        shutil.copyfile(os.path.join(clone, f), os.path.join(dest, f + ".txt"))
     book = {
         "v": 1, "id": "rust-book", "title": "The Rust Programming Language", "byline": "Steve Klabnik, Carol Nichols and Chris Krycho, with contributions from the Rust Community",
         "site": "github.com/rust-lang/book", "url": f"https://github.com/rust-lang/book/tree/{RUST_COMMIT}",
         "copyright": "Copyright (c) 2010 The Rust Project Developers. Licensed under the MIT license or the Apache License, Version 2.0, at your option.",
         "notice": "Shown here unchanged apart from layout, from the book's source at commit " + RUST_COMMIT[:12] + ". Not affiliated with or endorsed by the Rust Project.",
-        "licenses": ["LICENSE-MIT", "LICENSE-APACHE", "COPYRIGHT"], "chapters": chapters,
+        "licenses": ["LICENSE-MIT.txt", "LICENSE-APACHE.txt", "COPYRIGHT.txt"], "chapters": chapters,
     }
     json.dump(book, open(os.path.join(dest, "book.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     return book, len(used)
@@ -226,13 +227,13 @@ def build_cookbooks(clone, out):
             md = f"# {title}\n\n{md}"
         chapters.append({"title": title, "path": p.replace(".ipynb", ".md"), "markdown": md,
                          "source": f"https://github.com/anthropics/claude-cookbooks/blob/{COOKBOOKS_COMMIT}/{p}"})
-    shutil.copyfile(os.path.join(clone, "LICENSE"), os.path.join(dest, "LICENSE"))
+    shutil.copyfile(os.path.join(clone, "LICENSE"), os.path.join(dest, "LICENSE.txt"))
     book = {
         "v": 1, "id": "claude-cookbooks", "title": "Claude Cookbooks, a selection", "byline": "Eight notebooks from anthropics/claude-cookbooks, as Markdown",
         "site": "github.com/anthropics/claude-cookbooks", "url": f"https://github.com/anthropics/claude-cookbooks/tree/{COOKBOOKS_COMMIT}",
         "copyright": "Copyright (c) 2023 Anthropic. MIT License.",
         "notice": "Selected and converted from notebooks to Markdown for Pages, Piled, from commit " + COOKBOOKS_COMMIT[:12] + "; long outputs are shortened. Not affiliated with or endorsed by Anthropic.",
-        "licenses": ["LICENSE"], "chapters": chapters,
+        "licenses": ["LICENSE.txt"], "chapters": chapters,
     }
     json.dump(book, open(os.path.join(dest, "book.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     return book
@@ -276,13 +277,13 @@ def build_se(spec, clone, out):
     for img in sorted(used):
         os.makedirs(os.path.join(dest, "images"), exist_ok=True)
         shutil.copyfile(os.path.join(clone, "src", "epub", img), os.path.join(dest, img))
-    shutil.copyfile(os.path.join(clone, "LICENSE.md"), os.path.join(dest, "LICENSE.md"))
+    shutil.copyfile(os.path.join(clone, "LICENSE.md"), os.path.join(dest, "LICENSE.txt"))
     book = {
         "v": 1, "id": spec["id"], "title": spec["title"], "byline": spec["byline"], "author": spec["author"], "site": "Standard Ebooks",
         "url": f"https://github.com/standardebooks/{spec['repo']}/tree/{spec['commit']}",
         "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
         "notice": f"From the Standard Ebooks edition at commit {spec['commit'][:12]}, shown unchanged apart from layout{', a selection' if spec.get('files') else ''}. Not affiliated with or endorsed by Standard Ebooks.",
-        "licenses": ["LICENSE.md"], "chapters": chapters,
+        "licenses": ["LICENSE.txt"], "chapters": chapters,
     }
     json.dump(book, open(os.path.join(dest, "book.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     return book, len(used)

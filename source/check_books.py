@@ -22,6 +22,8 @@ for entry in shelf:
     if 'endorsed' not in book.get('notice', ''):
         fails.append(f"{entry['id']}: the notice does not say the book is not endorsed")
     for lic in book.get('licenses', []):
+        if not lic.endswith('.txt'):
+            fails.append(f"{entry['id']}: licence file {lic} is not .txt, so a browser would download it rather than show it")
         path = os.path.join(folder, lic)
         if not os.path.isfile(path) or os.path.getsize(path) < 200:
             fails.append(f"{entry['id']}: licence file {lic} is missing or empty")

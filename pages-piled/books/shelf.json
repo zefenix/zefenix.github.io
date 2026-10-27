@@ -9,7 +9,7 @@
   "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
   "notice": "From the Standard Ebooks edition at commit 48ec456ea509, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
   "licenses": [
-   "LICENSE.md"
+   "LICENSE.txt"
   ],
   "chapters": 12,
   "toc": [
@@ -85,7 +85,7 @@
   "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
   "notice": "From the Standard Ebooks edition at commit 1af363f17450, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
   "licenses": [
-   "LICENSE.md"
+   "LICENSE.txt"
   ],
   "chapters": 118,
   "toc": [
@@ -691,7 +691,7 @@
   "copyright": "Public domain: in the United States, and wherever a work is protected for seventy years after its author's death. Standard Ebooks dedicates its edition to the public domain under CC0 1.0.",
   "notice": "From the Standard Ebooks edition at commit 3a47d37d9f1d, shown unchanged apart from layout. Not affiliated with or endorsed by Standard Ebooks.",
   "licenses": [
-   "LICENSE.md"
+   "LICENSE.txt"
   ],
   "chapters": 13,
   "toc": [
@@ -771,9 +771,9 @@
   "copyright": "Copyright (c) 2010 The Rust Project Developers. Licensed under the MIT license or the Apache License, Version 2.0, at your option.",
   "notice": "Shown here unchanged apart from layout, from the book's source at commit 1500248d8f23. Not affiliated with or endorsed by the Rust Project.",
   "licenses": [
-   "LICENSE-MIT",
-   "LICENSE-APACHE",
-   "COPYRIGHT"
+   "LICENSE-MIT.txt",
+   "LICENSE-APACHE.txt",
+   "COPYRIGHT.txt"
   ],
   "chapters": 111,
   "toc": [
@@ -1343,7 +1343,7 @@
   "copyright": "Copyright (c) 2023 Anthropic. MIT License.",
   "notice": "Selected and converted from notebooks to Markdown for Pages, Piled, from commit bfe50e59dbb4; long outputs are shortened. Not affiliated with or endorsed by Anthropic.",
   "licenses": [
-   "LICENSE"
+   "LICENSE.txt"
   ],
   "chapters": 8,
   "toc": [
