@@ -538,9 +538,6 @@ a.toc-item { text-decoration: none; }
 .result[aria-selected="true"] { background: var(--bar); box-shadow: inset 0 0 0 1px var(--hair); }
 .result.jump .r-snip { color: var(--ink); font-family: var(--f-ui); font-size: 14px; font-weight: 500; }
 .r-meta { font-size: 11.5px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
-.away-head { margin: 10px 10px 2px; padding-top: 10px; border-top: 1px solid var(--hair); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
-.result.away .r-meta { color: var(--ink-soft); }
-.result.away .r-snip { opacity: .85; }
 .r-snip { font-family: var(--f-book); font-size: 14.5px; line-height: 1.45; color: var(--ink-soft); }
 .r-snip mark { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--ink); border-radius: 2px; padding: 0 1px; }
 .r-snip mark.self { background: var(--hit); }
@@ -3820,55 +3817,12 @@ window.bookReady = (async () => {
       frag.appendChild(li);
     });
     resultsEl.replaceChildren(frag);
-    const away = otherParts(lastQuery);
     if (!items.length && lastQuery.trim()) {
       const li = document.createElement("li");
       li.className = "empty";
-      li.textContent = away.length ? "Nothing in this part matches that." : "Nothing in the text matches that. Try fewer words, or check the spelling.";
+      li.textContent = "Nothing in the text matches that. Try fewer words, or check the spelling.";
       resultsEl.appendChild(li);
     }
-    if (away.length) resultsEl.append(...away);
-  }
-
-  // In a book set in parts, the words in the other parts follow this part's results, each opening its part.
-  let partTexts = null;
-  function otherParts(raw) {
-    const info = window.bookInfo;
-    const q = raw.trim().replace(/^"(.*)"$/, "$1");
-    if (!info || !info.parts || info.parts.length < 2 || !window.bookData || q.length < 2 || /^\/.*\/$/.test(q) || /^(p|c|s)?\d+(\.\d+)?\.?$/i.test(q)) return [];
-    if (!partTexts) {
-      const { list, parts } = window.bookTools.prepare(window.bookData);
-      partTexts = parts.map(p => p.units.map(u => ({ title: list[u.i].title, text: u.text, low: u.text.toLowerCase() })));
-    }
-    const needle = q.toLowerCase(), out = [];
-    let count = 0;
-    partTexts.forEach((units, pi) => {
-      if (pi + 1 === info.part) return;
-      for (const u of units) for (let at = u.low.indexOf(needle); at >= 0; at = u.low.indexOf(needle, at + needle.length)) {
-        count++;
-        if (out.length < 40) out.push({ part: pi + 1, title: u.title, text: u.text, at });
-      }
-    });
-    if (!count) return [];
-    const plain = t => t.replace(/data:image\/[^)\s"]+/g, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\]\([^)]*\)/g, "]").replace(/[*_`#>\[\]]/g, "").replace(/\s+/g, " ");
-    const head = document.createElement("li");
-    head.className = "away-head";
-    head.textContent = `In other parts: ${count} ${count === 1 ? "place" : "places"}${count > out.length ? `, the first ${out.length}` : ""}`;
-    return [head, ...out.map(r => {
-      const li = document.createElement("li");
-      li.className = "result away";
-      const meta = document.createElement("span"), snip = document.createElement("span");
-      meta.className = "r-meta";
-      snip.className = "r-snip";
-      meta.textContent = `Part ${r.part} · ${r.title}`;
-      const a = Math.max(0, r.at - 60), z = Math.min(r.text.length, r.at + needle.length + 80);
-      const m = document.createElement("mark");
-      m.textContent = r.text.slice(r.at, r.at + needle.length);
-      snip.append((a ? "…" : "") + plain(r.text.slice(a, r.at)), m, plain(r.text.slice(r.at + needle.length, z)) + (z < r.text.length ? "…" : ""));
-      li.append(meta, snip);
-      li.addEventListener("click", () => { location.href = `?${info.ref}${r.part > 1 ? `&part=${r.part}` : ""}&find=${encodeURIComponent(q)}`; });
-      return li;
-    })];
   }
 
   function paint() {
