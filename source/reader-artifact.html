@@ -1167,6 +1167,8 @@ a.toc-item { text-decoration: none; }
     </section>
     <section>
       <h3>Panels</h3>
+      <div class="row"><span>Library click</span>
+        <div class="seg" data-setting="libClick"><button type="button" data-value="select">Select, then open</button><button type="button" data-value="open">Open</button></div></div>
       <div class="row"><span>Leaving Zen</span>
         <div class="seg" data-setting="zenExit"><button type="button" data-value="off">Panels stay off</button><button type="button" data-value="restore">Bring them back</button></div></div>
       <div class="row"><span>Contents</span>
@@ -1244,7 +1246,7 @@ a.toc-item { text-decoration: none; }
       <table class="kh-lib"><thead><tr><th>Key</th> <th>What it does</th></tr></thead><tbody>
         <tr><td><code>/</code> Ctrl+f</td> <td>Find a book, or words in every book</td></tr>
         <tr><td><code>h</code> <code>j</code> <code>k</code> <code>l</code>, arrows</td> <td>Move between books, and down into the words found</td></tr>
-        <tr><td>Enter, double-click</td> <td>Open</td></tr>
+        <tr><td>Enter, double-click</td> <td>Open; a single click opens too when Options sets Library click to Open</td></tr>
         <tr><td><code>b</code> <code>v</code></td> <td>Shelf or List</td></tr>
         <tr><td><code>L</code></td> <td>Keys into the outline and back</td></tr>
         <tr><td><code>cc</code></td> <td>Outline as chapters, or with their parts</td></tr>
@@ -2267,8 +2269,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", zenExit: "off", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", mapAt: "side", zenExit: "off", libClick: "select", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -5244,7 +5246,12 @@ window.bookReady = (async () => {
     row.append(cover(book.title, book.site, book.colour, book.ghost),
       elt("span", { className: "meta" }, elt("span", { className: "t" }, book.title), elt("span", { className: "s" }, book.source)),
       elt("span", { className: "c-size" }, book.size), elt("span", { className: "c-when" }, book.when || "—"));
-    row.addEventListener("click", () => { select(libItems().indexOf(row), true); if (innerWidth < 700) booksNow.scrollIntoView({ behavior: "smooth", block: "start" }); });
+    // A click selects, showing the book's cover and outline, and a second opens it; Options can make one click open it.
+    row.addEventListener("click", () => {
+      if (S.libClick === "open") { openBook(book); return; }
+      select(libItems().indexOf(row), true);
+      if (innerWidth < 700) booksNow.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     row.addEventListener("dblclick", () => openBook(book));
     // A book of yours can be removed from its own ×: the first click asks, the second removes; moving away cancels.
     if (book.kind === "opened") {
@@ -5286,7 +5293,7 @@ window.bookReady = (async () => {
   }
 
   // Shelf shows covers; List shows a row of details for each. v switches between them.
-  let libView = store.get("libView", "shelf");
+  let libView = store.get("libView", "list");
   function setLibView(v) {
     libView = v === "list" ? "list" : "shelf";
     store.set("libView", libView);
