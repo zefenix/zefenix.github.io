@@ -1336,10 +1336,11 @@ a.toc-item { text-decoration: none; }
     <li><a href="#find"><span class="n">9</span><span class="t">Search</span></a></li>
     <li><a href="#place"><span class="n">10</span><span class="t">Keeping your place</span></a></li>
     <li><a href="#listen"><span class="n">11</span><span class="t">Listening</span></a></li>
-    <li><a href="#screen"><span class="n">12</span><span class="t">The screen</span></a></li>
-    <li><a href="#keys"><span class="n">13</span><span class="t">Keys</span></a></li>
-    <li><a href="#built"><span class="n">14</span><span class="t">How it is built</span></a></li>
-    <li><a href="#open"><span class="n">15</span><span class="t">Open questions</span></a></li>
+    <li><a href="#yours"><span class="n">12</span><span class="t">Your own books</span></a></li>
+    <li><a href="#screen"><span class="n">13</span><span class="t">The screen</span></a></li>
+    <li><a href="#keys"><span class="n">14</span><span class="t">Keys</span></a></li>
+    <li><a href="#built"><span class="n">15</span><span class="t">How it is built</span></a></li>
+    <li><a href="#open"><span class="n">16</span><span class="t">Open questions</span></a></li>
   </ol>
   <p class="note">paged.js filled in these page numbers after laying out the book. Click a line to go there, or press <code>l</code> or → to turn the page.</p>
 </section>
@@ -1460,9 +1461,9 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 5. Scroll’s two styles, switched with v: the pages one under another, and the text as one column.</figcaption>
 </figure>
 <h3 id="gliding">Gliding</h3>
-<p id="scroll-glide">The glide comes from Surfingkeys, the browser extension for vim-style keys. A press doesn’t jump: the text travels its distance at a steady speed, in about a tenth of a second for <code>j</code> and only a little longer for <code>d</code>, so your eye can stay on the line it was reading. Hold the key and the text keeps gliding at that same speed, smooth rather than stuttering with the keyboard’s repeat, and it stops the moment you let go. Press again mid-glide and it simply goes further. Glide speed under Options makes all of it quicker or slower.</p>
+<p id="scroll-glide">The glide comes from Surfingkeys, the browser extension for vim-style keys. A press doesn’t jump: the text travels at a steady speed, in about a tenth of a second for <code>j</code>, so your eye can stay on its line. Hold the key and it keeps gliding, smoothly, until you let go; press again mid-glide and it goes further. Glide speed, under Options, sets the pace.</p>
 <h3 id="placed">What it gives up</h3>
-<p id="scroll-cost">What Scroll gives up is the book as an object. In Flow and Pile the piles and the page slider show how much lies behind and ahead, like a book’s thickness in your hands. A scrolled column has no visible beginning or end, so there the contents, the minimap and the percentage beside the arrows keep you placed, along with the ways of keeping your place in chapter 10.</p>
+<p id="scroll-cost">What Scroll gives up is the book as an object: the piles that show how much lies behind and ahead, like a book’s thickness in your hands. In a scrolled column, Contents, the minimap and the percentage beside the arrows keep you placed, with the ways of chapter 10.</p>
 
 <h2 id="thumbs" data-n="6">Thumbnails</h2>
 <p id="thumbs-why">Press <code>t</code>, click All pages in the top bar, or click just below the middle of the current page, and every page appears at once: where chapters start, which pages carry figures, how long each part runs. It is the quickest way to jump a long distance. Pick a page with the mouse, or with <code>h</code> <code>j</code> <code>k</code> <code>l</code> and Enter, and it opens in the view you came from. Click empty space or press Esc to go back.</p>
@@ -1558,7 +1559,13 @@ a.toc-item { text-decoration: none; }
 <p id="listen-parts">In a book that loads in parts, Listen opens the next part when it reaches the end of one, and reads on from its first chapter. Some browsers won’t speak in a newly opened page until you press a key or tap; a note then says so, and <code>a</code> or Listen carries on.</p>
 <p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
 
-<h2 id="screen" data-n="12">The screen</h2>
+<h2 id="yours" data-n="12">Your own books</h2>
+<p id="yours-open">Pages, Piled reads any Markdown, not only this book. In the Library, <code>o</code> or the Library button at the top left, choose Markdown files or a folder, or drop them on the page. A folder becomes one book: its README first and the rest in order, or in the order its <code>SUMMARY.md</code> gives, as an mdBook’s does. Nothing leaves your browser.</p>
+<p id="yours-bookmarklet">On a computer, the bookmarklet in the Library reads the page you are on. Drag it to your bookmarks bar, open a documentation page, and click it: the page opens here as a book, pictures and all. When the site lists its pages in an <code>llms.txt</code>, the Library offers to read the whole site as one book.</p>
+<p id="yours-parts">A long book is set in parts of about 55 pages, so it opens quickly. Contents lists every chapter, the last page of a part leads on to the next, <code>gn</code> and Listen carry on across them, and the Library’s find searches the whole book.</p>
+<p id="yours-library">The Library keeps the twelve books you opened most recently, in this browser alone. Each has a × to remove it; this book can be hidden instead. Find, at the top, narrows the books by name and lists the places in their text that hold your words. Shelf shows covers and List a row of details: <code>b</code> switches, as does a sideways swipe on a phone. A click picks a book and shows its outline, and a second opens it; Options can make one click open it.</p>
+
+<h2 id="screen" data-n="13">The screen</h2>
 <h3 id="parts">The parts</h3>
 <figure class="fig" id="fig-screen">
   <svg viewBox="0 0 320 204" role="img" aria-label="Diagram of the reader: the contents button and All pages at the top left; the title and chapter in the middle; Search, Listen, Full screen, Theme and the minimap button at the top right; contents panel on the left; pages in the middle with a strip below them; the minimap on the right as a column of little pages with a faint percentage; bottom bar with the view switch, page slider, page box, Expand, Focus and Options.">
@@ -1631,7 +1638,7 @@ a.toc-item { text-decoration: none; }
 <h3 id="look-options">Theme and Options</h3>
 <p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, the default; Sepia; Paper, a soft cream; and Gray, after Firefox’s Reader View. On a phone its settings are grouped in tabs: All, Look &amp; Pages, Listen &amp; Scroll, and Panels.</p>
 
-<h2 id="keys" data-n="13">Keys</h2>
+<h2 id="keys" data-n="14">Keys</h2>
 <p id="keys-intro">Press <code>?</code> anywhere for these keys on a page of their own, where you can find one by what it does, or, on a computer, set keys of your own. Where a key works differently in Scroll, the tables say how.</p>
 <h3 id="keys-moving">Turning pages</h3>
 <table id="keys-table">
@@ -1712,19 +1719,17 @@ a.toc-item { text-decoration: none; }
 <h3 id="keys-touch">Mouse and touch</h3>
 <p id="keys-mouse">With a mouse, the wheel turns pages, or scrolls in Scroll. Drag along the page slider to turn pages quickly, and click a page beside the current one to bring it forward. On a touch screen, swipe.</p>
 
-<h2 id="built" data-n="14">How it is built</h2>
-<p id="built-passes">The text is plain HTML. paged.js, an open-source implementation of CSS Paged Media, flows it into pages from <code>@page</code> rules, with running heads, page numbers, a page break before each chapter and a contents page whose numbers come from <code>target-counter()</code>. A short script then stacks those pages and gives each a 3D transform from its distance to the current page.</p>
-<pre>d = index - current
-x = side * (edge + (|d| - 1) * step)
-transform: translate3d(x, 0, -depth) rotateY(-side * 60deg)</pre>
+<h2 id="built" data-n="15">How it is built</h2>
+<p id="built-passes">The text is plain HTML. paged.js, an open-source implementation of CSS Paged Media, flows it into pages from <code>@page</code> rules: running heads, page numbers, a break before each chapter, and a contents page numbered by <code>target-counter()</code>. A short script then stacks the pages, giving each a 3D transform from its distance to the current one.</p>
 <p id="built-blocks">The same HTML also becomes the Scroll column. Every block carries a number in both, which is how page numbers, search, Listen and the minimap agree on where a sentence is.</p>
-<p id="page-size">Page size, under Options, sets the book again as Pocket, A5, Trade, B5, A4 or US Letter. The margins grow with the sheet and the type a little less, so a bigger page holds longer lines rather than just bigger letters.</p>
-<p id="print">Printing gives those pages and nothing else: no panels, no piles, light colours. That works wherever the reader is the page being printed, as on your own website; a viewer that shows it inside a frame prints a picture of the screen instead.</p>
-<p id="site-weight">On a website the cost is mostly paged.js, about 95 KB compressed. The reader adds about 23 KB: 16 KB of script and 7 KB of styles. Any static host will do.</p>
+<p id="built-markdown">A book of your own comes in as Markdown: marked turns it into HTML, and DOMPurify removes anything that could run, so a page brings its words and pictures and no script. Both are open source and ship with their notices.</p>
+<p id="page-size">Page size, under Options, sets the book again on Pocket, A5, Trade, B5, A4 or US Letter; the margins grow with the sheet and the type a little less, so a bigger page holds longer lines.</p>
+<p id="print">Printing gives those pages alone, in light colours, wherever the reader is the page being printed; a viewer that shows it in a frame prints a picture of the screen instead.</p>
+<p id="site-weight">On a website the cost is mostly paged.js, about 94 KB compressed; the reader adds 83 KB and this book 13 KB, and marked and DOMPurify, 24 KB, load only for a book of your own. Any static host will do.</p>
 
-<h2 id="open" data-n="15">Open questions</h2>
+<h2 id="open" data-n="16">Open questions</h2>
 <ul id="open-list">
-  <li><em>Length.</em> paged.js sets the whole book before you can read; a few hundred pages would need setting on demand.</li>
+  <li><em>Length.</em> paged.js sets each part before you can read it, which is why a long book comes in parts; setting pages as you reach them would end the wait.</li>
   <li><em>Selection.</em> Text can’t be selected across a page break.</li>
   <li><em>Text size.</em> Changing it means setting the book again.</li>
   <li><em>Pictures.</em> Magazine-style layouts with large photographs are still to try.</li>
@@ -6284,7 +6289,7 @@ window.bookReady = (async () => {
     from.postMessage({ type: "pages-piled/want-site", v: 1 }, origin);
   }
   $("booksFromOpts").addEventListener("click", () => setBooks(true));
-  if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "Options, then Library," : "The Library (B)"} reads them all.`, 3600), 1800);
+  if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "The Library" : "The Library (o)"} reads them all.`, 3600), 1800);
 
   // A place found in the Library, or in another part, opens with the search carried on: the words highlighted,
   // the chip showing which match this is, at the first match in the chapter picked; n and N go on from there.
