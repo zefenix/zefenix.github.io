@@ -450,6 +450,17 @@ a.toc-item { text-decoration: none; }
 .nav { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; }
 .ticks { cursor: pointer; touch-action: none; user-select: none; border-radius: 4px; }
 .ticks:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* The slider as a dial: a ridged glaze over the ticks, which stay readable beneath, says a drag turns pages from where you are */
+.ticks { position: relative; }
+.ticks.dial::after {
+  content: ""; position: absolute; inset: 2px -6px -3px; border-radius: 9px; pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 7%, transparent) 0 1px, transparent 1px 6px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--surface) 55%, transparent), color-mix(in srgb, var(--surface) 12%, transparent) 55%, color-mix(in srgb, var(--ink) 5%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+}
+.ticks.dial { cursor: ew-resize; }
+.ticks.dial.turning::after { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent); }
 .scrub-tip {
   position: absolute; bottom: calc(100% + 6px); transform: translateX(-50%); z-index: 9; pointer-events: none;
   padding: 4px 9px; border-radius: 6px; background: var(--ink); color: var(--bar); font-size: 12px; white-space: nowrap;
@@ -1188,6 +1199,8 @@ a.toc-item { text-decoration: none; }
     </section>
     <section>
       <h3>Panels</h3>
+      <div class="row"><span>Page slider</span>
+        <div class="seg" data-setting="slider"><button type="button" data-value="dial">Dial</button><button type="button" data-value="jump">Jump</button></div></div>
       <div class="row"><span>Library click</span>
         <div class="seg" data-setting="libClick"><button type="button" data-value="select">Select, then open</button><button type="button" data-value="open">Open</button></div></div>
       <div class="row"><span>Leaving Zen</span>
@@ -1607,7 +1620,7 @@ a.toc-item { text-decoration: none; }
   <li>The minimap, in chapter 8: the book drawn small. Click or drag along it to move; <code>m</code> hides or shows it.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip. When the bar runs out of room, each group folds into one button that opens it.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. Click or drag along it. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. It starts as a dial, glazed over: drag along it and the pages turn from where you are, as on an iPod’s wheel. As a plain slider, a tap or a drag goes to the page under it. A swipe down from just above it switches between the two, as does Page slider under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>
@@ -1697,7 +1710,7 @@ a.toc-item { text-decoration: none; }
   </tbody>
 </table>
 <h3 id="keys-touch">Mouse and touch</h3>
-<p id="keys-mouse">With a mouse, the wheel turns pages, or scrolls in Scroll. Drag along the page slider to move quickly, and click a page beside the current one to bring it forward. On a touch screen, swipe.</p>
+<p id="keys-mouse">With a mouse, the wheel turns pages, or scrolls in Scroll. Drag along the page slider to turn pages quickly, and click a page beside the current one to bring it forward. On a touch screen, swipe.</p>
 
 <h2 id="built" data-n="14">How it is built</h2>
 <p id="built-passes">The text is plain HTML. paged.js, an open-source implementation of CSS Paged Media, flows it into pages from <code>@page</code> rules, with running heads, page numbers, a page break before each chapter and a contents page whose numbers come from <code>target-counter()</code>. A short script then stacks those pages and gives each a 3D transform from its distance to the current page.</p>
@@ -2354,8 +2367,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", slider: "dial", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], slider: ["dial", "jump"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -3339,21 +3352,46 @@ window.bookReady = (async () => {
     if (gridOpen) { gridTo(i); return; }
     goUnit(i, S.view === "scroll");
   }
+  // The slider as a dial (the default, Page slider in Options, or a swipe down from just above it): a drag turns pages
+  // from where you are, a page for each DIAL_STEP pixels, as an iPod's wheel does, and a tap goes nowhere. As a slider
+  // (Jump), a tap or drag goes to the page under it.
+  const dialMode = () => S.slider === "dial";
+  let dial = null;
+  function dialMove(e) {
+    const dx = e.clientX - dial.x;
+    dial.x = e.clientX;
+    if (!booksEl.hidden) { booksEl.scrollTop += dx * 4; return; }
+    dial.acc += dx;
+    const per = e.pointerType === "mouse" ? 12 : 18, steps = Math.trunc(dial.acc / per);
+    if (!steps) return;
+    dial.acc -= steps * per;
+    const unit = !gridOpen && S.facing && !linear() && !textScroll() ? 2 : 1;
+    dial.at = clamp(dial.at + steps * unit, 0, (gridOpen ? thumbs.length : pages.length) - 1);
+    showTip(dial.at);
+    if (gridOpen) gridTo(dial.at); else goUnit(dial.at, S.view === "scroll");
+  }
   ticksEl.addEventListener("pointerdown", e => {
     if (!ready) return;
     e.preventDefault();
-    if (booksEl.hidden && !gridOpen) markPlace();
     scrubbing = true;
     scrubLast = -1;
-    ticksEl.setPointerCapture(e.pointerId);
+    try { ticksEl.setPointerCapture(e.pointerId); } catch {}   // a pointer the browser no longer knows can't be held; the drag still works
+    if (dialMode()) {
+      const at = gridOpen ? Math.max(0, thumbs.indexOf(document.activeElement)) : textScroll() ? scrollPage() : shownPages()[0];
+      dial = { x: e.clientX, acc: 0, at };
+      ticksEl.classList.add("turning");
+      if (booksEl.hidden) showTip(at);
+      return;
+    }
+    if (booksEl.hidden && !gridOpen) markPlace();
     scrubTo(e);
   });
   ticksEl.addEventListener("pointermove", e => {
     if (!ready) return;
-    if (scrubbing) scrubTo(e);
-    else if (e.pointerType === "mouse" && booksEl.hidden) showTip(scrubIndex(e));
+    if (scrubbing) (dial ? dialMove(e) : scrubTo(e));
+    else if (e.pointerType === "mouse" && booksEl.hidden && !dialMode()) showTip(scrubIndex(e));
   });
-  const endScrub = () => { scrubbing = false; hideTip(600); };
+  const endScrub = () => { scrubbing = false; dial = null; ticksEl.classList.remove("turning"); hideTip(600); };
   ticksEl.addEventListener("pointerup", endScrub);
   ticksEl.addEventListener("pointercancel", endScrub);
   ticksEl.addEventListener("pointerleave", () => { if (!scrubbing) hideTip(150); });
@@ -3395,6 +3433,7 @@ window.bookReady = (async () => {
     mapBtn.setAttribute("aria-pressed", String(!mapPanel.hidden));
     $("expandBtn").setAttribute("aria-pressed", String(!!S.expand));
     $("arrangeSeg").classList.toggle("off", S.view === "scroll");
+    ticksEl.classList.toggle("dial", S.slider === "dial");
     document.querySelectorAll(".strip-opt").forEach(row => { row.hidden = S.arrange !== "strip"; });
     app.classList.toggle("strip-down", S.view === "paged" && S.arrange === "strip" && S.stripDir === "down");
     $("arrangeSeg").setAttribute("aria-disabled", String(S.view === "scroll"));
@@ -4763,6 +4802,27 @@ window.bookReady = (async () => {
     } else if (b.bar === dock) setTucked(dy > 0);
     else if (dy < 0) setTucked(true);
   });
+  // A swipe down that starts just above the slider, in any view and in Zen, switches it between dial and jump.
+  // It is read before the page's own swipes, which would otherwise turn a page back.
+  let dialSwipe = null;
+  document.addEventListener("pointerdown", e => {
+    dialSwipe = null;
+    if (e.pointerType === "mouse" || !e.isPrimary || !ready || !booksEl.hidden) return;
+    const t = ticksEl.getBoundingClientRect();
+    if (!t.width || e.clientX < t.left - 24 || e.clientX > t.right + 24 || e.clientY < t.top - 64 || e.clientY > t.top - 2) return;
+    dialSwipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+  }, true);
+  document.addEventListener("pointerup", e => {
+    const d = dialSwipe;
+    dialSwipe = null;
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (dy < 24 || dy < 1.5 * Math.abs(dx)) return;
+    e.stopPropagation();
+    setSetting("slider", dialMode() ? "jump" : "dial");
+    toast(dialMode() ? "Page slider: dial. Drag along it to turn pages." : "Page slider: jump. Tap or drag to go to a page.", 1800);
+  }, true);
+  document.addEventListener("pointercancel", () => { dialSwipe = null; }, true);
   window.addEventListener("pagehide", () => { if (synth) synth.cancel(); });
 
   /* ---------- input ---------- */
