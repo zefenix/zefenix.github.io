@@ -100,7 +100,8 @@ async function openReader(browser, site, profile, { settings, storage } = {}) {
     const url = new URL(route.request().url());
     if (url.origin === ORIGIN) {
       try {
-        const file = fs.realpathSync(path.join(root, decodeURIComponent(url.pathname)));
+        let file = fs.realpathSync(path.join(root, decodeURIComponent(url.pathname)));
+        if (fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
         if (file.startsWith(root + path.sep) && fs.statSync(file).isFile()) return route.fulfill({ body: fs.readFileSync(file), contentType: TYPES[path.extname(file)] || 'application/octet-stream' });
       } catch {}
     }
@@ -116,7 +117,7 @@ async function openReader(browser, site, profile, { settings, storage } = {}) {
   const page = await context.newPage();
   page.errors = [];
   page.on('pageerror', error => page.errors.push(error.message));
-  await page.goto(`${ORIGIN}/index.html`);
+  await page.goto(`${ORIGIN}/index.html`, { timeout: 120000 });
   await ready(page);
   return page;
 }

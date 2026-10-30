@@ -7,10 +7,10 @@ const path = require('node:path');
 const kit = require('./browser_kit');
 
 const { options, positional } = kit.parseArgs();
-const MODULES = { bars: './phone_tests_bars', reading: './phone_tests_reading', faults: './phone_tests_faults' };
+const MODULES = { bars: './phone_tests_bars', reading: './phone_tests_reading', faults: './phone_tests_faults', open: './phone_tests_open' };
 const TESTS = (options.module ? options.module.split(',') : Object.keys(MODULES)).flatMap(m => require(MODULES[m]));
 const [target] = positional;
-if (!target) throw new Error('Usage: node source/check_phone.js SITE_DIRECTORY [--baseline=SITE_DIRECTORY] [--module=bars,reading,faults] [--only=id,id] [--jobs=4] [--evidence=DIRECTORY]');
+if (!target) throw new Error('Usage: node source/check_phone.js SITE_DIRECTORY [--baseline=SITE_DIRECTORY] [--module=bars,reading,faults,open] [--only=id,id] [--jobs=4] [--evidence=DIRECTORY]');
 const only = options.only ? new Set(options.only.split(',')) : null;
 const jobs = Number(options.jobs) || 4;
 const evidence = path.resolve(options.evidence || '.evidence/phone');
@@ -59,7 +59,7 @@ async function runSite(name, site) {
     // a fault, and a baseline's missing feature, show only through a failed assertion; a timeout or a script error is a broken run, not the evidence
     const expected = test.fault ? r.site !== 'head' || (!r.ok && r.assertion) : r.site === 'head' ? r.ok : (!r.ok && r.assertion) || (r.ok && !!test.baselineMayPass);
     console.log(`${test.fault && r.site === 'head' && !r.ok && r.assertion ? 'FAULT' : r.ok ? 'PASS' : 'FAIL'} ${r.site} ${r.engine} ${r.id} (${(r.ms / 1000).toFixed(1)}s)${r.ok ? '' : `: ${r.error}`}`);
-    if (!expected) problems.push(`${r.site} ${r.engine} ${r.id} ${test.fault ? 'passes: the fault is fixed, so drop its fault mark' : r.ok ? 'passed but should fail on the baseline' : r.site === 'baseline' ? 'failed without a failed assertion, so it shows nothing about the baseline' : 'failed'}`);
+    if (!expected) problems.push(`${r.site} ${r.engine} ${r.id} ${test.fault ? r.ok ? 'passes: the fault is fixed, so drop its fault mark' : 'failed without a failed assertion, so it shows nothing about the fault' : r.ok ? 'passed but should fail on the baseline' : r.site === 'baseline' ? 'failed without a failed assertion, so it shows nothing about the baseline' : 'failed'}`);
   }
   const isFault = r => !!TESTS.find(t => t.id === r.id).fault;
   const count = (site, ok) => all.filter(r => r.site === site && r.ok === ok && !(site === 'head' && isFault(r))).length;

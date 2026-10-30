@@ -1,0 +1,41 @@
+// Zen puts both sidebars away and brings each back on leaving, unless it was shown or hidden while in Zen.
+const path = require('path'), fs = require('fs');
+const { site, engine, launch, route, loaded } = require('./common');
+let fails = 0;
+const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PASS' : 'FAIL'} ${name}${cond ? '' : '  — got ' + JSON.stringify(got)}`); };
+(async () => {
+  const b = await launch();
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  await route(ctx);
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(String(e)));
+  await p.goto('http://pp.test/pages-piled/');
+  await loaded(p);
+  const S = () => p.evaluate(() => ({ zen: document.querySelector('.app').classList.contains('tucked'), toc: !document.getElementById('tocPanel').hidden, map: !document.getElementById('mapPanel').hidden }));
+  const k = async key => { await p.keyboard.press(key); await p.waitForTimeout(500); };
+  let s = await S(); ok('both sidebars open to start', s.toc && s.map, s);
+  await k('z'); s = await S(); ok('z: Zen, both sidebars away', s.zen && !s.toc && !s.map, s);
+  await k('z'); s = await S(); ok('z again: out of Zen, the sidebars stay off', !s.zen && !s.toc && !s.map, s);
+  await k('C'); await k('m'); s = await S(); ok('C and m bring them back', s.toc && s.map, s);
+  await p.click('#zenBtn'); await p.waitForTimeout(500); s = await S(); ok('the z button: Zen, sidebars away', s.zen && !s.toc && !s.map, s);
+  await k('z'); s = await S(); ok('z leaves Zen; sidebars still off', !s.zen && !s.toc && !s.map, s);
+  await p.evaluate(() => document.querySelector('[data-setting="zenExit"] [data-value="restore"]').click()); await p.waitForTimeout(300);
+  await k('C'); await k('m'); await k('z'); s = await S(); ok('Bring them back: Zen hides both', s.zen && !s.toc && !s.map, s);
+  await k('z'); s = await S(); ok('Bring them back: leaving Zen restores both', !s.zen && s.toc && s.map, s);
+  await k('z'); await k('m'); await k('m'); await k('z'); s = await S(); ok('Bring them back: one shown and hidden in Zen stays hidden', s.toc && !s.map, s);
+  await p.evaluate(() => document.querySelector('[data-setting="zenExit"] [data-value="off"]').click()); await p.waitForTimeout(300);
+  // with a mouse: the top edge brings the bar back, and its z button leaves Zen
+  await k('z'); const vis = () => p.evaluate(() => getComputedStyle(document.querySelector('.top')).display !== 'none');
+  ok('in Zen the top bar is hidden', !(await vis()), null);
+  await p.mouse.move(640, 400); await p.mouse.move(640, 2); await p.waitForTimeout(300);
+  ok('the pointer at the top edge brings it back', await vis(), null);
+  await p.mouse.move(640, 500); await p.waitForTimeout(1100);
+  ok('it tucks away again when the pointer goes', !(await vis()), null);
+  await p.mouse.move(640, 2); await p.waitForTimeout(300); await p.click('#zenBtn'); await p.waitForTimeout(500);
+  s = await S(); ok('a click on its z button leaves Zen', !s.zen && await vis(), s);
+  await p.click('#libBtn'); await p.waitForTimeout(600); ok('the Library button opens the Library', await p.evaluate(() => !document.getElementById('books').hidden), null);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(400);
+  ok('Esc closes it', await p.evaluate(() => document.getElementById('books').hidden), null);
+  console.log(`${fails ? fails + ' FAILED' : 'all passed'} · page errors: ${errs.join(' | ') || 'none'}`);
+  await b.close();
+  process.exitCode = fails ? 1 : 0;
+})().catch(e => { console.log('CRASH', String(e.stack || e).slice(0, 600)); process.exitCode = 1; });

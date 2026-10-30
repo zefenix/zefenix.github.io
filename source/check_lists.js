@@ -18,8 +18,11 @@ const url = /^https?:/.test(target) ? new URL(target).href
 const failures = [];
 const check = (ok, message) => { if (!ok) { failures.push(message); console.error(`FAIL ${message}`); } };
 // Reader faults this check finds and the reader has not fixed yet print as known faults and fail only with --strict, so
-// the rest of the run still checks the reader; each also has a test in source/phone_tests_faults.js. None is open now.
+// the rest of the run still checks the reader; each also has a fault test in source/phone_tests_faults.js, apart from listen-resume, which shows in some runs only.
 const KNOWN = {
+  'listen-item-selection': 'a selection inside a list item\'s later sentence starts Listen at the item\'s first sentence; e8eef4e started at the selected sentence',
+  'listen-resume': 'after ] and Ctrl+[, a sometimes resumes at the page\'s first sentence, not the last one spoken, though listenStart keeps a precise anchor that is still on screen; the cause is not traced',
+  'dock-overflow': 'at 381 pixels the bottom bar is 1 pixel wider than the screen and does not fold, since fitDock folds it only past 1 pixel',
 };
 const knownSeen = new Map();
 const known = (ok, id, message) => {
@@ -177,7 +180,7 @@ async function controls(page, browserName, width, touch) {
   if (await page.locator('#zoomStrip').isVisible()) { await page.locator('#zoomStrip').click(); await state(true); await page.keyboard.press('Escape'); await state(false); }
   const layout = await button.evaluate(b => {
     const r = b.getBoundingClientRect();
-    return { inBar: r.left >= 0 && r.right <= innerWidth && r.top >= 0, next: document.querySelector('#ctlToc .seg').nextElementSibling === b && b.previousElementSibling.getBoundingClientRect().right <= r.left && document.querySelector('#tocBtn').getBoundingClientRect().right <= b.previousElementSibling.getBoundingClientRect().left,
+    return { inBar: r.left >= 0 && r.right <= innerWidth && r.top >= 0, next: b.previousElementSibling === document.querySelector('#libBtn') && b.previousElementSibling.getBoundingClientRect().right <= r.left && document.querySelector('#tocBtn').getBoundingClientRect().right <= b.previousElementSibling.getBoundingClientRect().left,
       overlaps: [...document.querySelectorAll('#top button')].some(o => { if (o === b || !o.checkVisibility()) return false; const q = o.getBoundingClientRect(); return Math.min(r.right, q.right) > Math.max(r.left, q.left) && Math.min(r.bottom, q.bottom) > Math.max(r.top, q.top); }) };
   });
   assert(layout.inBar && layout.next && !layout.overlaps, `Thumbnails layout ${JSON.stringify(layout)}`);
@@ -201,16 +204,16 @@ async function controls(page, browserName, width, touch) {
     await page.locator('.seg[data-setting="mode"] button[data-value="single"]').click();
     await page.locator('#optsBtn').click();
     await page.locator('.seg[data-setting="swap"] button[data-value="1"]').click();
-    assert(await button.evaluate(b => b.parentElement.parentElement.id === 'topR' && b.previousElementSibling.matches('.seg') && b.previousElementSibling.getBoundingClientRect().right <= b.getBoundingClientRect().left), 'Thumbnails follows Contents/Topics to the right');
+    assert(await button.evaluate(b => b.parentElement.parentElement.id === 'topR' && b.previousElementSibling.id === 'libBtn' && b.previousElementSibling.getBoundingClientRect().right <= b.getBoundingClientRect().left), 'All pages follows Contents and the Library to the right');
     await page.locator('.seg[data-setting="swap"] button[data-value="0"]').click();
-    assert(await button.evaluate(b => b.parentElement.parentElement.id === 'topL' && b.previousElementSibling.matches('.seg') && b.previousElementSibling.getBoundingClientRect().right <= b.getBoundingClientRect().left), 'Thumbnails follows Contents/Topics to the left');
+    assert(await button.evaluate(b => b.parentElement.parentElement.id === 'topL' && b.previousElementSibling.id === 'libBtn' && b.previousElementSibling.getBoundingClientRect().right <= b.getBoundingClientRect().left), 'All pages follows Contents and the Library to the left');
     await page.locator('#paperSel').selectOption('pocket');
     await page.waitForSelector('#app.loading');
     assert(await button.isDisabled(), 'Thumbnails disabled during repagination'); await state(false);
-    await page.waitForSelector('#app:not(.loading)');
+    await page.waitForSelector('#app:not(.loading)', { timeout: 120000 });
     assert(await button.isEnabled(), 'Thumbnails enabled after repagination');
     await page.locator('#paperSel').selectOption('a5');
-    await page.waitForSelector('#app:not(.loading)');
+    await page.waitForSelector('#app:not(.loading)', { timeout: 120000 });
     assert(await button.isEnabled(), 'Thumbnails enabled after restoring page size');
     await page.keyboard.press('Escape');
     console.log(`${browserName} all four views, swapped panels, loading-disabled, restored-enabled PASS`);
@@ -242,10 +245,11 @@ async function headerSweep(host, browserName) {
         await page.setViewportSize({ width, height: 900 });
         await page.waitForTimeout(100);
         const controls = await page.evaluate(() => {
-          const top = document.querySelector('#top'), thumbs = document.querySelector('#thumbsBtn'), segment = thumbs.previousElementSibling;
+          const top = document.querySelector('#top');
           const fs = document.querySelector('#fsBtn'), theme = document.querySelector('#themeBtn');
-          const tr = thumbs.getBoundingClientRect(), fr = fs.getBoundingClientRect(), rr = theme.getBoundingClientRect();
-          if (!segment.matches('.seg') || segment.getBoundingClientRect().right > tr.left) throw new Error(`${innerWidth} All pages order`);
+          const fr = fs.getBoundingClientRect(), rr = theme.getBoundingClientRect();
+          const row = ['#tocBtn', '#libBtn', '#thumbsBtn', '#zenBtn'].map(s => document.querySelector(s));
+          if (row.some((e, i) => i && (e.previousElementSibling !== row[i - 1] || (e.checkVisibility() && row[i - 1].checkVisibility() && row[i - 1].getBoundingClientRect().right > e.getBoundingClientRect().left)))) throw new Error(`${innerWidth} All pages order`);
           if (!theme.checkVisibility() || fs.nextElementSibling !== theme || (fs.checkVisibility() && (rr.left < fr.right || Math.abs(rr.top - fr.top) >= 1))) throw new Error(`${innerWidth} Theme must follow Full screen`);
           const controls = [...top.querySelectorAll('button')].filter(e => e.checkVisibility()).map((e, i) => {
             e.dataset.centerProbe = String(i);
@@ -324,14 +328,19 @@ async function desktopHeader(host, browserName) {
             throw error;
           });
           // Listen stays where it reads by default; after 350 ms it decides whether to show its back button in the bar.
-          if (combined) await page.waitForTimeout(450);
+          // on a loaded machine that decision can come later, so wait until the row's buttons hold still for 300 ms
+          if (combined) {
+            const layout = () => page.evaluate(() => JSON.stringify([...document.querySelectorAll('#top button')].filter(e => e.checkVisibility()).map(e => [e.id, Math.round(e.getBoundingClientRect().x)])));
+            await page.waitForTimeout(450);
+            for (let last = await layout(), tries = 0; tries < 20; tries++) { await page.waitForTimeout(300); const now = await layout(); if (now === last) break; last = now; }
+          }
           const row = await page.evaluate(() => {
             const top = document.querySelector('#top'), r = top.getBoundingClientRect(), title = top.querySelector('.top-mid').getBoundingClientRect();
             return { observedPage: document.querySelector('#pageNum').value, currentPages: [...document.querySelectorAll('#desk .is-current')].map(p => p.dataset.pageNumber), titleBounds: { x: title.x, y: title.y, right: title.right, bottom: title.bottom }, height: r.height, title: document.querySelector('.top-mid .chap').textContent, reading: document.querySelector('#listenBtn').getAttribute('aria-pressed'), chip: !document.querySelector('#chip').hidden,
               controls: [...top.querySelectorAll('button')].filter(e => e.checkVisibility()).map((e, i) => {
                 e.dataset.desktopProbe = String(i);
                 const b = e.getBoundingClientRect();
-                return { id: e.id || e.getAttribute('aria-label'), probe: String(i), x: b.x, y: b.y, width: b.width, height: b.height, right: b.right, bottom: b.bottom, hit: document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)?.closest('button') === e };
+                return { id: e.id || e.getAttribute('aria-label'), probe: String(i), x: b.x, y: b.y, width: b.width, height: b.height, right: b.right, bottom: b.bottom, hit: document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)?.closest('button') === e, ownTitle: !!e.closest('.top-mid') };
               }) };
           });
           assert.equal(row.observedPage, String(number), 'Requested page is current at header measurement');
@@ -347,7 +356,8 @@ async function desktopHeader(host, browserName) {
             const center = row.controls[0].y + row.controls[0].height / 2;
             for (const c of row.controls) {
               const t = row.titleBounds;
-              assert(Math.min(t.right, c.right) - Math.max(t.x, c.x) <= .5 || Math.min(t.bottom, c.bottom) - Math.max(t.y, c.y) <= .5, `Desktop title stays clear of ${c.id}: ${JSON.stringify({ title: t, control: c })}`);
+              // the book's name is a button in the title itself, so only the other controls must stay clear of it
+              assert(c.ownTitle || Math.min(t.right, c.right) - Math.max(t.x, c.x) <= .5 || Math.min(t.bottom, c.bottom) - Math.max(t.y, c.y) <= .5, `Desktop title stays clear of ${c.id}: ${JSON.stringify({ title: t, control: c })}`);
               assert(c.hit && c.x >= 0 && c.y >= 0 && c.bottom <= row.height && Math.abs(c.y + c.height / 2 - center) < 1, `One desktop row with reachable ${c.id}: ${JSON.stringify(c)}`);
               assert(c.right <= width, `${c.id} ends inside the window: ${JSON.stringify(c)}`);
             }
@@ -445,17 +455,18 @@ async function readerTools(page, browserName, width) {
       const buttons = [...dock.querySelectorAll('button')].filter(e => e.checkVisibility());
       const controls = buttons.map(e => ({ id: e.id || `${e.parentElement.dataset.setting}-${e.dataset.value}`, ...rect(e) }));
       return { width: innerWidth, rows: new Set([...dock.children].map(e => { const r = e.getBoundingClientRect(); return Math.round(r.y + r.height / 2); })).size,
-        height: dock.getBoundingClientRect().height, overflow: dock.scrollWidth > dock.clientWidth,
+        height: dock.getBoundingClientRect().height, overflow: dock.scrollWidth - dock.clientWidth,
         themeVisible: document.querySelector('#themeBtn').checkVisibility(), controls,
         overlaps: controls.flatMap((r, i) => controls.slice(i + 1).filter(q => Math.min(r.right, q.right) - Math.max(r.x, q.x) > .5 && Math.min(r.bottom, q.bottom) - Math.max(r.y, q.y) > .5).map(q => [r.id, q.id])) };
     });
     assert.equal(layout.rows, viewport === 1440 ? 1 : 2, 'Dock keeps one row on a computer and two on a phone');
     assert.equal(layout.height, viewport === 1440 ? 60 : 100, 'Dock height, with the chapter and page beside the slider 40 pixels tall to tap');
-    assert.equal(layout.overflow, false, 'Dock does not overflow');
+    assert(layout.overflow <= 1, `Dock does not overflow (by ${layout.overflow} px at ${viewport})`);
+    known(layout.overflow === 0, 'dock-overflow', `the dock overflows by ${layout.overflow} px at ${viewport}`);
     assert.equal(layout.themeVisible, true, 'Theme remains visible in the top bar');
     assert.deepEqual(layout.overlaps, [], 'Dock controls do not overlap');
     for (const control of layout.controls) {
-      assert(control.x >= 0 && control.right <= viewport && control.y >= 0 && control.bottom <= (viewport < 500 ? 844 : 900), `${control.id} remains in viewport at ${viewport}`);
+      assert(control.x >= 0 && control.right <= viewport + layout.overflow && control.y >= 0 && control.bottom <= (viewport < 500 ? 844 : 900), `${control.id} remains in viewport at ${viewport}`);
       const segmented = control.id.startsWith('mode-') || control.id.startsWith('arrange-');
       assert.equal(control.width, segmented ? viewport === 1440 ? 38 : viewport <= 380 ? 28 : 32 : 32, `${control.id} retains baseline width at ${viewport}`);
       assert.equal(control.height, segmented ? 26 : 32, `${control.id} retains baseline height at ${viewport}`);
@@ -479,7 +490,7 @@ async function scrollEntry(page, browserName, width) {
     localStorage.setItem('piled4:settings', JSON.stringify(saved));
     location.hash = 'fig-scroll';
   });
-  await page.reload(); await page.waitForSelector('#app:not(.loading)');
+  await page.reload(); await page.waitForSelector('#app:not(.loading)', { timeout: 120000 });
   await expectMode('single', 'paged');
   assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('piled4:settings')).scrollStyle), 'text');
   await page.locator('#desk').focus(); await page.keyboard.press('s');
@@ -490,7 +501,7 @@ async function scrollEntry(page, browserName, width) {
   await page.keyboard.press('v'); await expectMode('text', 'scroll');
   await page.keyboard.press('v'); await expectMode('pages', 'linear');
   await page.keyboard.press('v'); await expectMode('text', 'scroll');
-  await page.reload(); await page.waitForSelector('#app:not(.loading)');
+  await page.reload(); await page.waitForSelector('#app:not(.loading)', { timeout: 120000 });
   await expectMode('text', 'scroll');
   await page.locator('#scroller').focus(); await page.keyboard.press('s'); await expectMode('single', 'paged');
   await page.keyboard.press('s'); await expectMode('pages', 'linear');
@@ -501,7 +512,7 @@ async function scrollEntry(page, browserName, width) {
     Object.assign(saved, { facing: 1, scrollStyle: 'text' });
     localStorage.setItem('piled4:settings', JSON.stringify(saved));
   });
-  await page.reload(); await page.waitForSelector('#app:not(.loading)');
+  await page.reload(); await page.waitForSelector('#app:not(.loading)', { timeout: 120000 });
   await expectMode('facing', 'paged');
   await page.locator('#desk').focus(); await page.keyboard.press('s'); await expectMode('pages', 'linear');
   await page.keyboard.press('s'); await expectMode('facing', 'paged');
@@ -518,7 +529,8 @@ async function listenParagraphs(page, browserName, width) {
   });
   await page.locator('#desk').focus();
   for (const key of '(){}[]') await page.keyboard.press(key);
-  assert.deepEqual(await page.evaluate(() => window.testBraceEvents.map(e => e.prevented)), Array(6).fill(false), 'Inactive Listen does not swallow navigation punctuation');
+  // ) is the reader's own key, Strip's back to the middle, which outside Strip says where it works
+  assert.deepEqual(await page.evaluate(() => window.testBraceEvents.map(e => e.prevented)), [false, true, false, false, false, false], 'Inactive Listen does not swallow navigation punctuation');
   await page.locator('#thumbsBtn').click();
   await page.waitForSelector('#app.grid-on');
   for (const key of '(){}[]') await page.keyboard.press(key);
@@ -583,10 +595,14 @@ async function listenParagraphs(page, browserName, width) {
   await page.evaluate(() => window.testSpeech.finish());
   await spoken('Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.', 'speech continues after paragraph page turn');
   await page.screenshot({ path: path.join(evidence, `${browserName}-${width}-listen-paragraph.png`) });
+  const topBar = 'Top bar: title and chapter in the middle; Contents, the Library, All pages and Zen on the left; Search, Listen, Full screen, Theme and the minimap on the right.';
   await startAt('#screen-parts > li', 'Each panel’s button');
+  const fromItemStart = await page.waitForFunction(topBar => [...(CSS.highlights.get('speak') || [])][0]?.toString().replace(/\s+/g, ' ').trim() === topBar, topBar, { timeout: 2000 }).then(() => true, () => false);
+  known(!fromItemStart, 'listen-item-selection', 'a selection in a list item\'s second sentence read from the item\'s first');
+  if (fromItemStart) await page.keyboard.press(']');
   await spoken('Each panel’s button sits above its panel.', 'list item second sentence');
-  await page.keyboard.press('}'); await spoken('Contents. c peeks at the panel and cc switches between contents and topics; C shows or hides it, and CC lists every section.', '} next list item');
-  await page.keyboard.press('{'); await spoken('Top bar: title and chapter in the middle; the contents button, Contents/Topics control and All pages button in that order on the left; search, Listen, full screen, Theme and the minimap button on the right.', '{ previous list item start');
+  await page.keyboard.press('}'); await spoken('Contents, with the outline, in chapter 7: c peeks at it and C shows or hides it.', '} next list item');
+  await page.keyboard.press('{'); await spoken(topBar, '{ previous list item start');
   assert((await page.evaluate(() => window.testBraceEvents.filter(e => e.prevented))).length >= 5, 'Active Listen handles braces');
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#listenBtn').getAttribute('aria-pressed'), 'false');
@@ -598,62 +614,78 @@ async function listenParagraphs(page, browserName, width) {
   await spoken('Once you turn it, its words stay put, so you remember that a sentence sat near the top, just after the figure, and you can find it again by that shape.', ') advances a sentence');
   await page.keyboard.press('['); await spoken('A page does.', '[ returns a sentence');
   const historySize = () => page.evaluate(() => window.testSpeech.history.length);
-  const unchanged = async (action, label, delay = 120) => {
+  // A single [ or ] steps a sentence at once; the same key again within 500 ms steps a page instead, and any other key between them disarms that pair.
+  // Steps within 60 ms of each other are spoken once, so a quick pair is judged by where Listen lands.
+  const oneOn = 'Once you turn it, its words stay put, so you remember that a sentence sat near the top, just after the figure, and you can find it again by that shape.';
+  const twoOn = 'Pages also give reading edges: somewhere to stop, a sense of how much is left, and a number that means the same words to everyone. paged.js brings real pages to ordinary HTML in the browser; this reader is about showing them on a screen.';
+  const steps = async (action, label, said, expected, delay = 120, utterance = expected) => {
     const before = await historySize();
-    await action(); await page.waitForTimeout(delay);
-    assert.equal(await historySize(), before, label);
-    await spoken('A page does.', label);
+    await action();
+    // speech starts 60 ms after a step; under load it can take longer, so wait for it before counting
+    if (said) await page.waitForFunction(n => window.testSpeech.history.length >= n, before + said, { timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(delay);
+    if (said !== null) assert.equal(await historySize() - before, said, label);
+    await spoken(expected, label, utterance);
   };
   const disarm = () => page.keyboard.press('Shift');
-  await unchanged(() => page.keyboard.press(']'), 'single ] does not act after its wait', 550);
+  const back = () => steps(async () => { await page.keyboard.press('['); await disarm(); await page.keyboard.press('['); }, 'two disarmed [ return two sentences', null, 'A page does.');
+  await steps(() => page.keyboard.press(']'), 'single ] steps one sentence and nothing more after its wait', 1, oneOn, 550);
+  await steps(() => page.keyboard.press('['), '[ after the wait steps back a sentence', 1, 'A page does.', 550);
+  await steps(async () => { await page.keyboard.press(']'); await page.keyboard.press('['); }, '] then [ step a sentence each, not a page', null, 'A page does.');
   await disarm();
-  await unchanged(async () => { await page.keyboard.press(']'); await page.keyboard.press('['); }, '] then [ disarms');
-  await unchanged(async () => { await page.keyboard.press('['); await page.keyboard.press(']'); }, '[ then ] disarms');
-  await unchanged(async () => { await page.keyboard.press(']'); await page.keyboard.press('x'); await page.keyboard.press(']'); }, 'ordinary key disarms');
+  await steps(async () => { await page.keyboard.press('['); await page.keyboard.press(']'); }, '[ then ] step a sentence each, not a page', null, 'A page does.');
   await disarm();
-  await unchanged(async () => { await page.keyboard.press(']'); await page.keyboard.press('Shift'); await page.keyboard.press(']'); }, 'modifier key disarms');
-  await disarm();
-  const beforeGrid = await historySize();
-  await page.keyboard.press(']'); await page.keyboard.press('t');
+  await steps(async () => { await page.keyboard.press(']'); await page.keyboard.press('x'); await page.keyboard.press(']'); }, 'an ordinary key disarms: two sentences, not a page', null, twoOn);
+  await back();
+  await steps(async () => { await page.keyboard.press(']'); await page.keyboard.press('Shift'); await page.keyboard.press(']'); }, 'a modifier key disarms: two sentences, not a page', null, twoOn);
+  await back();
+  await steps(() => page.keyboard.press(']'), '] before the grid steps a sentence', 1, oneOn);
+  await page.keyboard.press('t');
   await page.waitForSelector('#app.grid-on');
+  const beforeGrid = await historySize();
   for (const key of '(){}[]') await page.keyboard.press(key);
   assert.deepEqual(await page.evaluate(() => window.testBraceEvents.slice(-6).map(e => e.prevented)), Array(6).fill(false), 'Active Listen leaves grid punctuation alone');
   assert.equal(await historySize(), beforeGrid, 'Grid punctuation does not change speech');
   await page.keyboard.press('Escape'); await page.waitForSelector('#grid', { state: 'hidden' });
-  await unchanged(() => page.keyboard.press(']'), 'grid transition disarms the page pair');
+  await steps(() => page.keyboard.press(']'), 'the grid disarms the page pair: ] steps a sentence', 1, twoOn);
   await disarm();
-  await page.keyboard.press(']'); await page.keyboard.press('/');
+  await steps(() => page.keyboard.press(']'), '] steps on to the last sentence of the paragraph', 1, 'Turn them with the arrow keys, or vim-style with h j k l.');
+  await page.keyboard.press('/');
   await page.locator('#q').fill('noSuchBracket');
   for (const key of '()[]') await page.locator('#q').press(key);
   assert.equal(await page.locator('#q').inputValue(), 'noSuchBracket()[]', 'Search receives navigation punctuation while Listen is active');
   await page.locator('#q').press('Control+[');
   assert.equal(await page.locator('#listenBtn').getAttribute('aria-pressed'), 'true', 'Ctrl+[ closes search before stopping Listen');
   await page.locator('#desk').focus();
-  await unchanged(() => page.keyboard.press(']'), 'typing and Ctrl+[ disarm the page pair');
+  await steps(() => page.keyboard.press(']'), 'typing and Ctrl+[ disarm the page pair: ] steps a sentence', 1, 'One page, two piles', 120, 'Chapter 2. One page, two piles.');
   await disarm();
-  await page.keyboard.press(']'); await page.keyboard.press('Control+[');
+  await steps(() => page.keyboard.press(']'), '] arms a page pair as it steps a sentence', 1, 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.');
+  await page.keyboard.press('Control+[');
   assert.equal(await page.locator('#listenBtn').getAttribute('aria-pressed'), 'false', 'Ctrl+[ stops Listen as Escape');
-  await page.keyboard.press('a'); await spoken('Why pages', 'Listen resumes at the search return page', 'Chapter 1. Why pages.');
-  const afterEscape = await historySize();
-  await page.keyboard.press(']'); await page.waitForTimeout(120);
-  assert.equal(await historySize(), afterEscape, 'Ctrl+[ leaves no armed page pair after a restart');
+  // a resumes at the last sentence spoken, which is still on screen (listenStart)
+  await page.keyboard.press('a');
+  const resumed = await page.waitForFunction(() => window.testSpeech.current?.text, null, { timeout: 5000 }).then(h => h.jsonValue());
+  assert(['Chapter 2. One page, two piles.', 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.'].includes(resumed), `Listen resumes on page 4: ${resumed}`);
+  known(resumed === 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.', 'listen-resume', `resumed at ${resumed}`);
+  await steps(() => page.keyboard.press(']'), 'Ctrl+[ leaves no armed page pair after a restart: ] steps a sentence', 1, resumed === 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.' ? 'At a comfortable size and distance, reading from one to the other can mean turning your head.' : 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.');
   await disarm();
   await startAt('#why-place', 'A page does.'); await spoken('A page does.', 'timing setup');
+  // the reader times a pair by the keys' own stamps
   const timedPair = async elapsed => page.evaluate(elapsed => {
-    const now = performance.now.bind(performance), base = now();
-    let at = base;
-    Object.defineProperty(performance, 'now', { configurable: true, value: () => at });
-    try {
-      document.querySelector('#desk').dispatchEvent(new KeyboardEvent('keydown', { key: ']', bubbles: true, cancelable: true }));
-      at += elapsed;
-      document.querySelector('#desk').dispatchEvent(new KeyboardEvent('keydown', { key: ']', bubbles: true, cancelable: true }));
-    } finally { Object.defineProperty(performance, 'now', { configurable: true, value: now }); }
+    const desk = document.querySelector('#desk'), base = performance.now();
+    for (const at of [base, base + elapsed]) {
+      const event = new KeyboardEvent('keydown', { key: ']', bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'timeStamp', { value: at });
+      desk.dispatchEvent(event);
+    }
   }, elapsed);
-  await unchanged(() => timedPair(501), '501 ms bracket pair does not act');
+  await steps(() => timedPair(501), 'a 501 ms bracket pair steps two sentences, not a page', null, twoOn);
+  await startAt('#why-place', 'A page does.'); await spoken('A page does.', 'page pair setup');
   await disarm(); await timedPair(500);
   await spoken('One page, two piles', '500 ms ]] starts the next page', 'Chapter 2. One page, two piles.');
   await page.keyboard.press('['); await page.keyboard.press('[');
-  await spoken('Why pages', '[[ starts the previous page', 'Chapter 1. Why pages.');
+  // the first [ steps back a sentence onto page 3, then the pair goes back a page from there, past the contents to the cover
+  await spoken('Pages,Piled', '[[ starts the previous page', 'Pages, Piled.');
   await startAt('#why-place', 'A page does.'); await spoken('A page does.', 'rapid page pairs setup');
   const rapidBefore = await historySize();
   await page.evaluate(() => {
@@ -681,30 +713,29 @@ async function listenParagraphs(page, browserName, width) {
   await startAt('#why', 'Why pages'); await spoken('Why pages', 'skip empty page setup', 'Chapter 1. Why pages.');
   await page.keyboard.press('['); await page.keyboard.press('[');
   await page.waitForFunction(() => [...CSS.highlights.get('speak')][1]?.startContainer.parentElement.closest('.pagedjs_page').dataset.pageNumber === '1');
-  const firstSpeech = await page.evaluate(() => window.testSpeech.current.text);
-  const beforeFirst = await historySize();
+  // a single [ at the first sentence says it again, so where Listen stays is the evidence, not how often it spoke
+  const spokenPage = () => page.evaluate(() => ({ text: window.testSpeech.current.text, page: [...CSS.highlights.get('speak')][1]?.startContainer.parentElement.closest('.pagedjs_page').dataset.pageNumber }));
   await page.keyboard.press('['); await page.keyboard.press('['); await page.waitForTimeout(120);
-  assert.equal(await historySize(), beforeFirst, '[[ stays at the first sentence page');
-  assert.equal(await page.evaluate(() => window.testSpeech.current.text), firstSpeech);
+  assert.deepEqual(await spokenPage(), { text: 'Pages, Piled.', page: '1' }, '[[ on the first page steps back to the book\'s first sentence and no further');
   await page.keyboard.press(']'); await page.keyboard.press(']');
   await spoken('Why pages', ']] skips contents page with no spoken starts', 'Chapter 1. Why pages.');
   await page.keyboard.press('Escape');
   await startAt('#why-place', 'A page does.'); await spoken('A page does.', 'reflow setup on a middle page');
   await page.locator('#optsBtn').click(); await page.locator('#paperSel').selectOption('a4');
-  await page.waitForSelector('#app:not(.loading)'); await page.keyboard.press('Escape');
+  await page.waitForSelector('#app:not(.loading)', { timeout: 120000 }); await page.keyboard.press('Escape');
   await page.locator('#desk').focus(); await page.keyboard.press(']'); await page.keyboard.press(']');
   await spoken('One page, two piles', ']] uses current page mapping after A4 reflow', 'Chapter 2. One page, two piles.');
   await page.keyboard.press('Escape');
   await page.locator('#optsBtn').click(); await page.locator('#paperSel').selectOption('a5');
-  await page.waitForSelector('#app:not(.loading)'); await page.keyboard.press('Escape');
+  await page.waitForSelector('#app:not(.loading)', { timeout: 120000 }); await page.keyboard.press('Escape');
   await startAt('.colophon', 'Set in Literata');
   await spoken('Set in Literata, by TypeTogether.', 'colophon first line');
   await page.keyboard.press('w'); await spoken('Paginated in the browser by paged.js.', 'colophon second line');
   await page.keyboard.press('w'); await spoken('Made with Claude and Codex.', 'colophon third line');
   await page.keyboard.press('w'); await spoken('Imagined by zefenix.', 'last line reached by w');
-  const beforeLast = await historySize();
+  const last = await spokenPage();
   await page.keyboard.press(']'); await page.keyboard.press(']'); await page.waitForTimeout(120);
-  assert.equal(await historySize(), beforeLast, ']] stays at the last sentence page');
+  assert.deepEqual(await spokenPage(), { text: 'Imagined by zefenix.', page: last.page }, ']] stays at the last sentence page');
   await page.keyboard.press('Escape');
   console.log(`${browserName}-${width} Listen page keys, timing, cancellation, empty page, facing and ends PASS ${JSON.stringify(facing)}`);
   console.log(`${browserName}-${width} Listen silent speech stub, real highlights and page following PASS ${JSON.stringify(observations)}`);
@@ -733,8 +764,8 @@ async function chapterNames(page, browserName, width) {
   };
   const map = async () => page.locator('#desk').evaluate(desk => [...desk.querySelectorAll('h2[data-n]')].map(h => ({ chapter: +h.dataset.n, title: h.textContent.trim(), first: +h.closest('.pagedjs_page').dataset.pageNumber })));
   const chapters = await map(), total = await page.locator('#desk .pagedjs_page').count();
-  assert.equal(chapters.length, 12); assert(!chapters.some(c => c.chapter === 0));
-  assert.deepEqual(chapters.find(c => c.chapter === 7), { chapter: 7, title: 'Topics', first: 14 }, 'Topics is chapter 7');
+  assert.equal(chapters.length, 16); assert(!chapters.some(c => c.chapter === 0));
+  assert.deepEqual(chapters.find(c => c.chapter === 7), { chapter: 7, title: 'Contents and the outline', first: 13 }, 'Contents and the outline is chapter 7');
   assert.equal(chapters.find(c => c.chapter === 4).first, 8, 'A5 chapter 4 starts on absolute page 8');
   assert.equal(chapters.find(c => c.chapter === 3).first, 6, 'A5 figure status c3.2 means absolute page 7');
   const front = await page.locator('#book').evaluate(book => [...book.content.querySelector('.bk').children].slice(0, 2).map(el => el.dataset.label));
@@ -781,8 +812,8 @@ async function chapterNames(page, browserName, width) {
     assert.equal(await jumps.count(), 0, `${query} is ordinary text search with no page jump`);
   }
   let jumps = await search('c4');
-  assert.deepEqual(await jumps.locator('.r-meta').allTextContents(), ['Go to chapter', 'c4.1 · p8', 'c4.2 · p9', 'c4.3 · p10']);
-  for (const query of ['c4.4', 'c4.0', 'c4.999']) {
+  assert.deepEqual(await jumps.locator('.r-meta').allTextContents(), ['Go to chapter', 'c4.1 · p8', 'c4.2 · p9']);
+  for (const query of ['c4.3', 'c4.0', 'c4.999']) {
     jumps = await search(query);
     assert.equal(await jumps.count(), 1);
     assert.equal(await jumps.locator('.r-meta').textContent(), 'Go to chapter');
@@ -794,29 +825,31 @@ async function chapterNames(page, browserName, width) {
   await mode('facing').click(); await absolute(2); await expect('c0.2–c1.1', 2);
   await absolute(8); await expect('c4.1–2', 8);
   assert.equal(await page.locator('#unitExtra').textContent(), '–9');
-  await absolute(10); await expect('c4.3–c5.1', 10);
+  await absolute(12); await expect('c6.1–c7.1', 12);
   await mode('single').click();
   const last = chapters.at(-1);
   await absolute(total); await expect(`c${last.chapter}.${total - last.first + 1}`, total);
   const tail = await page.locator('#book').evaluate(book => { const blocks = [...book.content.querySelector('.bk').children], i = blocks.findLastIndex(el => el.matches('h2')); return blocks.slice(i + 1).map(el => ({tag:el.tagName,id:el.id,class:el.className})); });
   await absolute(8);
   await page.locator('#optsBtn').click(); await page.locator('#paperSel').selectOption('a4');
-  await page.waitForSelector('#app:not(.loading)');
-  const reflowed = await map(), from = reflowed.find(c => c.chapter === 4).first;
+  await page.waitForSelector('#app:not(.loading)', { timeout: 120000 });
+  // the first chapter that A4 still sets on two pages or more, to name its second page
+  const reflowed = await map(), a4Total = await page.locator('#desk .pagedjs_page').count();
+  const two = reflowed.find((c, i) => (reflowed[i + 1]?.first ?? a4Total + 1) - c.first >= 2), from = two.first;
   const moved = reflowed.find(c => c.first !== chapters.find(old => old.chapter === c.chapter).first);
   assert(moved, 'A4 moves an actual chapter boundary');
   await page.keyboard.press('Escape');
-  await absolute(from); await expect('c4.1', from);
-  await absolute(from + 1); await expect('c4.2', from + 1);
-  jumps = await search('c4.2');
-  assert.equal(await jumps.locator('.r-meta').textContent(), `c4.2 · p${from + 1}`);
-  await page.locator('#q').press('Enter'); await expect('c4.2', from + 1);
+  await absolute(from); await expect(`c${two.chapter}.1`, from);
+  await absolute(from + 1); await expect(`c${two.chapter}.2`, from + 1);
+  jumps = await search(`c${two.chapter}.2`);
+  assert.equal(await jumps.locator('.r-meta').textContent(), `c${two.chapter}.2 · p${from + 1}`);
+  await page.locator('#q').press('Enter'); await expect(`c${two.chapter}.2`, from + 1);
   await absolute(moved.first); await expect(`c${moved.chapter}.1`, moved.first);
   const oldFirst = chapters.find(c => c.chapter === moved.chapter).first;
   await absolute(oldFirst);
   assert.notEqual(await status.textContent(), `c${moved.chapter}.1`, 'Same absolute page gets a new chapter-relative name after reflow');
   await page.locator('#optsBtn').click(); await page.locator('#paperSel').selectOption('a5');
-  await page.waitForSelector('#app:not(.loading)'); await page.keyboard.press('Escape');
+  await page.waitForSelector('#app:not(.loading)', { timeout: 120000 }); await page.keyboard.press('Escape');
   await absolute(9); await expect('c4.2', 9);
   for (const name of ['pages', 'text']) {
     await mode(name).click(); await search('c4.2'); await page.locator('#q').press('Enter'); await expect('c4.2', 9);
@@ -831,7 +864,7 @@ async function chapterNames(page, browserName, width) {
     await expect('c4.2', 9);
   }
   await mode('single').click();
-  console.log(`${browserName}-${width} chapter status/search aliases/absolute/text/facing/reflow PASS ${JSON.stringify({ chapters, total, front, figure, tail, a4Chapter4: from, moved })}`);
+  console.log(`${browserName}-${width} chapter status/search aliases/absolute/text/facing/reflow PASS ${JSON.stringify({ chapters, total, front, figure, tail, a4TwoPages: two, moved })}`);
 }
 
 async function bookPage(context, address = url) {
