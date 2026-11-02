@@ -260,8 +260,6 @@ const FOLDS = { '#dock View': '[mode]', '#dock Arrangement': '[arrange]' };
 const KNOWN = [
   { id: 'code-scroll', about: 'in plain text the code block scrolls sideways inside its own box, as it did at a1a0610; the page itself does not',
     match: f => f.state === 'plain-text' && f.kind === 'sideways' && /^pre scrollWidth/.test(f.detail) },
-  { id: 'options-narrow', about: 'at 320 to 350 pixels the Highlighter and Zen exit rows are wider than Options, so Options scrolls sideways (fault-options-narrow)',
-    match: f => f.state.startsWith('options') && f.kind === 'sideways' && /^#options scrollWidth/.test(f.detail) },
 ];
 const knownOf = f => KNOWN.find(k => k.match(f))?.id || null;
 const counts = controls => controls.reduce((m, c) => { const k = c.key.replace(/ \(\d+\)$/, ''); return m.set(k, (m.get(k) || 0) + 1); }, new Map());

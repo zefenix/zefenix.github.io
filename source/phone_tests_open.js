@@ -221,14 +221,12 @@ module.exports = [
     },
   })),
   ...variants('fault-open-site-missing', width => ({
-    fault: "the whole site's \"N pages couldn’t be read\" stands only while the book is saved, then the reader leaves for the book, which never says pages are missing",
     what: `at ${width} width, after the whole site opens without two blocked pages, the reader still says two pages couldn't be read`,
     async run({ page, engine, evidence, site, assert }) {
       const { popup, messages } = await wholeSiteBlocked(page);
-      const said = messages.seen.find(m => /couldn’t be read/.test(m.text));
       const told = await popup.waitForFunction(() => /2 pages couldn’t be read/.test(document.body.innerText), null, { timeout: 4000 }).then(() => true, () => false);
       await snap(popup, evidence, `fault-open-site-missing-${width}`, engine, site);
-      assert(told, `the opened book never says 2 pages couldn't be read; the message stood ${said ? `${messages.arrived - said.at} ms before the reader left for the book` : 'not at all'}`);
+      assert(told, 'the opened book says 2 pages couldn’t be read');
     },
   })),
 ];

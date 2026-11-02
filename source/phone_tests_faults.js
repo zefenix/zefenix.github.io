@@ -15,7 +15,6 @@ module.exports = [
   {
     id: 'fault-cover-subtitle',
     commit: '13ff52d',
-    fault: "Listen says the cover's subtitle with a doubled full stop, 'screen..', as it adds a stop to each cover line",
     what: "Listen reads the cover's title and subtitle, each ending in one full stop, then chapter 1's heading",
     async run({ page, assert }) {
       await listen(page);
@@ -28,7 +27,7 @@ module.exports = [
   },
   {
     id: 'fault-listen-item-selection', engines: ['chromium', 'firefox', 'webkit'],
-    fault: "a selection in a list item's second sentence starts Listen at the item's first sentence; e8eef4e started at the selected one",
+    baselineMayPass: RELEASED,
     what: 'Listen starts at the selected sentence inside a list item, as it does inside a paragraph',
     profile: desktopAt(1440),
     async run({ page, assert }) {
@@ -58,7 +57,7 @@ module.exports = [
   },
   {
     id: 'fault-options-narrow', engines: ['chromium', 'firefox', 'webkit'],
-    fault: 'at 320 to 350 pixels the Highlighter and Zen exit rows are 325 pixels wide, wider than Options, so Options scrolls sideways',
+    baselineMayPass: RELEASED,
     what: 'at 320 pixels every row of Options fits inside it, so Options never scrolls sideways',
     profile: (kit, engine) => kit.phone(engine, 320),
     async run({ page, assert }) {
@@ -74,7 +73,7 @@ module.exports = [
   },
   {
     id: 'fault-dock-overflow',
-    fault: 'at 381 pixels the bottom bar is 1 pixel wider than the screen and does not fold, since fitDock folds it only past 1 pixel',
+    baselineMayPass: RELEASED,
     what: 'at 381 pixels the bottom bar fits the screen, or folds',
     profile: (kit, engine) => kit.phone(engine, 381),
     async run({ page, assert }) {

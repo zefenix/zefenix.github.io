@@ -18,11 +18,9 @@ const url = /^https?:/.test(target) ? new URL(target).href
 const failures = [];
 const check = (ok, message) => { if (!ok) { failures.push(message); console.error(`FAIL ${message}`); } };
 // Reader faults this check finds and the reader has not fixed yet print as known faults and fail only with --strict, so
-// the rest of the run still checks the reader; each also has a fault test in source/phone_tests_faults.js, apart from listen-resume, which shows in some runs only.
+// the rest of the run still checks the reader; listen-resume shows in some runs only.
 const KNOWN = {
-  'listen-item-selection': 'a selection inside a list item\'s later sentence starts Listen at the item\'s first sentence; e8eef4e started at the selected sentence',
   'listen-resume': 'after ] and Ctrl+[, a sometimes resumes at the page\'s first sentence, not the last one spoken, though listenStart keeps a precise anchor that is still on screen; the cause is not traced',
-  'dock-overflow': 'at 381 pixels the bottom bar is 1 pixel wider than the screen and does not fold, since fitDock folds it only past 1 pixel',
 };
 const knownSeen = new Map();
 const known = (ok, id, message) => {
@@ -462,7 +460,7 @@ async function readerTools(page, browserName, width) {
     assert.equal(layout.rows, viewport === 1440 ? 1 : 2, 'Dock keeps one row on a computer and two on a phone');
     assert.equal(layout.height, viewport === 1440 ? 60 : 100, 'Dock height, with the chapter and page beside the slider 40 pixels tall to tap');
     assert(layout.overflow <= 1, `Dock does not overflow (by ${layout.overflow} px at ${viewport})`);
-    known(layout.overflow === 0, 'dock-overflow', `the dock overflows by ${layout.overflow} px at ${viewport}`);
+    check(layout.overflow === 0, `the dock overflows by ${layout.overflow} px at ${viewport}`);
     assert.equal(layout.themeVisible, true, 'Theme remains visible in the top bar');
     assert.deepEqual(layout.overlaps, [], 'Dock controls do not overlap');
     for (const control of layout.controls) {
@@ -598,7 +596,7 @@ async function listenParagraphs(page, browserName, width) {
   const topBar = 'Top bar: title and chapter in the middle; Contents, the Library, All pages and Zen on the left; Search, Listen, Full screen, Theme and the minimap on the right.';
   await startAt('#screen-parts > li', 'Each panel’s button');
   const fromItemStart = await page.waitForFunction(topBar => [...(CSS.highlights.get('speak') || [])][0]?.toString().replace(/\s+/g, ' ').trim() === topBar, topBar, { timeout: 2000 }).then(() => true, () => false);
-  known(!fromItemStart, 'listen-item-selection', 'a selection in a list item\'s second sentence read from the item\'s first');
+  check(!fromItemStart, 'a selection in a list item\'s second sentence read from the item\'s first');
   if (fromItemStart) await page.keyboard.press(']');
   await spoken('Each panel’s button sits above its panel.', 'list item second sentence');
   await page.keyboard.press('}'); await spoken('Contents, with the outline, in chapter 7: c peeks at it and C shows or hides it.', '} next list item');

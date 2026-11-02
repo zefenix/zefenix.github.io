@@ -633,6 +633,7 @@ a.toc-item { text-decoration: none; }
 }
 @media (max-width: 420px) {
   .seg button { padding: 5px 9px; }
+  .popover .row { flex-wrap: wrap; }
 }
 @media (max-width: 960px) {
   .top { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -3567,7 +3568,7 @@ window.bookReady = (async () => {
     dock.classList.remove("compact");
     const parts = [".dock-ctl", ".nav", ".dock-page"].map(q => dock.querySelector(q).getBoundingClientRect());
     const meet = (a, b) => a.width && b.width && a.right > b.left - 6 && b.right > a.left - 6 && a.bottom > b.top && b.bottom > a.top;
-    const tight = dock.scrollWidth > dock.clientWidth + 1 || meet(parts[0], parts[1]) || meet(parts[0], parts[2]) || meet(parts[1], parts[2]);
+    const tight = dock.scrollWidth > dock.clientWidth || meet(parts[0], parts[1]) || meet(parts[0], parts[2]) || meet(parts[1], parts[2]);
     dock.classList.toggle("compact", tight);
     if (!tight) openPick(null);
     app.style.setProperty("--dock-h", dock.offsetHeight + "px");
@@ -4229,6 +4230,7 @@ window.bookReady = (async () => {
   // The parts of a block worth saying: a figure's caption, a table's rows, a list's items, the colophon's lines,
   // the cover's title and subtitle, a code block's lines, or the whole block.
   const saidAs = el => { const c = el.cloneNode(true); c.querySelectorAll("br").forEach(br => br.replaceWith(" ")); return c.textContent.replace(/\s+/g, " ").trim(); };
+  const withStop = t => /[.!?…]$/.test(t) ? t : t + ".";
   function spokenParts(el, am) {
     if (el.tagName === "PRE") {
       if (S.listenCode === "skip") return [];
@@ -4258,7 +4260,7 @@ window.bookReady = (async () => {
       const t = part.textContent, i = am.text.indexOf(t, cur);
       if (i < 0) return null;
       cur = i + t.length;
-      return [i, i + t.length, part.tagName === "TR" ? [...part.cells].map(c => c.textContent.trim()).join(", ") : cover ? saidAs(part) + "." : null];
+      return [i, i + t.length, part.tagName === "TR" ? [...part.cells].map(c => c.textContent.trim()).join(", ") : cover ? withStop(saidAs(part)) : null];
     }).filter(Boolean);
   }
   function buildQueue(a) {
@@ -4457,6 +4459,15 @@ window.bookReady = (async () => {
     }
   }
 
+  // A place on the pages as a share of the column's text. Paged.js drops the white space between a list's items,
+  // so the two count differently; the characters that are not white space line them up.
+  function columnShare(b, map, off) {
+    const t = tmap("a", b).text, want = map.text.slice(0, off).replace(/\s/g, "").length;
+    let i = 0;
+    for (let n = 0; i < t.length && n < want; i++) if (!/\s/.test(t[i])) n++;
+    while (i < t.length && /\s/.test(t[i])) i++;
+    return i / Math.max(1, t.length);
+  }
   // A text selection in the pages or the scroll column, as a place in the text.
   function selectionAnchor() {
     const sel = document.getSelection();
@@ -4464,7 +4475,7 @@ window.bookReady = (async () => {
     const r = sel.getRangeAt(0), n = r.startContainer, el = n.nodeType === 1 ? n : n.parentElement;
     const block = el && el.closest("#desk .bk > [data-b], #article .ak > [data-b]");
     if (!block) return null;
-    const b = +block.dataset.b, map = tmap(block.closest("#desk") ? "p" : "a", b);
+    const b = +block.dataset.b, onPages = !!block.closest("#desk"), map = tmap(onPages ? "p" : "a", b);
     let off = 0;
     if (n.nodeType === 3) {
       const x = map.nodes.find(x => x.n === n);
@@ -4473,7 +4484,7 @@ window.bookReady = (async () => {
       const child = n.childNodes[r.startOffset], x = child && map.nodes.find(x => x.n === child || child.contains(x.n));
       if (x) off = x.at;
     }
-    return { b, f: off / Math.max(1, map.text.length) };
+    return { b, f: onPages ? columnShare(b, map, off) : off / Math.max(1, map.text.length) };
   }
   // The exact first words of a page, taken from the page itself (a block split across pages has no simple fraction).
   function pageStartAnchor(i) {
@@ -4481,7 +4492,7 @@ window.bookReady = (async () => {
     if (!frag) return spanStart(pageSpans[i]);
     const b = +frag.dataset.b, pm = tmap("p", b), first = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT).nextNode();
     const x = first && pm.nodes.find(x => x.n === first);
-    return { b, f: x ? x.at / Math.max(1, pm.text.length) : 0 };
+    return { b, f: x ? columnShare(b, pm, x.at) : 0 };
   }
   // Where reading starts: the selected text, else the remembered sentence if it is still on screen, else the top of what is showing.
   function listenStart() {
@@ -4545,6 +4556,8 @@ window.bookReady = (async () => {
     clearTimeout(relisten);
     if (synth) synth.cancel();
     if (hasHL) CSS.highlights.delete("speak");
+    // the place to resume, even if a move marked Listen away while the last sentence stayed on screen
+    if (last >= 0 && listenAway && spokenInView()) { const it = queue[last]; anchor = { b: it.b, f: it.s / Math.max(1, it.am.text.length) }; }
     setAway(false);
     setListenUI(false);
     store.set(ANCHOR, anchor);
@@ -6266,6 +6279,7 @@ window.bookReady = (async () => {
   $("nameBtn").addEventListener("click", toggleBooks);
   $("libBtn").addEventListener("click", e => { if (e.detail) $("libBtn").blur(); toggleBooks(); });
 
+  const unread = n => `${n} ${n === 1 ? "page" : "pages"} couldn’t be read`;
   // The bookmarklet's tab fetches the site's pages, since only a page on that site may read them; it must still be open.
   function wholeSite(msg, btn) {
     const from = window.opener, origin = new URL(info.url).origin;
@@ -6280,16 +6294,16 @@ window.bookReady = (async () => {
       try {
         const book = window.bookTools.checkBook(e.data, e.origin);
         const missed = Math.max(0, (+e.data.missing || 0));
-        msg.textContent = `Setting the first part${missed ? `; ${missed} pages couldn’t be read` : ""}…`;
+        msg.textContent = `Setting the first part${missed ? `; ${unread(missed)}` : ""}…`;
         const key = await window.bookTools.saveBook(book);
-        location.href = `${location.pathname}?opened=${key}`;
+        location.href = `${location.pathname}?opened=${key}${missed ? `&missing=${missed}` : ""}`;
       } catch (err) { msg.textContent = String(err.message || err); btn.disabled = false; }
     };
     addEventListener("message", onMessage);
     from.postMessage({ type: "pages-piled/want-site", v: 1 }, origin);
   }
   $("booksFromOpts").addEventListener("click", () => setBooks(true));
-  if (info.index && info.chapters === 1) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "The Library" : "The Library (o)"} reads them all.`, 3600), 1800);
+  if (info.index && info.chapters === 1 && !location.search.includes("missing=")) setTimeout(() => toast(`This site lists ${info.index.pages} pages. ${matchMedia("(pointer: coarse)").matches ? "The Library" : "The Library (o)"} reads them all.`, 3600), 1800);
 
   // A place found in the Library, or in another part, opens with the search carried on: the words highlighted,
   // the chip showing which match this is, at the first match in the chapter picked; n and N go on from there.
@@ -6301,6 +6315,13 @@ window.bookReady = (async () => {
       P.delete("listen");
       history.replaceState(history.state, "", `${location.pathname}${P.toString() ? "?" + P : ""}${location.hash}`);
       if (ready) setTimeout(() => startReading(true), 300);
+    }
+    // The whole site, opened without the pages its tab couldn't read: the book says so once it stands
+    const missing = Math.max(0, parseInt(P.get("missing"), 10) || 0);
+    if (P.has("missing")) {
+      P.delete("missing");
+      history.replaceState(history.state, "", `${location.pathname}${P.toString() ? "?" + P : ""}${location.hash}`);
+      if (missing) toast(`${unread(missing)}, so ${missing === 1 ? "it isn’t" : "they aren’t"} in this book.`, 9000);
     }
     if (!find || !ready) return;
     P.delete("find");
