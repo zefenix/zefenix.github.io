@@ -117,14 +117,14 @@ module.exports = [
       const [band, pct] = [await rect(page, '#mapBand'), await rect(page, '#mapPct')];
       assert(near(band.cy, pct.cy, 1) && pct.top > band.top && pct.bottom < band.bottom, 'the mark sits in the middle of the minimap box');
       await openOptions(page, touch, 'Panels');
-      assert.deepEqual((await optionRows(page, 'Panels')).slice(4, 8), ['Minimap Show/Hide', 'Minimap sits Side/Top', 'Minimap mark Show/Hide', 'Mark strength slider 30%'], 'Panels offers Minimap mark and Mark strength');
+      assert.deepEqual((await optionRows(page, 'Panels')).slice(3, 7), ['Minimap Show/Hide', 'Minimap sits Side/Top', 'Minimap mark Show/Hide', 'Mark strength slider 30%'], 'Panels offers Minimap mark and Mark strength');
       await slide(page, touch, '#mapMarkOp', 'Mark strength', 1);
       assert.deepEqual([await readout(page, '#mapMarkOp'), (await mark()).opacity], ['100%', '1'], 'full strength draws the mark solid');
       await slide(page, touch, '#mapMarkOp', 'Mark strength', 0);
       assert.deepEqual([await readout(page, '#mapMarkOp'), (await mark()).opacity], ['5%', '0.05'], 'the faintest strength is 5%');
       await tap(page, touch, '.seg[data-setting="mapMark"] button[data-value="0"]', 'Minimap mark Hide');
       assert.equal((await mark()).shown, false, 'Hide takes the mark away');
-      assert.deepEqual((await optionRows(page, 'Panels')).slice(6, 8), ['Minimap mark Show/Hide', 'Chapter and page Left/Right/Off'], 'with the mark hidden its strength is hidden too');
+      assert.deepEqual((await optionRows(page, 'Panels')).slice(5, 7), ['Minimap mark Show/Hide', 'Chapter and page Left/Right/Off'], 'with the mark hidden its strength is hidden too');
       const saved = await kit.settings(page);
       assert.deepEqual([saved.mapMark, saved.mapMarkOp], [0, 5], 'the mark and its strength are saved');
       await tap(page, touch, '.seg[data-setting="mapMark"] button[data-value="1"]', 'Minimap mark Show');
