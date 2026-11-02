@@ -511,7 +511,7 @@ a.toc-item { text-decoration: none; }
 .tick.hit::after { content: ""; position: absolute; top: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--hit-dot); }
 /* As a dial, the place is a knob at the foot of its tick, and every tick stays as it is */
 .ticks.dial .tick.on::before { background: var(--line); }
-.ticks.dial .tick.on::after { content: ""; position: absolute; bottom: 0; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.ticks.dial .tick.on::after { content: ""; position: absolute; top: auto; bottom: 0; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 
 .page-box {
   width: 3.4ch; box-sizing: content-box; padding: 5px 6px; text-align: center; font: inherit; font-weight: 600; color: var(--ink);
@@ -3360,7 +3360,7 @@ window.bookReady = (async () => {
     if (!booksEl.hidden) { booksEl.scrollTop += dx * 4; return; }
     if (S.view === "scroll" && !gridOpen && S.dialScroll === "glide") {
       (linear() ? desk : scroller).scrollTop += dx * 4 * S.glide;
-      showTip(textScroll() ? scrollPage() : curPage);
+      if (textScroll()) showTip(scrollPage());
       return;
     }
     dial.acc += dx;
@@ -5292,6 +5292,7 @@ window.bookReady = (async () => {
       if (i !== curPage) { curPage = i; pages.forEach((p, j) => p.classList.toggle("is-current", j === i)); }
       anchor = spanStart(pageSpans[i]);
       afterMove();
+      if (dial) showTip(i);
     });
   }, { passive: true });
 

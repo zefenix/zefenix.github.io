@@ -79,7 +79,9 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     document.querySelector('[data-setting="slider"] [data-value="dial"]').click();
     const a = getComputedStyle(document.getElementById('ticks'), '::after');
     const on = document.querySelector('.tick.on'), k = getComputedStyle(on, '::after');
-    return { foot: on.getBoundingClientRect().bottom, knob: on.getBoundingClientRect().top + parseFloat(k.top) + parseFloat(k.height), align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage, stripGoes: !!document.querySelector('[data-setting="stripDir"]') };
+    const footOf = () => on.getBoundingClientRect().top + parseFloat(getComputedStyle(on, '::after').top) + parseFloat(getComputedStyle(on, '::after').height);
+    on.classList.add('hit'); const withHit = footOf(); on.classList.remove('hit');
+    return { withHit, foot: on.getBoundingClientRect().bottom, knob: on.getBoundingClientRect().top + parseFloat(k.top) + parseFloat(k.height), align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage, stripGoes: !!document.querySelector('[data-setting="stripDir"]') };
   });
   const hover = await q.evaluate(() => [...document.querySelectorAll('.tick:not(.on)')].slice(-3, -2).map(t => { const r = t.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })[0]);
   const under = async mode => {
@@ -93,6 +95,7 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   ok('as a slider, a tick under the pointer is not lit', litS.hovering && litS.tick === litS.rest, litS);
   ok('as a dial, a tick under the pointer is not lit', litD.hovering && litD.tick === litD.rest && litD.cursor === 'ew-resize', litD);
   ok('the knob sits at the foot of its tick', Math.abs(look.foot - look.knob) <= 1, look);
+  ok('the knob stays at the foot on a page with a search match', Math.abs(look.foot - look.withHit) <= 1, look);
   ok('the ticks stand on the slider\'s foot', look.align === 'flex-end', look);
   const shades = await q.evaluate(() => new Set([...document.querySelectorAll('.tick:not(.on)')].map(t => getComputedStyle(t, '::before').backgroundColor)).size);
   ok('read and unread ticks are one colour', shades === 1, shades);
@@ -110,6 +113,10 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     await set('dialScroll', 'glide');
     const y0 = await top(), p2 = await pg(); await dragMouse(); const y1 = await top();
     ok(`${mode} scroll, glide: 48 px moves the text 48 × 4 × the glide speed, no whole pages`, Math.abs(y1 - y0 - 230) <= 12 && (await pg()) - p2 <= 1, { y0, y1, p2, now: await pg() });
+    await q.mouse.move(T.x + 30, T.y); await q.mouse.down(); for (let i = 1; i <= 8; i++) { await q.mouse.move(T.x + 30 + 30 * i, T.y); await q.waitForTimeout(30); } await q.waitForTimeout(250);
+    const during = await q.evaluate(() => ({ tip: document.getElementById('scrubTip').textContent, page: document.getElementById('pageNum').value }));
+    await q.mouse.up(); await q.waitForTimeout(500);
+    ok(`${mode} scroll, glide: the tip names the page you have reached`, during.tip.startsWith(`p. ${during.page} `), during);
   }
   await set('slider', 'jump'); ok('Dial moves shows only for the dial', await q.evaluate(() => document.querySelector('.dial-opt').hidden), null);
   console.log(`dial ${engine}: ${fails ? fails + ' FAILED' : 'all passed'} · page errors: ${errs.length ? errs.join(' | ') : 'none'}`);
