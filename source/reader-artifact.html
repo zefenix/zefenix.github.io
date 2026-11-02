@@ -444,9 +444,6 @@ a.toc-item { text-decoration: none; }
 .seg.off { opacity: .35; pointer-events: none; }
 .stat { cursor: pointer; align-self: stretch; display: flex; align-items: center; min-height: 40px; -webkit-tap-highlight-color: transparent; }
 .stat-l { justify-content: flex-end; }
-@media (max-width: 600px), (max-height: 500px) and (pointer: coarse) {
-  .stat-l::before { content: attr(data-ctl); margin-right: auto; padding-right: 6px; font-size: 10px; opacity: .6; }   /* P or D, which way the slider works */
-}
 .stat:hover { color: var(--ink); }
 .f-btn[aria-expanded="true"] { background: var(--surface); color: var(--ink); }
 .nav { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -513,6 +510,7 @@ a.toc-item { text-decoration: none; }
 .tick.opener::before { height: 15px; }
 .tick:hover::before { background: var(--ink); }
 .tick.on::before { height: 22px; width: 3px; background: var(--accent); }
+.ticks.dial .tick.on::before { flex: none; width: 8px; height: 8px; margin-bottom: 12px; border-radius: 50%; }   /* as a dial, the place is a knob */
 .tick.hit::after { content: ""; position: absolute; top: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--hit-dot); }
 
 .page-box {
@@ -1621,7 +1619,7 @@ a.toc-item { text-decoration: none; }
   <li>The minimap, in chapter 8: the book drawn small. Click or drag along it to move; <code>m</code> hides or shows it.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip. When the bar runs out of room, each group folds into one button that opens it.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. A tap or a drag goes to the page under it. It can also work as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. On a touch screen, a swipe up from just left of it switches between the two, and a small P or D there says which is on; Page control, under Options, does the same. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. A tap or a drag goes to the page under it. It can also work as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. On a touch screen, a swipe up from just left of it switches between the two, as does Page control under Options; as a dial, your place shows as a round knob instead of a bar. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>
@@ -3438,7 +3436,6 @@ window.bookReady = (async () => {
     $("expandBtn").setAttribute("aria-pressed", String(!!S.expand));
     $("arrangeSeg").classList.toggle("off", S.view === "scroll");
     ticksEl.classList.toggle("dial", S.slider === "dial");
-    statL.dataset.ctl = S.slider === "dial" ? "D" : "P";
     document.querySelectorAll(".dial-opt").forEach(row => { row.hidden = S.slider !== "dial"; });
     document.querySelectorAll(".strip-opt").forEach(row => { row.hidden = S.arrange !== "strip"; });
     $("arrangeSeg").setAttribute("aria-disabled", String(S.view === "scroll"));
