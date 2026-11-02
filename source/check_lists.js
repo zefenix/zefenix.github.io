@@ -439,7 +439,7 @@ async function readerTools(page, browserName, width) {
       const rect = e => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom }; };
       const dock = document.querySelector('#dock');
       const buttons = [...dock.querySelectorAll('button')].filter(e => e.checkVisibility());
-      const controls = buttons.map(e => ({ id: e.id || `${e.parentElement.dataset.setting}-${e.dataset.value}`, ...rect(e) }));
+      const controls = buttons.map(e => ({ id: e.id || (e.classList.contains('pick') ? 'pick' : `${e.parentElement.dataset.setting}-${e.dataset.value}`), ...rect(e) }));
       return { width: innerWidth, rows: new Set([...dock.children].map(e => { const r = e.getBoundingClientRect(); return Math.round(r.y + r.height / 2); })).size,
         height: dock.getBoundingClientRect().height, overflow: dock.scrollWidth - dock.clientWidth,
         themeVisible: document.querySelector('#themeBtn').checkVisibility(), controls,
@@ -454,7 +454,8 @@ async function readerTools(page, browserName, width) {
     for (const control of layout.controls) {
       assert(control.x >= 0 && control.right <= viewport + layout.overflow && control.y >= 0 && control.bottom <= (viewport < 500 ? 844 : 900), `${control.id} remains in viewport at ${viewport}`);
       const segmented = control.id.startsWith('mode-') || control.id.startsWith('arrange-');
-      assert.equal(control.width, segmented ? viewport === 1440 ? 38 : viewport <= 380 ? 28 : 32 : 32, `${control.id} retains baseline width at ${viewport}`);
+      // 381 is the widest screen where the bar folds its views and styles into two picks
+      assert.equal(control.width, control.id === 'pick' ? 40 : segmented ? viewport === 1440 ? 38 : viewport <= 380 ? 28 : 32 : 32, `${control.id} retains baseline width at ${viewport}`);
       assert.equal(control.height, segmented ? 26 : 32, `${control.id} retains baseline height at ${viewport}`);
     }
     layouts.push(layout);
