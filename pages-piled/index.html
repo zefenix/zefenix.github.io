@@ -454,10 +454,10 @@ a.toc-item { text-decoration: none; }
 .stat:hover { color: var(--ink); }
 .f-btn[aria-expanded="true"] { background: var(--surface); color: var(--ink); }
 .nav { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; }
-.ticks { cursor: pointer; touch-action: none; user-select: none; border-radius: 4px; }
+.ticks { cursor: pointer; touch-action: none; user-select: none; border-radius: 4px; -webkit-tap-highlight-color: transparent; }
 .ticks:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .ticks { position: relative; }
-.ticks.dial { cursor: ew-resize; }
+.ticks.dial, .ticks.dial .tick { cursor: ew-resize; }
 .scrub-tip {
   position: absolute; bottom: calc(100% + 6px); transform: translateX(-50%); z-index: 9; pointer-events: none;
   padding: 4px 9px; border-radius: 6px; background: var(--ink); color: var(--bar); font-size: 12px; white-space: nowrap;
@@ -518,9 +518,10 @@ a.toc-item { text-decoration: none; }
 .tick.on::before { height: 22px; width: 3px; background: var(--accent); }
 .tick.hit::after { content: ""; position: absolute; top: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--hit-dot); }
 /* As a dial, the place is a knob level with the arrows, and every tick stays as it is */
-.ticks.dial .tick.on::before { width: 2px; height: 9px; background: var(--line); }
+.ticks.dial .tick::before, .ticks.dial .tick.on::before { background: var(--line); }
+.ticks.dial .tick.on::before { width: 2px; height: 9px; }
 .ticks.dial .tick.on.opener::before { height: 15px; }
-.ticks.dial .tick.on::after { content: ""; position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.ticks.dial .tick.on::after { content: ""; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 
 .page-box {
   width: 3.4ch; box-sizing: content-box; padding: 5px 6px; text-align: center; font: inherit; font-weight: 600; color: var(--ink);

@@ -81,6 +81,11 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     const on = document.querySelector('.tick.on'), k = getComputedStyle(on, '::after');
     return { arrow: mid(document.getElementById('next')), knob: on.getBoundingClientRect().top + parseFloat(k.top) + parseFloat(k.marginTop) + parseFloat(k.height) / 2, align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage, stripGoes: !!document.querySelector('[data-setting="stripDir"]') };
   });
+  const hover = await q.evaluate(() => [...document.querySelectorAll('.tick:not(.on)')].slice(-3, -2).map(t => { const r = t.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })[0]);
+  await q.mouse.move(hover.x, hover.y); await q.waitForTimeout(350);
+  const lit = await q.evaluate(() => { const on = document.querySelector('.tick:hover'), rest = document.querySelector('.tick:not(.on):not(:hover)'); return { hovering: !!on, tick: on && getComputedStyle(on, '::before').backgroundColor, rest: getComputedStyle(rest, '::before').backgroundColor, cursor: on && getComputedStyle(on).cursor }; });
+  await q.mouse.move(5, 5);
+  ok('as a dial, a tick under the pointer is not lit', lit.hovering && lit.tick === lit.rest && lit.cursor === 'ew-resize', lit);
   ok('the knob sits level with the arrows', Math.abs(look.arrow - look.knob) <= 1, look);
   ok('the ticks stand on the slider\'s foot', look.align === 'flex-end', look);
   const shades = await q.evaluate(() => new Set([...document.querySelectorAll('.tick:not(.on)')].map(t => getComputedStyle(t, '::before').backgroundColor)).size);
