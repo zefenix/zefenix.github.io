@@ -84,7 +84,7 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   const hover = await q.evaluate(() => [...document.querySelectorAll('.tick:not(.on)')].slice(-3, -2).map(t => { const r = t.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })[0]);
   const under = async mode => {
     await q.evaluate(m => document.querySelector(`[data-setting="slider"] [data-value="${m}"]`).click(), mode);
-    await q.mouse.move(hover.x, hover.y); await q.waitForTimeout(350);
+    await q.mouse.move(hover.x - 1, hover.y); await q.mouse.move(hover.x, hover.y); await q.waitForTimeout(350);   // Firefox reads :hover from a move, and a click from a script can clear it
     const lit = await q.evaluate(() => { const on = document.querySelector('.tick:hover'), rest = document.querySelector('.tick:not(.on):not(:hover)'); return { hovering: !!on, tick: on && getComputedStyle(on, '::before').backgroundColor, rest: getComputedStyle(rest, '::before').backgroundColor, cursor: on && getComputedStyle(on).cursor }; });
     await q.mouse.move(5, 5);
     return lit;
