@@ -1,5 +1,6 @@
 // The page slider as a dial, the default: a drag turns pages from where you are, a tap goes nowhere; a swipe down from
-// just above it switches to jump and back, in Zen too; Options' Page slider does the same.
+// just above it switches to jump and back, in Zen too; Options' Page control does the same. It sits level with its
+// arrows, with nothing drawn over the ticks, and in the scroll views it turns by page or, by Dial moves, glides.
 const path = require('path'), fs = require('fs');
 const { site, engine, launch, route, loaded } = require('./common');
 let fails = 0;
@@ -41,7 +42,7 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   { await p.touchscreen.tap(t.x + t.w * 0.9, t.y); await p.waitForTimeout(600); s = await st(); ok('a tap on the dial goes nowhere', s.page === p0 + 3, s); }
   // switch to jump by a swipe down from just above it
   await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); s = await st();
-  ok('a swipe down from just above the slider makes it a slider, and turns no page', !s.dial && s.page === p0 + 3 && /jump/.test(s.toast), s);
+  ok('a swipe down from just above the slider makes it a slider, and turns no page', !s.dial && s.page === p0 + 3 && /slider/.test(s.toast), s);
   { await p.touchscreen.tap(t.x + 2, t.y); await p.waitForTimeout(700); s = await st(); ok('as a slider, a tap goes to the page under it', s.page <= 2, s); }
   await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); s = await st();
   ok('the same swipe makes it a dial again', s.dial && /dial/.test(s.toast), s);
@@ -63,7 +64,30 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   ok('with a mouse, 48 px turns 4 pages', (await pg()) === m0 + 4, { m0, now: await pg() });
   await q.evaluate(() => document.querySelector('[data-setting="slider"] [data-value="jump"]').click()); await q.waitForTimeout(300);
   await q.mouse.click(T.x + 3, T.y); await q.waitForTimeout(700);
-  ok('Options, Page slider, Jump: a click goes to the page under it', (await pg()) <= 2, await pg());
+  ok('Options, Page control, Slider: a click goes to the page under it', (await pg()) <= 2, await pg());
+  // the look: the ticks sit level with the arrows, and nothing lies over them
+  const look = await q.evaluate(() => {
+    const mid = el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; };
+    document.querySelector('[data-setting="slider"] [data-value="dial"]').click();
+    const t = document.getElementById('ticks'), a = getComputedStyle(t, '::after');
+    return { arrow: mid(document.getElementById('next')), track: mid(t), align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage };
+  });
+  ok('the slider sits level with its arrows, its ticks centred', Math.abs(look.arrow - look.track) <= 1 && look.align === 'center', look);
+  ok('nothing is drawn over the ticks', look.cover === 'none' && look.image === 'none', look);
+  // the scroll views: by page, or a glide with the drag
+  const dragMouse = async () => { await q.mouse.move(T.x + 30, T.y); await q.mouse.down(); for (let i = 1; i <= 6; i++) { await q.mouse.move(T.x + 30 + 8 * i, T.y); await q.waitForTimeout(30); } await q.mouse.up(); await q.waitForTimeout(700); };
+  const set = (k, v) => q.evaluate(([k, v]) => document.querySelector(`[data-setting="${k}"] [data-value="${v}"]`).click(), [k, v]);
+  const top = () => q.evaluate(() => { const a = document.querySelector('.app').dataset.view === 'linear' ? document.getElementById('desk') : document.getElementById('scroller'); return Math.round(a.scrollTop); });
+  for (const mode of ['text', 'pages']) {
+    await set('mode', mode); await q.waitForTimeout(1500);
+    await set('dialScroll', 'page');
+    const p1 = await pg(); await dragMouse();
+    ok(`${mode} scroll, by page: 48 px turns 4 pages`, (await pg()) === p1 + 4, { p1, now: await pg() });
+    await set('dialScroll', 'glide');
+    const y0 = await top(), p2 = await pg(); await dragMouse(); const y1 = await top();
+    ok(`${mode} scroll, glide: 48 px moves the text 48 × 4 × the glide speed, no whole pages`, Math.abs(y1 - y0 - 230) <= 12 && (await pg()) - p2 <= 1, { y0, y1, p2, now: await pg() });
+  }
+  await set('slider', 'jump'); ok('Dial moves shows only for the dial', await q.evaluate(() => document.querySelector('.dial-opt').hidden), null);
   console.log(`dial ${engine}: ${fails ? fails + ' FAILED' : 'all passed'} · page errors: ${errs.length ? errs.join(' | ') : 'none'}`);
   await b.close(); process.exit(fails ? 1 : 0);
 })();
