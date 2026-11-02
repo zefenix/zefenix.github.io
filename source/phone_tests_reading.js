@@ -476,7 +476,7 @@ module.exports = [
     async run({ page, assert }) {
       const k = await keysChapter(page);
       assert.deepEqual(k.tables, ['keys-table', 'keys-jump', 'keys-view', 'keys-tools', 'keys-find', 'keys-listen'], 'Keys holds six tables: turning pages, jumping, views, panels and screen, search and Listen, stepping');
-      assert.deepEqual(k.elsewhere, ['find-syntax'], 'no other chapter has a key table');
+      assert.deepEqual(k.elsewhere, ['outline-keys', 'find-syntax', 'listen-keys'], 'beside Keys, only Contents, Search and Listening have a table');
       assert.deepEqual(k.keys, ['j k', 'h l ← →', '↓ ↑, Page Down, Page Up', 'Home, End', 'd u', 'Space, Shift+Space', 'J K', 'gg G', 'gn gp', 'gN gP', 'r R', 's', 'f', 'v', 'V', 't', '- = 0', '_ + )',
         'c', 'cc', 'C', 'L', 'B o', 'm', 'M', 'z', 'F', 'FF', 'e', 'O', '?', '/ Ctrl+f', 'n N', 'Enter', 'Esc, Ctrl+[', 'a', 'H', '[ ], q w', 'Q W, { }', '[[ ]]'], 'the key list names each key once');
       assert.equal(k.rows['r R'], 'Return: back through your jumps one at a time, and R forward again; to Listen’s sentence or the highlight first, if you moved away from it | Same', 'r returns to Listen first');
