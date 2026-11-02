@@ -29,10 +29,10 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     }, [x, y, dx, dy, steps]);
     await p.waitForTimeout(700);
   };
-  const st = () => p.evaluate(() => ({ mark: getComputedStyle(document.querySelector('.tick.on'), '::before').borderRadius, tocHidden: document.getElementById('tocPanel').hidden, dial: document.getElementById('ticks').classList.contains('dial'), page: +document.getElementById('pageNum').value, toast: document.getElementById('toast').textContent, tucked: document.querySelector('.app').classList.contains('tucked'), lib: !document.getElementById('books').hidden }));
+  const st = () => p.evaluate(() => ({ mark: (o => getComputedStyle(o, '::after').content !== 'none' ? 'knob' : 'bar')(document.querySelector('.tick.on')), bar: parseFloat(getComputedStyle(document.querySelector('.tick.on'), '::before').height), tocHidden: document.getElementById('tocPanel').hidden, dial: document.getElementById('ticks').classList.contains('dial'), page: +document.getElementById('pageNum').value, toast: document.getElementById('toast').textContent, tucked: document.querySelector('.app').classList.contains('tucked'), lib: !document.getElementById('books').hidden }));
   const tk = () => p.evaluate(() => { const r = document.getElementById('ticks').getBoundingClientRect(); return { x: r.left, y: r.top + r.height / 2, w: r.width, top: r.top }; });
   let s = await st(), t = await tk();
-  ok('the slider starts plain, its place a bar', !s.dial && s.mark === '1px', s);
+  ok('the slider starts plain, its place a bar', !s.dial && s.mark === 'bar' && s.bar === 22, s);
   const left = () => p.evaluate(() => { const r = document.getElementById('statL').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   const flip = async () => { const l = await left(); await drag(l.x, l.y, 0, -60, 6); return st(); };
   const p00 = s.page;
@@ -40,7 +40,7 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   ok('a swipe down from just above the slider no longer switches it', !s.dial, s);
   await p.evaluate(p => { const i = document.getElementById('pageNum'); i.value = p; i.dispatchEvent(new Event('change', { bubbles: true })); }, p00); await p.waitForTimeout(600);
   s = await flip();
-  ok('a swipe up from left of the slider makes it a dial, its place a knob, and no panel opens', s.dial && s.mark === '50%' && /dial/.test(s.toast) && s.tocHidden, s);
+  ok('a swipe up from left of the slider makes it a dial, its place a knob over a bar of the usual height, and no panel opens', s.dial && s.mark === 'knob' && (s.bar === 9 || s.bar === 15) && /dial/.test(s.toast) && s.tocHidden, s);
   const p0 = s.page;
   await drag(t.x + 40, t.y, 90, 0); s = await st();
   ok('a drag of 90 px turns 5 pages from where you are', s.page === p0 + 5, { p0, s });
@@ -80,6 +80,8 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     return { align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage, stripGoes: !!document.querySelector('[data-setting="stripDir"]') };
   });
   ok('the ticks stand on the slider\'s foot', look.align === 'flex-end', look);
+  const shades = await q.evaluate(() => new Set([...document.querySelectorAll('.tick:not(.on)')].map(t => getComputedStyle(t, '::before').backgroundColor)).size);
+  ok('read and unread ticks are one colour', shades === 1, shades);
   ok('nothing is drawn over the ticks', look.cover === 'none' && look.image === 'none', look);
   ok('Strip goes is gone from Options', !look.stripGoes, look);
   // the scroll views: by page, or a glide with the drag

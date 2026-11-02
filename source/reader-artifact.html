@@ -506,12 +506,14 @@ a.toc-item { text-decoration: none; }
   cursor: pointer; display: flex; align-items: flex-end; justify-content: center;
 }
 .tick::before { content: ""; width: 2px; height: 9px; border-radius: 1px; background: var(--line); transition: height .25s var(--ease), background-color .25s; }
-.tick.read::before { background: var(--ink-soft); }
 .tick.opener::before { height: 15px; }
 .tick:hover::before { background: var(--ink); }
 .tick.on::before { height: 22px; width: 3px; background: var(--accent); }
-.ticks.dial .tick.on::before { flex: none; width: 8px; height: 8px; margin-bottom: 12px; border-radius: 50%; }   /* as a dial, the place is a knob */
 .tick.hit::after { content: ""; position: absolute; top: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--hit-dot); }
+/* As a dial, the place is a knob above the ticks, and every tick stays as it is */
+.ticks.dial .tick.on::before { width: 2px; height: 9px; background: var(--line); }
+.ticks.dial .tick.on.opener::before { height: 15px; }
+.ticks.dial .tick.on::after { content: ""; position: absolute; top: 3px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 60%, var(--line)); }
 
 .page-box {
   width: 3.4ch; box-sizing: content-box; padding: 5px 6px; text-align: center; font: inherit; font-weight: 600; color: var(--ink);
@@ -3256,7 +3258,6 @@ window.bookReady = (async () => {
     const fit = `${unitLabel.textContent}${pageNum.value.length}${unitExtra.textContent}${n}`;
     if (dock.dataset.fit !== fit) { dock.dataset.fit = fit; fitDock(); }
     ticks.forEach((t, i) => {
-      t.classList.toggle("read", i < on[0]);
       t.classList.toggle("on", on.includes(i));
       if (i === on[0]) t.setAttribute("aria-current", "true"); else t.removeAttribute("aria-current");
     });
