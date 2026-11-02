@@ -346,8 +346,6 @@ a.toc-item { text-decoration: none; }
 .fig .d-t { font: 500 6.6px var(--f-ui); fill: var(--ink-soft); }
 .fig .d-title { font: italic 400 7.4px var(--f-book); fill: var(--ink); }
 .fig .d-s { font: 500 6px var(--f-ui); fill: var(--ink-soft); }
-.fig .d-key { fill: var(--paper); stroke: var(--line); stroke-width: .7; }
-.fig .d-keyt { font: 500 8px var(--f-mono); fill: var(--ink); text-anchor: middle; }
 .fig .d-tick { stroke: var(--line); stroke-width: 1.2; stroke-linecap: round; }
 .fig .d-num circle { fill: var(--accent); }
 .fig .d-num text { font: 700 7px var(--f-ui); fill: var(--bar); text-anchor: middle; }
@@ -1285,7 +1283,7 @@ a.toc-item { text-decoration: none; }
         <tr><td><code>h</code> <code>j</code> <code>k</code> <code>l</code>, arrows</td> <td>Move between books, and down into the words found</td></tr>
         <tr><td>Enter, double-click</td> <td>Open; a single click opens too when Options sets Library click to Open</td></tr>
         <tr><td><code>b</code> <code>v</code></td> <td>Shelf or List</td></tr>
-        <tr><td><code>L</code></td> <td>Keys into the outline and back</td></tr>
+        <tr><td><code>L</code></td> <td>Focus out<b>l</b>ine and back</td></tr>
         <tr><td><code>cc</code></td> <td>Outline as chapters, or with their parts</td></tr>
         <tr><td><code>B</code> <code>o</code></td> <td>Close the Library</td></tr>
         <tr><td><code>L</code> from a place found</td> <td>That book's outline, from the first chapter holding the words; <code>L</code> again comes back to the place</td></tr>
@@ -1334,7 +1332,7 @@ a.toc-item { text-decoration: none; }
     <li><a href="#strip"><span class="n">4</span><span class="t">Strip</span></a></li>
     <li><a href="#scroll"><span class="n">5</span><span class="t">Scroll</span></a></li>
     <li><a href="#thumbs"><span class="n">6</span><span class="t">Thumbnails</span></a></li>
-    <li><a href="#outline"><span class="n">7</span><span class="t">Contents and the outline</span></a></li>
+    <li><a href="#outline"><span class="n">7</span><span class="t">Contents</span></a></li>
     <li><a href="#minimap"><span class="n">8</span><span class="t">The minimap</span></a></li>
     <li><a href="#find"><span class="n">9</span><span class="t">Search</span></a></li>
     <li><a href="#place"><span class="n">10</span><span class="t">Keeping your place</span></a></li>
@@ -1513,22 +1511,17 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 6. All pages: the whole book at once, the current page outlined, each chapter opening easy to spot.</figcaption>
 </figure>
 
-<h2 id="outline" data-n="7">Contents and the outline</h2>
-<p id="outline-what">Contents, the panel on the left, lists the chapters with the page each starts on. Turn on Headings at its foot, or press <code>cc</code>, and each chapter’s headings appear under it: that fuller list is the outline. The heading you are reading is tinted.</p>
-<figure class="fig" id="fig-contents">
-  <svg viewBox="0 0 320 56" role="img" aria-label="The keys of Contents: c peeks, C keeps it open, L takes the keys, slash finds a name.">
-    <rect class="d-key" x="32.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="40" y="24.6">c</text>
-    <text class="fig-label" x="40" y="44" text-anchor="middle">peek</text>
-    <rect class="d-key" x="112.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="120" y="24.6">C</text>
-    <text class="fig-label" x="120" y="44" text-anchor="middle">keep open</text>
-    <rect class="d-key" x="192.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="200" y="24.6">L</text>
-    <text class="fig-label" x="200" y="44" text-anchor="middle">take the keys</text>
-    <rect class="d-key" x="272.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="280" y="24.6">/</text>
-    <text class="fig-label" x="280" y="44" text-anchor="middle">find a name</text>
-  </svg>
-  <figcaption>Figure 7. Contents’ keys. Once L has the keys, j and k move and Enter goes there.</figcaption>
-</figure>
-<p id="outline-find">To find a heading, press <code>/</code> while <code>L</code> has the keys, or tap Find at the foot of Contents, and the outline narrows to the names that hold your words. Search, in chapter 9, looks through the text.</p>
+<h2 id="outline" data-n="7">Contents</h2>
+<p id="outline-what">The table of contents, or outline, is the panel on the left. It lists the chapters with the page each starts on. Turn on Headings at its foot, or press <code>cc</code>, and each chapter’s headings appear under it. The heading you are reading is tinted.</p>
+<table id="outline-keys">
+  <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><code>c</code></td> <td>Peek at <b>c</b>ontents; again to put it away</td></tr>
+    <tr><td><code>C</code></td> <td><b>C</b>ontents sidebar on, off</td></tr>
+    <tr><td><code>L</code></td> <td>Focus out<b>l</b>ine: <code>j</code> <code>k</code> move, Enter goes there, <code>L</code> or Esc comes back</td></tr>
+  </tbody>
+</table>
+<p id="outline-find">To find a heading, press <code>L</code> to focus outline and <code>/</code> to search, or tap Find at its foot. Search, in chapter 9, looks through the text.</p>
 <p id="outline-library">The Library keeps an outline too, beside its books, and the same keys work there.</p>
 
 <h2 id="minimap" data-n="8">The minimap</h2>
@@ -1569,22 +1562,16 @@ a.toc-item { text-decoration: none; }
 
 <h2 id="listen" data-n="11">Listening</h2>
 <p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there. Press <code>a</code> now to hear this paragraph, and Esc to stop.</p>
-<figure class="fig" id="fig-listen">
-  <svg viewBox="0 0 320 56" role="img" aria-label="The keys of Listen: a starts and stops, the square brackets step by sentence, Q and W by paragraph, r comes back.">
-    <rect class="d-key" x="32.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="40" y="24.6">a</text>
-    <text class="fig-label" x="40" y="44" text-anchor="middle">start, stop</text>
-    <rect class="d-key" x="103.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="111" y="24.6">[</text>
-    <rect class="d-key" x="121.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="129" y="24.6">]</text>
-    <text class="fig-label" x="120" y="44" text-anchor="middle">a sentence</text>
-    <rect class="d-key" x="183.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="191" y="24.6">Q</text>
-    <rect class="d-key" x="201.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="209" y="24.6">W</text>
-    <text class="fig-label" x="200" y="44" text-anchor="middle">a paragraph</text>
-    <rect class="d-key" x="272.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="280" y="24.6">r</text>
-    <text class="fig-label" x="280" y="44" text-anchor="middle">back to it</text>
-  </svg>
-  <figcaption>Figure 8. Listen’s keys, with q and w for sentences too. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph.</figcaption>
-</figure>
-<p id="listen-stay">You can read elsewhere while Listen carries on, and <code>r</code> brings you back to the sentence being read. Options sets the voice and speed, and can make the page follow Listen instead.</p>
+<table id="listen-keys">
+  <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><code>a</code></td> <td>Listen <b>a</b>loud, stop</td></tr>
+    <tr><td><code>[</code> <code>]</code>, <code>q</code> <code>w</code></td> <td>Previous, next sentence</td></tr>
+    <tr><td><code>Q</code> <code>W</code></td> <td>Previous, next paragraph</td></tr>
+    <tr><td><code>r</code></td> <td><b>R</b>eturn to the sentence being read</td></tr>
+  </tbody>
+</table>
+<p id="listen-stay">On a phone, buttons under the top bar do the same. You can read elsewhere while Listen carries on. Options sets the voice and speed, and can make the page follow Listen instead.</p>
 <p id="listen-voices">The voices are your browser’s own, so they differ from one browser to the next. Edge’s Read Aloud can’t reach inside the paged views, which is why the reader has its own.</p>
 
 <h2 id="yours" data-n="12">Your own books</h2>
@@ -1646,16 +1633,16 @@ a.toc-item { text-decoration: none; }
     <g class="d-num"><circle cx="219.5" cy="191" r="6"/><text x="219.5" y="193.5">8</text></g>
     <g class="d-num"><circle cx="267" cy="191" r="6"/><text x="267" y="193.5">9</text></g>
   </svg>
-  <figcaption>Figure 9. The parts of the reader, numbered as in the list below.</figcaption>
+  <figcaption>Figure 7. The parts of the reader, numbered as in the list below.</figcaption>
 </figure>
 <ol id="screen-parts">
   <li>Top bar: title and chapter in the middle; Contents, the Library, All pages and Zen on the left; Search, Listen, Full screen, Theme and the minimap on the right. Each panel’s button sits above its panel.</li>
-  <li>Contents, with the outline, in chapter 7: <code>c</code> peeks at it and <code>C</code> shows or hides it.</li>
+  <li>Contents, in chapter 7: <code>c</code> peeks at it and <code>C</code> shows or hides it.</li>
   <li>The desk: the current page, with the pages in Flow on either side.</li>
   <li>The minimap, in chapter 8: the book drawn small.</li>
   <li>The middle of the space just below the current page opens All pages, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over search matches. Figure 10 shows how it works.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over search matches. Figure 8 shows how it works.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other.</li>
   <li>The page box, then Expand, Focus and Options.</li>
 </ol>
@@ -1676,7 +1663,7 @@ a.toc-item { text-decoration: none; }
     <text class="fig-label" x="280" y="50" text-anchor="middle">tap: All pages</text>
     <text class="fig-label" x="280" y="62" text-anchor="middle">swipe up: Library</text>
   </svg>
-  <figcaption>Figure 10. The page slider. Page control, under Options, sets slider or dial; as a dial, your place is a small knob, and in the scroll views it can glide instead.</figcaption>
+  <figcaption>Figure 8. The page slider. Page control, under Options, sets slider or dial; as a dial, your place is a small knob, and in the scroll views it can glide instead.</figcaption>
 </figure>
 <h3 id="room">Making room</h3>
 <p id="expand">Expand, or <code>e</code>, makes the pages as large as the screen allows. Full screen, or <code>FF</code>, also hides the browser, where the browser lets it.</p>
@@ -1728,9 +1715,9 @@ a.toc-item { text-decoration: none; }
   <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
   <tbody>
     <tr><td><code>c</code></td> <td>Peek at <b>c</b>ontents; again to put it away</td></tr>
-    <tr><td><code>cc</code></td> <td><b>C</b>ontents as chapters alone, or with their headings, also while <code>L</code> has the keys there; in the Library, its outline the same way</td></tr>
+    <tr><td><code>cc</code></td> <td><b>C</b>ontents as chapters alone, or with their headings, also with the outline in focus; in the Library, its outline the same way</td></tr>
     <tr><td><code>C</code></td> <td><b>C</b>ontents sidebar on, off</td></tr>
-    <tr><td><code>L</code></td> <td>Move the keys into Contents, or in the Library its outline: <code>j</code> <code>k</code> move, Enter goes there, <code>L</code> or Esc comes back</td></tr>
+    <tr><td><code>L</code></td> <td>Focus out<b>l</b>ine, in Contents or the Library: <code>j</code> <code>k</code> move, Enter goes there, <code>L</code> or Esc comes back</td></tr>
     <tr><td><code>B</code> <code>o</code></td> <td>The Library: the shelf, your own files and the bookmarklet; in it, <code>b</code> or <code>v</code> switches Shelf and List</td></tr>
     <tr><td><code>m</code></td> <td><b>M</b>inimap on, off</td></tr>
     <tr><td><code>M</code></td> <td><b>M</b>inimap at the side or across the top</td></tr>
@@ -5851,7 +5838,7 @@ window.bookReady = (async () => {
     const findBtn = elt("button", { type: "button", className: "o-findbtn", title: "Find a chapter (L, then /)" }, "Find");
     findBtn.setAttribute("aria-pressed", String(!oFindBox.hidden));
     findBtn.addEventListener("click", () => openOFind(oFindBox.hidden));
-    const box = [close, elt("div", { className: "o-head" }, elt("span", { className: "kick", title: "L moves the keys here and back; cc shows chapters alone or with their parts; / finds a chapter" }, "Outline"), findBtn), elt("p", { className: "o-title" }, title), oFindBox];
+    const box = [close, elt("div", { className: "o-head" }, elt("span", { className: "kick", title: "L focuses the outline and back; cc shows chapters alone or with their parts; / finds a chapter" }, "Outline"), findBtn), elt("p", { className: "o-title" }, title), oFindBox];
     const marks = foundQ ? foundBy.get(b ? b.href : info.own ? location.pathname : `?${info.ref}`) : null;
     if (foundQ) box.push(elt("p", { className: "o-found" }, marks ? `${marks.size} ${marks.size === 1 ? "chapter holds" : "chapters hold"} “${libFind.value.trim()}”` : `No chapter holds “${libFind.value.trim()}”`));
     if (!entries.length) box.push(elt("p", { className: "empty" }, "No chapters to show."));

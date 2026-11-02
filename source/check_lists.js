@@ -588,7 +588,7 @@ async function listenParagraphs(page, browserName, width) {
   check(!fromItemStart, 'a selection in a list item\'s second sentence read from the item\'s first');
   if (fromItemStart) await page.keyboard.press(']');
   await spoken('Each panel’s button sits above its panel.', 'list item second sentence');
-  await page.keyboard.press('}'); await spoken('Contents, with the outline, in chapter 7: c peeks at it and C shows or hides it.', '} next list item');
+  await page.keyboard.press('}'); await spoken('Contents, in chapter 7: c peeks at it and C shows or hides it.', '} next list item');
   await page.keyboard.press('{'); await spoken(topBar, '{ previous list item start');
   assert((await page.evaluate(() => window.testBraceEvents.filter(e => e.prevented))).length >= 5, 'Active Listen handles braces');
   await page.keyboard.press('Escape');
@@ -752,7 +752,7 @@ async function chapterNames(page, browserName, width) {
   const map = async () => page.locator('#desk').evaluate(desk => [...desk.querySelectorAll('h2[data-n]')].map(h => ({ chapter: +h.dataset.n, title: h.textContent.trim(), first: +h.closest('.pagedjs_page').dataset.pageNumber })));
   const chapters = await map(), total = await page.locator('#desk .pagedjs_page').count();
   assert.equal(chapters.length, 16); assert(!chapters.some(c => c.chapter === 0));
-  assert.deepEqual(chapters.find(c => c.chapter === 7), { chapter: 7, title: 'Contents and the outline', first: 13 }, 'Contents and the outline is chapter 7');
+  assert.deepEqual(chapters.find(c => c.chapter === 7), { chapter: 7, title: 'Contents', first: 13 }, 'Contents and the outline is chapter 7');
   assert.equal(chapters.find(c => c.chapter === 4).first, 8, 'A5 chapter 4 starts on absolute page 8');
   assert.equal(chapters.find(c => c.chapter === 3).first, 6, 'A5 figure status c3.2 means absolute page 7');
   const front = await page.locator('#book').evaluate(book => [...book.content.querySelector('.bk').children].slice(0, 2).map(el => el.dataset.label));

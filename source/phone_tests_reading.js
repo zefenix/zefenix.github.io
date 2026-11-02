@@ -452,7 +452,7 @@ module.exports = [
     commit: 'adf4e05',
     what: 'the book has 16 chapters, Strip its own chapter 4 and Your own books 12, in the contents and in the pages',
     async run({ page, assert }) {
-      const titles = ['1 Why pages', '2 One page, two piles', '3 Flow', '4 Strip', '5 Scroll', '6 Thumbnails', '7 Contents and the outline', '8 The minimap', '9 Search', '10 Keeping your place',
+      const titles = ['1 Why pages', '2 One page, two piles', '3 Flow', '4 Strip', '5 Scroll', '6 Thumbnails', '7 Contents', '8 The minimap', '9 Search', '10 Keeping your place',
         '11 Listening', '12 Your own books', '13 The screen', '14 Keys', '15 How it is built', '16 Open questions'];
       assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#desk .toc li')].map(li => `${li.querySelector('.n').textContent} ${li.querySelector('.t').textContent}`)), titles, 'the contents page lists 16 chapters with Strip as 4');
       assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#desk h2[data-n]')].map(h => `${h.dataset.n} ${h.textContent.trim()}`)), titles, 'the pages open the same 16 chapters');
@@ -540,8 +540,8 @@ module.exports = [
     what: 'Listening says where the step buttons are on a phone and on a computer, and on a computer the buttons beside Listen step by sentence and paragraph',
     profile: kit => kit.desktop(),
     async run({ page, assert }) {
-      const text = await page.evaluate(() => document.querySelector('#book').content.querySelector('#fig-listen figcaption').textContent.replace(/\s+/g, ' '));
-      assert(text.includes('On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph.'), `Listening says where the steps are: ${text}`);
+      const text = await page.evaluate(() => document.querySelector('#book').content.querySelector('#listen-stay').textContent.replace(/\s+/g, ' '));
+      assert(text.includes('On a phone, buttons under the top bar do the same.'), `Listening says where the steps are: ${text}`);
       await page.locator('#listenBtn').click();
       await hears(page, assert, 'Pages, Piled.', 'Listen starts at the cover');
       const beside = await page.evaluate(() => [...document.querySelector('#ctlFind').children].filter(b => b.checkVisibility()).map(b => b.id).slice(0, 6));
