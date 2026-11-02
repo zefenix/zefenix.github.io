@@ -516,10 +516,10 @@ a.toc-item { text-decoration: none; }
 .tick.opener::before { height: 15px; }
 .tick.on::before { height: 22px; width: 3px; background: var(--accent); }
 .tick.hit::after { content: ""; position: absolute; top: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--hit-dot); }
-/* As a dial, the place is a knob level with the arrows, and every tick stays as it is */
+/* As a dial, the place is a knob at the foot of its tick, and every tick stays as it is */
 .ticks.dial .tick.on::before { width: 2px; height: 9px; background: var(--line); }
 .ticks.dial .tick.on.opener::before { height: 15px; }
-.ticks.dial .tick.on::after { content: ""; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.ticks.dial .tick.on::after { content: ""; position: absolute; bottom: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 
 .page-box {
   width: 3.4ch; box-sizing: content-box; padding: 5px 6px; text-align: center; font: inherit; font-weight: 600; color: var(--ink);
