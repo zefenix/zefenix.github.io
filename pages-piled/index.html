@@ -4471,6 +4471,7 @@ window.bookReady = (async () => {
   // A place on the pages as a share of the column's text. Paged.js drops the white space between a list's items,
   // so the two count differently; the characters that are not white space line them up.
   function columnShare(b, map, off) {
+    if (!artBlocks[b]) return off / Math.max(1, map.text.length);   // Contents and the like are on the pages alone
     const t = tmap("a", b).text, want = map.text.slice(0, off).replace(/\s/g, "").length;
     let i = 0;
     for (let n = 0; i < t.length && n < want; i++) if (!/\s/.test(t[i])) n++;

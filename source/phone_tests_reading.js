@@ -227,8 +227,9 @@ module.exports = [
       await hears(page, assert, 'Chapter 10. Chapter 10.', 'Listen starts at the heading of part 1\'s last chapter');
       // Chapter 10 is some 120 sentences; each ends when the speech stub says so, until the reader leaves for part 2
       for (let i = 0; i < 400 && !page.url().includes('part=2'); i++) {
-        await page.waitForFunction(() => window.testSpeech.current, null, { timeout: 5000 }).catch(() => {});
-        await page.evaluate(() => window.testSpeech.current && window.testSpeech.finish()).catch(() => {});
+        // the reader may leave for part 2 during the wait: there the first sentence must stand, so nothing finishes it
+        await page.waitForFunction(() => location.search.includes('part=2') || window.testSpeech.current, null, { timeout: 5000 }).catch(() => {});
+        await page.evaluate(() => !location.search.includes('part=2') && window.testSpeech.current && window.testSpeech.finish()).catch(() => {});
       }
       await page.waitForLoadState('load');
       await kit.ready(page);
