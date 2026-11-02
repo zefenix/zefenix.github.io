@@ -167,7 +167,6 @@ kbd { font: 600 10.5px/1 var(--f-ui); padding: 2px 5px; border: 1px solid var(--
   width: 100%; display: grid; grid-template-columns: minmax(22px, auto) 1fr auto; align-items: baseline; gap: 4px 6px;
   padding: 7px 8px; border: 0; border-radius: 6px; background: none; cursor: pointer; text-align: left;
 }
-.app.strip-down .zoom-strip { display: none; }
 .toc-item:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
 .toc-item.k-sel, .toc-outline a.k-sel { box-shadow: inset 0 0 0 2px var(--accent); outline: none; }
 a.toc-item { text-decoration: none; }
@@ -445,6 +444,9 @@ a.toc-item { text-decoration: none; }
 .seg.off { opacity: .35; pointer-events: none; }
 .stat { cursor: pointer; align-self: stretch; display: flex; align-items: center; min-height: 40px; -webkit-tap-highlight-color: transparent; }
 .stat-l { justify-content: flex-end; }
+@media (max-width: 600px), (max-height: 500px) and (pointer: coarse) {
+  .stat-l::before { content: attr(data-ctl); margin-right: auto; padding-right: 6px; font-size: 10px; opacity: .6; }   /* P or D, which way the slider works */
+}
 .stat:hover { color: var(--ink); }
 .f-btn[aria-expanded="true"] { background: var(--surface); color: var(--ink); }
 .nav { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -501,10 +503,10 @@ a.toc-item { text-decoration: none; }
 .app.listening.listen-away .step.listen-back { display: grid !important; }   /* a step keeps its icon centred */
 .step svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-.ticks { width: min(42vw, calc(var(--n, 12) * 14px)); display: flex; align-items: center; height: 30px; }
+.ticks { width: min(42vw, calc(var(--n, 12) * 14px)); display: flex; align-items: flex-end; height: 30px; }
 .tick {
   position: relative; flex: 1 1 0; min-width: 0; height: 100%; border: 0; padding: 0; background: none;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; display: flex; align-items: flex-end; justify-content: center;
 }
 .tick::before { content: ""; width: 2px; height: 9px; border-radius: 1px; background: var(--line); transition: height .25s var(--ease), background-color .25s; }
 .tick.read::before { background: var(--ink-soft); }
@@ -1163,10 +1165,6 @@ a.toc-item { text-decoration: none; }
       <h3>Pages</h3>
       <div class="row"><span>View</span>
         <div class="seg" data-setting="arrange"><button type="button" data-value="pile">Pile</button><button type="button" data-value="flow">Flow</button><button type="button" data-value="strip">Strip</button></div></div>
-      <div class="row"><span>Page control</span>
-        <div class="seg" data-setting="slider"><button type="button" data-value="jump">Slider</button><button type="button" data-value="dial">Dial</button></div></div>
-      <div class="row strip-opt"><span>Strip goes</span>
-        <div class="seg" data-setting="stripDir"><button type="button" data-value="across">Across</button><button type="button" data-value="down">Down</button></div></div>
       <div class="row strip-opt"><label for="stripAt">Strip rests</label><input type="range" id="stripAt" data-setting="stripAt" min="-40" max="40" step="5"><output for="stripAt"></output></div>
       <div class="row"><label for="pagedSpread">Spread</label><input type="range" id="pagedSpread" data-setting="pagedSpread" min="0" max="100" step="1"><output for="pagedSpread"></output></div>
       <div class="row"><label for="shade">Page shading</label><input type="range" id="shade" data-setting="shade" min="0" max="150" step="5"><output for="shade"></output></div>
@@ -1189,8 +1187,10 @@ a.toc-item { text-decoration: none; }
     <section>
       <h3>Scroll</h3>
       <div class="row"><label for="glide">Glide speed</label><input type="range" id="glide" data-setting="glide" min="0.5" max="3" step="0.1"><output for="glide"></output></div>
+      <div class="row"><span>Page control</span>
+        <div class="seg" data-setting="slider"><button type="button" data-value="jump">Slider</button><button type="button" data-value="dial">Dial</button></div></div>
       <div class="row dial-opt"><span>Dial moves</span>
-        <div class="seg" data-setting="dialScroll"><button type="button" data-value="page">By page</button><button type="button" data-value="glide">Glide</button></div></div>
+        <div class="seg" data-setting="dialScroll"><button type="button" data-value="page">Page</button><button type="button" data-value="glide">Glide</button></div></div>
 
     </section>
     <section>
@@ -1428,7 +1428,7 @@ a.toc-item { text-decoration: none; }
   <figcaption>Figure 4. Strip from the front. The pages lie flat in one row, a gap apart, and a step slides the row by one page.</figcaption>
 </figure>
 <p id="strip-history">It is inspired by PaperWM, a window manager for the GNOME desktop that sets windows side by side on an endless strip and scrolls the strip to bring the window you are working in into view, rather than squeezing them all onto one screen. It is not a carousel: nothing turns or loops, and every page keeps its size. Only your view travels along the row.</p>
-<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. Strip goes, also under Options, turns the row into a column, for reading down instead of across. The current page need not sit in the middle: <code>_</code> and <code>+</code> rest it further left or right, or up and down in a column, so the pages on one side get more room, and <code>)</code> brings it back. Strip rests, under Options, does the same, and Page shading lightens the pages beside the current one, down to none, in every view. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
+<p id="strip-tune">Spread, under Options, sets the gap between the pages here: <code>-</code> narrows it until the pages touch, <code>=</code> widens it, and <code>0</code> brings back the default. The current page need not sit in the middle: <code>_</code> and <code>+</code> rest it further left or right, so the pages on one side get more room, and <code>)</code> brings it back. Strip rests, under Options, does the same, and Page shading lightens the pages beside the current one, down to none, in every view. Press <code>v</code> to reach Strip from Flow, and again for Pile.</p>
 
 <h2 id="scroll" data-n="5">Scroll</h2>
 <p id="scroll-why">Pages are not always the best way to read. Many people read a long web page by keeping their line at one height and scrolling the text up to meet their eyes. The eyes barely move; the text comes to them.</p>
@@ -1621,7 +1621,7 @@ a.toc-item { text-decoration: none; }
   <li>The minimap, in chapter 8: the book drawn small. Click or drag along it to move; <code>m</code> hides or shows it.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip. When the bar runs out of room, each group folds into one button that opens it.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. It starts as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. As a plain slider, a tap or a drag goes to the page under it. A swipe down from just above it switches between the two, as does Page control under Options. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. A tap or a drag goes to the page under it. It can also work as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. On a touch screen, a swipe up from just left of it switches between the two, and a small P or D there says which is on; Page control, under Options, does the same. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>
@@ -2366,8 +2366,8 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripDir: "across", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", slider: "dial", dialScroll: "page", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
-  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], stripDir: ["across", "down"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], slider: ["dial", "jump"], dialScroll: ["page", "glide"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", slider: "jump", dialScroll: "page", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], slider: ["jump", "dial"], dialScroll: ["page", "glide"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
     pocket: { w: 108, h: 175, label: "Pocket · 108 × 175 mm" },
@@ -2402,6 +2402,7 @@ window.bookReady = (async () => {
     s.mapMarkOp = Number.isFinite(Number(s.mapMarkOp)) ? clamp(Math.round(Number(s.mapMarkOp)), 5, 100) : DEFAULTS.mapMarkOp;
     s.textSize = Number.isFinite(Number(s.textSize)) ? clamp(Math.round(Number(s.textSize) / 5) * 5, 80, 150) : DEFAULTS.textSize;
     for (const [k, list] of Object.entries(CHOICES)) if (!list.includes(s[k])) s[k] = DEFAULTS[k];
+    delete s.stripDir;   // Strip's column; the scrolled pages do that now
     delete s.listenStay;   // the old Follow-first switch; Stay is the default now
     for (const k of ["facing", "pagedSpread", "mapMark", "toc", "map", "swap", "shadows", "pct", "expand"]) s[k] = Number(s[k]) || 0;
     s.stripAt = clamp(Math.round(Number(s.stripAt) / 5) * 5 || 0, -40, 40);
@@ -2919,15 +2920,15 @@ window.bookReady = (async () => {
     if (desk.classList.contains("linear")) { desk.classList.remove("linear"); desk.scrollTop = 0; }
     if (instant) desk.classList.add("no-anim");
     const narrow = r.width < 700, facing = !!S.facing;
-    // Strip: pages lie flat in a row (across) or a column (down), and a step slides it a page or a spread.
-    const strip = S.arrange === "strip", down = strip && S.stripDir === "down";
+    // Strip: pages lie flat in a row, and a step slides it a page or a spread.
+    const strip = S.arrange === "strip";
     // where Strip rests its current page: the middle, or off to one side by a share of the desk (_ + and ), or Options)
-    const restX = strip && !down ? (S.stripAt / 100) * r.width : 0, restY = down ? (S.stripAt / 100) * r.height : 0;
+    const restX = strip ? (S.stripAt / 100) * r.width : 0;
     const fitW = facing ? (r.width * (narrow ? 0.96 : strip ? 0.7 : 0.82)) / (2 * W) : (r.width * (narrow ? 0.8 : 0.56)) / W;
     // Expanded, the page (or spread) is as large as the desk allows: its full height, or its full width if that runs out first.
     const s = S.expand
       ? Math.min((r.height - 12) / H, (r.width - 12) / ((facing ? 2 : 1) * W), 3)
-      : Math.min(down ? (r.height * 0.8) / H : (r.height - (narrow ? 44 : 88)) / H, fitW, 1.7);
+      : Math.min((r.height - (narrow ? 44 : 88)) / H, fitW, 1.7);
     $("stage").style.setProperty("--strip", Math.max(S.expand ? 0 : 16, (r.height - H * s) / 2 - 6) + "px");
     const pw = W * s, sp = 0.4 + 2 * S.pagedSpread / 100, half = facing ? pw / 2 : 0;
     const center = centerPages(), first = center[0], last = center[center.length - 1];
@@ -2948,11 +2949,11 @@ window.bookReady = (async () => {
 
     const unitOf = i => (facing ? Math.floor((i + 1) / 2) : i);
     // Strip's gap between pages follows Spread: as it is at the default, and down to none, the pages touching, at 0
-    const gs = S.pagedSpread / DEFAULTS.pagedSpread, gapX = Math.max(24, pw * 0.08) * gs, gapY = Math.max(24, H * s * 0.05) * gs;
+    const gs = S.pagedSpread / DEFAULTS.pagedSpread, gapX = Math.max(24, pw * 0.08) * gs;
     const vs = pages.map((p, i) => {
       if (strip) {
         const d = unitOf(i) - unitOf(first), ad = Math.abs(d);
-        return { x: restX + baseOf(i) + (down ? 0 : d * ((facing ? 2 : 1) * pw + gapX)), y: restY + (down ? d * (H * s + gapY) : 0), z: 0, ry: 0, rz: 0, f: 1,
+        return { x: restX + baseOf(i) + d * ((facing ? 2 : 1) * pw + gapX), y: 0, z: 0, ry: 0, rz: 0, f: 1,
           dim: ad ? Math.min(0.1 + 0.04 * ad, 0.3) : 0, k: ad, kk: Math.min(ad, VISIBLE + 1), far: ad > 3 };
       }
       let side = 0, k = 0, base = 0;
@@ -3351,7 +3352,7 @@ window.bookReady = (async () => {
     if (gridOpen) { gridTo(i); return; }
     goUnit(i, S.view === "scroll");
   }
-  // The slider as a dial (the default, Page slider in Options, or a swipe down from just above it): a drag turns pages
+  // The slider as a dial (Page control in Options, or a swipe up from left of it): a drag turns pages
   // from where you are, a page for each DIAL_STEP pixels, as an iPod's wheel does, and a tap goes nowhere; in the scroll
   // views it can glide with the drag instead (Dial moves). As a slider (Jump), a tap or drag goes to the page under it.
   const dialMode = () => S.slider === "dial";
@@ -3437,9 +3438,9 @@ window.bookReady = (async () => {
     $("expandBtn").setAttribute("aria-pressed", String(!!S.expand));
     $("arrangeSeg").classList.toggle("off", S.view === "scroll");
     ticksEl.classList.toggle("dial", S.slider === "dial");
+    statL.dataset.ctl = S.slider === "dial" ? "D" : "P";
     document.querySelectorAll(".dial-opt").forEach(row => { row.hidden = S.slider !== "dial"; });
     document.querySelectorAll(".strip-opt").forEach(row => { row.hidden = S.arrange !== "strip"; });
-    app.classList.toggle("strip-down", S.view === "paged" && S.arrange === "strip" && S.stripDir === "down");
     $("arrangeSeg").setAttribute("aria-disabled", String(S.view === "scroll"));
     // each panel's control sits above its panel
     const topL = $("topL"), topR = $("topR");
@@ -3504,7 +3505,7 @@ window.bookReady = (async () => {
     saveSettings();
     applySettings();
     if (!ready) return;
-    if (key === "pagedSpread" || key === "arrange" || key === "stripDir" || key === "stripAt" || key === "shade") return layoutPages(false);
+    if (key === "pagedSpread" || key === "arrange" || key === "stripAt" || key === "shade") return layoutPages(false);
     if (key === "listenCode") { allSentences = null; return; }   // Listen's queue is built again, with or without the code
     if (key === "highlighter") { applyHighlighter(); return; }
     if (key === "listenMode" || key === "mapMark" || key === "mapMarkOp" || key === "shadows" || key === "glide" || key === "theme" || key === "palette") return;
@@ -3579,7 +3580,7 @@ window.bookReady = (async () => {
   document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector(".dpick.open")) { openPick(null); e.stopImmediatePropagation(); } }, true);
 
   const coerce = (key, v) => (typeof DEFAULTS[key] === "number" ? Number(v) : v);
-  function stripAtText(v) { return v ? `${Math.abs(v)}% ${S.stripDir === "down" ? (v < 0 ? "up" : "down") : (v < 0 ? "left" : "right")}` : "in the middle"; }
+  function stripAtText(v) { return v ? `${Math.abs(v)}% ${v < 0 ? "left" : "right"}` : "in the middle"; }
   document.querySelectorAll(".seg[data-setting]").forEach(seg => {
     seg.addEventListener("click", e => {
       const b = e.target.closest("button[data-value]");
@@ -3781,7 +3782,7 @@ window.bookReady = (async () => {
   optsBtn.addEventListener("click", () => setOptions(opts.hidden));
   // Left of the slider: a peek at Contents; again puts the peek away.
   statL.addEventListener("click", () => {
-    if (!ready || !booksEl.hidden) return;
+    if (!ready || !booksEl.hidden || upSwiped()) return;
     if (peekSide === "toc") endPeek();
     else if (tocPanel.hidden) peek("toc");
   });
@@ -4796,11 +4797,12 @@ window.bookReady = (async () => {
   });
   // On a phone, a swipe down on the bottom bar tucks the menus and a swipe up brings them back, for one thumb.
   // The slider's own track is left out, so dragging it only ever scrubs. Right of the slider, out of Zen, a swipe up opens the Library.
+  // Left of it, in Zen or not, a swipe up switches the slider between plain and dial.
   // And a swipe up on the top bar tucks them too, a swipe toward the edge each bar sits on.
   let barSwipe = null;
   [dock, top].forEach(bar => {
     bar.addEventListener("pointerdown", e => {
-      barSwipe = phoneMQ.matches && e.isPrimary && !e.target.closest("#ticks") ? { x: e.clientX, y: e.clientY, id: e.pointerId, bar, stat: !!e.target.closest("#statR") } : null;
+      barSwipe = phoneMQ.matches && e.isPrimary && !e.target.closest("#ticks") ? { x: e.clientX, y: e.clientY, id: e.pointerId, bar, stat: !!e.target.closest("#statR"), left: !!e.target.closest("#statL") } : null;
     });
     bar.addEventListener("pointercancel", () => { barSwipe = null; });
   });
@@ -4810,6 +4812,13 @@ window.bookReady = (async () => {
     if (!b || e.pointerId !== b.id) return;
     const dx = e.clientX - b.x, dy = e.clientY - b.y;
     if (Math.abs(dy) < 28 || Math.abs(dy) < 1.5 * Math.abs(dx)) return;
+    if (b.bar === dock && dy < 0 && b.left) {
+      upSwipeAt = performance.now();
+      if (!ready) return;
+      setSetting("slider", dialMode() ? "jump" : "dial");
+      toast(dialMode() ? "Page control: dial. Drag along it to turn pages." : "Page control: slider. Tap or drag to go to a page.", 1800);
+      return;
+    }
     // Right of the slider a swipe up works in two steps: out of Zen first, then into the Library.
     if (b.bar === dock && dy < 0 && b.stat && !app.classList.contains("tucked")) {
       upSwipeAt = performance.now();
@@ -4817,27 +4826,6 @@ window.bookReady = (async () => {
     } else if (b.bar === dock) setTucked(dy > 0);
     else if (dy < 0) setTucked(true);
   });
-  // A swipe down that starts just above the slider, in any view and in Zen, switches it between dial and jump.
-  // It is read before the page's own swipes, which would otherwise turn a page back.
-  let dialSwipe = null;
-  document.addEventListener("pointerdown", e => {
-    dialSwipe = null;
-    if (e.pointerType === "mouse" || !e.isPrimary || !ready || !booksEl.hidden) return;
-    const t = ticksEl.getBoundingClientRect();
-    if (!t.width || e.clientX < t.left - 24 || e.clientX > t.right + 24 || e.clientY < t.top - 64 || e.clientY > t.top - 2) return;
-    dialSwipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
-  }, true);
-  document.addEventListener("pointerup", e => {
-    const d = dialSwipe;
-    dialSwipe = null;
-    if (!d || e.pointerId !== d.id) return;
-    const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (dy < 24 || dy < 1.5 * Math.abs(dx)) return;
-    e.stopPropagation();
-    setSetting("slider", dialMode() ? "jump" : "dial");
-    toast(dialMode() ? "Page control: dial. Drag along it to turn pages." : "Page control: slider. Tap or drag to go to a page.", 1800);
-  }, true);
-  document.addEventListener("pointercancel", () => { dialSwipe = null; }, true);
   window.addEventListener("pagehide", () => { if (synth) synth.cancel(); });
 
   /* ---------- input ---------- */
@@ -5070,7 +5058,7 @@ window.bookReady = (async () => {
   function switchView() {
     if (S.view === "scroll") setSetting("scrollStyle", S.scrollStyle === "pages" ? "text" : "pages");
     else setSetting("arrange", { pile: "flow", flow: "strip", strip: "pile" }[S.arrange] || "flow");
-    toast(S.view === "scroll" ? (S.scrollStyle === "pages" ? "Scroll: pages" : "Scroll: text") : { flow: "Flow view", pile: "Pile view", strip: S.stripDir === "down" ? "Strip view, down" : "Strip view, across" }[S.arrange], 1200);
+    toast(S.view === "scroll" ? (S.scrollStyle === "pages" ? "Scroll: pages" : "Scroll: text") : { flow: "Flow view", pile: "Pile view", strip: "Strip view" }[S.arrange], 1200);
   }
   // gn goes to the next chapter; gp to the start of this one, or from there to the one before. In a book in parts,
   // a chapter in another part opens that part at it.
@@ -5189,7 +5177,7 @@ window.bookReady = (async () => {
       else { skipSentence(k === "]" ? 1 : -1); pageKey = { key: k, at: now }; }
       return;
     }
-    // _ and + move where Strip rests its page, a step to the left or up and to the right or down; ) brings it back to the middle
+    // _ and + move where Strip rests its page, a step to the left and to the right; ) brings it back to the middle
     if (k === "_" || k === "+" || k === ")") {
       e.preventDefault();
       if (S.view !== "paged" || S.arrange !== "strip") { toast("_ + and ) move the page in Strip", 1400); return; }

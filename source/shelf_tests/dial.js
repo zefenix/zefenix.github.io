@@ -1,6 +1,6 @@
-// The page slider as a dial, the default: a drag turns pages from where you are, a tap goes nowhere; a swipe down from
-// just above it switches to jump and back, in Zen too; Options' Page control does the same. It sits level with its
-// arrows, with nothing drawn over the ticks, and in the scroll views it turns by page or, by Dial moves, glides.
+// The page slider, plain by default, and as a dial: a drag turns pages from where you are and a tap goes nowhere. A swipe
+// up from left of it switches between them, in Zen too, with P or D there; Options' Page control does the same. Nothing
+// lies over the ticks, and in the scroll views the dial turns by page or, by Dial moves, glides.
 const path = require('path'), fs = require('fs');
 const { site, engine, launch, route, loaded } = require('./common');
 let fails = 0;
@@ -29,10 +29,18 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     }, [x, y, dx, dy, steps]);
     await p.waitForTimeout(700);
   };
-  const st = () => p.evaluate(() => ({ dial: document.getElementById('ticks').classList.contains('dial'), page: +document.getElementById('pageNum').value, toast: document.getElementById('toast').textContent, tucked: document.querySelector('.app').classList.contains('tucked'), lib: !document.getElementById('books').hidden }));
+  const st = () => p.evaluate(() => ({ mark: getComputedStyle(document.getElementById('statL'), '::before').content, tocHidden: document.getElementById('tocPanel').hidden, dial: document.getElementById('ticks').classList.contains('dial'), page: +document.getElementById('pageNum').value, toast: document.getElementById('toast').textContent, tucked: document.querySelector('.app').classList.contains('tucked'), lib: !document.getElementById('books').hidden }));
   const tk = () => p.evaluate(() => { const r = document.getElementById('ticks').getBoundingClientRect(); return { x: r.left, y: r.top + r.height / 2, w: r.width, top: r.top }; });
   let s = await st(), t = await tk();
-  ok('the slider starts as a dial', s.dial, s);
+  ok('the slider starts plain, marked P', !s.dial && s.mark === '"P"', s);
+  const left = () => p.evaluate(() => { const r = document.getElementById('statL').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  const flip = async () => { const l = await left(); await drag(l.x, l.y, 0, -60, 6); return st(); };
+  const p00 = s.page;
+  await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); s = await st();
+  ok('a swipe down from just above the slider no longer switches it', !s.dial, s);
+  await p.evaluate(p => { const i = document.getElementById('pageNum'); i.value = p; i.dispatchEvent(new Event('change', { bubbles: true })); }, p00); await p.waitForTimeout(600);
+  s = await flip();
+  ok('a swipe up from left of the slider makes it a dial, marked D, and no panel opens', s.dial && s.mark === '"D"' && /dial/.test(s.toast) && s.tocHidden, s);
   const p0 = s.page;
   await drag(t.x + 40, t.y, 90, 0); s = await st();
   ok('a drag of 90 px turns 5 pages from where you are', s.page === p0 + 5, { p0, s });
@@ -40,17 +48,16 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   ok('a drag back of 36 px turns 2 back, wherever it starts on the slider', s.page === p0 + 3, { p0, s });
   // Playwright's tap sends a touch, and so pointer events, in every engine, so the taps are tried in all three
   { await p.touchscreen.tap(t.x + t.w * 0.9, t.y); await p.waitForTimeout(600); s = await st(); ok('a tap on the dial goes nowhere', s.page === p0 + 3, s); }
-  // switch to jump by a swipe down from just above it
-  await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); s = await st();
-  ok('a swipe down from just above the slider makes it a slider, and turns no page', !s.dial && s.page === p0 + 3 && /slider/.test(s.toast), s);
+  s = await flip();
+  ok('the same swipe makes it a slider, and turns no page', !s.dial && s.page === p0 + 3 && /slider/.test(s.toast), s);
   { await p.touchscreen.tap(t.x + 2, t.y); await p.waitForTimeout(700); s = await st(); ok('as a slider, a tap goes to the page under it', s.page <= 2, s); }
-  await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); s = await st();
+  s = await flip();
   ok('the same swipe makes it a dial again', s.dial && /dial/.test(s.toast), s);
   // in Zen
   const nx = await p.evaluate(() => { const r = document.getElementById('next').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   await drag(nx.x, nx.y, 0, 80, 6); s = await st();
-  if (s.tucked) { t = await tk(); await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); s = await st(); ok('in Zen, the swipe down switches it too, and Zen stays', !s.dial && s.tucked, s); await drag(t.x + t.w / 2, t.top - 30, 0, 60, 6); }
-  else ok('in Zen, the swipe down switches it too, and Zen stays (Zen did not start)', false, s);
+  if (s.tucked) { s = await flip(); ok('in Zen, the swipe up switches it too, and Zen stays', !s.dial && s.tucked, s); }
+  else ok('in Zen, the swipe up switches it too, and Zen stays (Zen did not start)', false, s);
   await ctx.close();
   // a computer: the mouse drags the dial, 12 px a page; Options sets Jump
   const c2 = await b.newContext({ viewport: { width: 1280, height: 860 } }); await route(c2);
@@ -59,21 +66,22 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   await loaded(q); await q.waitForTimeout(600);
   const T = await q.evaluate(() => { const r = document.getElementById('ticks').getBoundingClientRect(); return { x: r.left, y: r.top + r.height / 2, w: r.width }; });
   const pg = () => q.evaluate(() => +document.getElementById('pageNum').value);
+  await q.evaluate(() => document.querySelector('[data-setting="slider"] [data-value="dial"]').click()); await q.waitForTimeout(300);
   const m0 = await pg();
   await q.mouse.move(T.x + 30, T.y); await q.mouse.down(); for (let i = 1; i <= 6; i++) { await q.mouse.move(T.x + 30 + 8 * i, T.y); await q.waitForTimeout(30); } await q.mouse.up(); await q.waitForTimeout(700);
   ok('with a mouse, 48 px turns 4 pages', (await pg()) === m0 + 4, { m0, now: await pg() });
   await q.evaluate(() => document.querySelector('[data-setting="slider"] [data-value="jump"]').click()); await q.waitForTimeout(300);
   await q.mouse.click(T.x + 3, T.y); await q.waitForTimeout(700);
   ok('Options, Page control, Slider: a click goes to the page under it', (await pg()) <= 2, await pg());
-  // the look: the ticks sit level with the arrows, and nothing lies over them
+  // the look: the ticks stand on the slider's foot, and nothing lies over them
   const look = await q.evaluate(() => {
-    const mid = el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; };
     document.querySelector('[data-setting="slider"] [data-value="dial"]').click();
-    const t = document.getElementById('ticks'), a = getComputedStyle(t, '::after');
-    return { arrow: mid(document.getElementById('next')), track: mid(t), align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage };
+    const a = getComputedStyle(document.getElementById('ticks'), '::after');
+    return { align: getComputedStyle(document.querySelector('.tick')).alignItems, cover: a.content, image: a.backgroundImage, stripGoes: !!document.querySelector('[data-setting="stripDir"]') };
   });
-  ok('the slider sits level with its arrows, its ticks centred', Math.abs(look.arrow - look.track) <= 1 && look.align === 'center', look);
+  ok('the ticks stand on the slider\'s foot', look.align === 'flex-end', look);
   ok('nothing is drawn over the ticks', look.cover === 'none' && look.image === 'none', look);
+  ok('Strip goes is gone from Options', !look.stripGoes, look);
   // the scroll views: by page, or a glide with the drag
   const dragMouse = async () => { await q.mouse.move(T.x + 30, T.y); await q.mouse.down(); for (let i = 1; i <= 6; i++) { await q.mouse.move(T.x + 30 + 8 * i, T.y); await q.waitForTimeout(30); } await q.mouse.up(); await q.waitForTimeout(700); };
   const set = (k, v) => q.evaluate(([k, v]) => document.querySelector(`[data-setting="${k}"] [data-value="${v}"]`).click(), [k, v]);
