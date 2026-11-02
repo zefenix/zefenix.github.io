@@ -53,13 +53,13 @@ A test marked `fault` shows a reader fault. It is expected to fail on the new bu
 
 ## How long a full run takes
 
-These times were measured on build d89c52f, on a 12-core machine shared with other work, at the load averages shown:
+These times were measured on one build, one script after another, on a 12-core machine shared with other work:
 
 | Command | Time | Load |
 | --- | --- | --- |
-| `check_phone.js BUILD --baseline=RELEASED` | about 42 minutes (2531 s) | 31 to 40, beside `check_lists.js` |
-| `check_lists.js BUILD --browsers=chromium,firefox` | about 1 hour 54 minutes (6833 s) | 31 to 40, beside `check_phone.js` for 42 minutes |
-| `check_layout.js BUILD` | about 32 minutes (1937 s), the three engines side by side: Chromium 1933 s, WebKit 1619 s, Firefox 915 s | not recorded, beside `check_lists.js` |
-| `check_shelf.js BUILD` | about 40 minutes (2396 s) | 20 to 25, alone |
+| `check_phone.js BUILD --baseline=RELEASED --jobs=3` | about 7 minutes (433 s) | 7 to 9 |
+| `check_lists.js BUILD --browsers=chromium,firefox` | about 19 minutes (1165 s) | 3 to 4 |
+| `check_layout.js BUILD --jobs=3` | about 14 minutes (866 s) | 7 to 8 |
+| `check_shelf.js BUILD --jobs=2` | about 12 minutes (749 s) | 4 to 6 |
 
-The times grow with the load: two suites at once, or other work on the machine, can double them. At these loads each full `check_shelf.js` run so far has failed one or two tests on timing, a different one each time and mostly in WebKit (hideshelf, readouts, searchkeys, trace, findmore), and each passed when run again with `--only`. Outputs go to `.evidence/` unless `--evidence=` names another folder.
+The times grow with the load: at loads of 20 to 40, with suites side by side, the same scripts took 40 minutes to nearly two hours, and timing-sensitive tests failed, mostly in WebKit. Run them one at a time. Outputs go to `.evidence/` unless `--evidence=` names another folder.
