@@ -507,12 +507,11 @@ a.toc-item { text-decoration: none; }
 }
 .tick::before { content: ""; width: 2px; height: 9px; border-radius: 1px; background: var(--line); transition: height .25s var(--ease), background-color .25s; }
 .tick.opener::before { height: 15px; }
-.tick.on::before { height: 22px; width: 3px; background: var(--accent); }
+.tick.on::before { background: var(--accent); }
 .tick.hit::after { content: ""; position: absolute; top: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--hit-dot); }
-/* As a dial, the place is a knob at the foot of its tick, and every tick stays as it is */
-.ticks.dial .tick.on::before { width: 2px; height: 9px; background: var(--line); }
-.ticks.dial .tick.on.opener::before { height: 15px; }
-.ticks.dial .tick.on::after { content: ""; position: absolute; bottom: 0; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+/* As a dial, the place is a quieter tick with a knob at its foot */
+.ticks.dial .tick.on::before, .ticks.dial .tick.on::after { background: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.ticks.dial .tick.on::after { content: ""; position: absolute; bottom: 0; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; }
 
 .page-box {
   width: 3.4ch; box-sizing: content-box; padding: 5px 6px; text-align: center; font: inherit; font-weight: 600; color: var(--ink);
@@ -1620,7 +1619,7 @@ a.toc-item { text-decoration: none; }
   <li>The minimap, in chapter 8: the book drawn small. Click or drag along it to move; <code>m</code> hides or shows it.</li>
   <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
   <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip. When the bar runs out of room, each group folds into one button that opens it.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. A tap or a drag goes to the page under it. It can also work as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. On a touch screen, a swipe up from just left of it switches between the two, as does Page control under Options; as a dial, your place shows as a round knob instead of a bar. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. A tap or a drag goes to the page under it. It can also work as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. On a touch screen, a swipe up from just left of it switches between the two, as does Page control under Options; as a dial, your place shows in a quieter colour, with a small round knob at its foot. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
   <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
   <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
 </ol>

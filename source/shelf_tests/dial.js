@@ -29,10 +29,11 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
     }, [x, y, dx, dy, steps]);
     await p.waitForTimeout(700);
   };
-  const st = () => p.evaluate(() => ({ mark: (o => getComputedStyle(o, '::after').content !== 'none' ? 'knob' : 'bar')(document.querySelector('.tick.on')), bar: parseFloat(getComputedStyle(document.querySelector('.tick.on'), '::before').height), tocHidden: document.getElementById('tocPanel').hidden, dial: document.getElementById('ticks').classList.contains('dial'), page: +document.getElementById('pageNum').value, toast: document.getElementById('toast').textContent, tucked: document.querySelector('.app').classList.contains('tucked'), lib: !document.getElementById('books').hidden }));
+  const st = () => p.evaluate(() => ({ mark: (o => getComputedStyle(o, '::after').content !== 'none' ? 'knob' : 'bar')(document.querySelector('.tick.on')), bar: parseFloat(getComputedStyle(document.querySelector('.tick.on'), '::before').height), barColour: getComputedStyle(document.querySelector('.tick.on'), '::before').backgroundColor, knobColour: getComputedStyle(document.querySelector('.tick.on'), '::after').backgroundColor, tickColour: getComputedStyle(document.querySelector('.tick:not(.on)'), '::before').backgroundColor, tocHidden: document.getElementById('tocPanel').hidden, dial: document.getElementById('ticks').classList.contains('dial'), page: +document.getElementById('pageNum').value, toast: document.getElementById('toast').textContent, tucked: document.querySelector('.app').classList.contains('tucked'), lib: !document.getElementById('books').hidden }));
   const tk = () => p.evaluate(() => { const r = document.getElementById('ticks').getBoundingClientRect(); return { x: r.left, y: r.top + r.height / 2, w: r.width, top: r.top }; });
   let s = await st(), t = await tk();
-  ok('the slider starts plain, its place a bar', !s.dial && s.mark === 'bar' && s.bar === 22, s);
+  ok('the slider starts plain, its place a tick of the usual height in the active colour', !s.dial && s.mark === 'bar' && (s.bar === 9 || s.bar === 15) && s.barColour !== s.tickColour, s);
+  const active = s.barColour;
   const left = () => p.evaluate(() => { const r = document.getElementById('statL').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   const flip = async () => { const l = await left(); await drag(l.x, l.y, 0, -60, 6); return st(); };
   const p00 = s.page;
@@ -40,7 +41,7 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   ok('a swipe down from just above the slider no longer switches it', !s.dial, s);
   await p.evaluate(p => { const i = document.getElementById('pageNum'); i.value = p; i.dispatchEvent(new Event('change', { bubbles: true })); }, p00); await p.waitForTimeout(600);
   s = await flip();
-  ok('a swipe up from left of the slider makes it a dial, its place a knob over a bar of the usual height, and no panel opens', s.dial && s.mark === 'knob' && (s.bar === 9 || s.bar === 15) && /dial/.test(s.toast) && s.tocHidden, s);
+  ok('a swipe up from left of the slider makes it a dial, its place a quieter tick of the usual height with a knob of that colour, and no panel opens', s.dial && s.mark === 'knob' && (s.bar === 9 || s.bar === 15) && s.barColour !== active && s.barColour !== s.tickColour && s.barColour === s.knobColour && /dial/.test(s.toast) && s.tocHidden, s);
   const p0 = s.page;
   await drag(t.x + 40, t.y, 90, 0); s = await st();
   ok('a drag of 90 px turns 5 pages from where you are', s.page === p0 + 5, { p0, s });
