@@ -41,7 +41,7 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   ok('a swipe down from just above the slider no longer switches it', !s.dial, s);
   await p.evaluate(p => { const i = document.getElementById('pageNum'); i.value = p; i.dispatchEvent(new Event('change', { bubbles: true })); }, p00); await p.waitForTimeout(600);
   s = await flip();
-  ok('a swipe up from left of the slider makes it a dial, its place a quieter tick of the usual height with a knob of that colour, and no panel opens', s.dial && s.mark === 'knob' && (s.bar === 9 || s.bar === 15) && s.barColour !== active && s.barColour !== s.tickColour && s.barColour === s.knobColour && /dial/.test(s.toast) && s.tocHidden, s);
+  ok('a swipe up from left of the slider makes it a dial, its place a plain tick with a knob of a quieter colour at its foot, and no panel opens', s.dial && s.mark === 'knob' && (s.bar === 9 || s.bar === 15) && s.barColour === s.tickColour && s.knobColour !== active && s.knobColour !== s.tickColour && /dial/.test(s.toast) && s.tocHidden, s);
   const p0 = s.page;
   await drag(t.x + 40, t.y, 90, 0); s = await st();
   ok('a drag of 90 px turns 5 pages from where you are', s.page === p0 + 5, { p0, s });
