@@ -1,4 +1,6 @@
 // The phone's bars, Options, Zen, the slider's sides, peeks, swipes and the minimap by touch.
+// The released build, e8eef4e, already has this round's phone features, so a test it passes guards against their loss.
+const RELEASED = 'e8eef4e already has it';
 const tapOn = async (page, touch, selector) => {
   const r = await page.locator(selector).first().evaluate(el => { const b = el.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; });
   await touch.tap(r.x, r.y);
@@ -15,7 +17,7 @@ const lastSaid = async (page, assert, count) => {
 };
 const startListen = async (page, touch, assert) => {
   await tapOn(page, touch, '#listenBtn');
-  assert.equal(await lastSaid(page, assert, 1), 'A paged-reading prototype', 'Listen starts at the cover');
+  assert.equal(await lastSaid(page, assert, 1), 'Pages, Piled.', 'Listen starts at the cover');
 };
 // The kit's swipe waits on the page between moves, which a loaded machine stretches past the 100 ms the
 // minimap reads a flick's speed over; this one paces the moves by the clock and does not wait for each.
@@ -75,24 +77,25 @@ module.exports = [
   {
     id: 'top-bar-groups', engines: ['chromium', 'firefox', 'webkit'],
     commit: '417e681 6ada616',
-    what: 'at 390 wide the top bar is one row: the contents controls and All pages left, Search, Listen, Full screen, Theme and Minimap right',
+    what: 'at 390 wide the top bar is one row: the contents panel, Library, All pages and Zen left, Search, Listen, Full screen, Theme and Minimap right',
     async run({ page, assert }) {
       const buttons = await visibleButtons(page, '#top button');
       const left = buttons.filter(b => b.x < 195).map(b => b.name), right = buttons.filter(b => b.x >= 195).map(b => b.name);
-      assert.deepEqual(left, ['Show contents panel', 'Contents', 'Topics', 'All pages'], 'the left group holds the contents panel controls and All pages');
+      assert.deepEqual(left, ['Show contents panel', 'Library', 'All pages', 'Zen'], 'the left group holds the contents panel, Library, All pages and Zen');
       // WebKit, like Safari on an iPhone, has no element full screen, so the reader leaves that button out
       const fullScreen = await page.evaluate(() => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled));
       assert.deepEqual(right, ['Search', 'Listen', ...(fullScreen ? ['Full screen'] : []), 'Theme is Auto. Switch to Light.', 'Minimap'], 'Search, Listen, Full screen where the browser has it, and Theme sit right, beside the Minimap toggle');
-      assert.deepEqual([...new Set(buttons.map(b => Math.round(b.cy)))], [25], 'every top control sits on one row');
+      assert.deepEqual([...new Set(buttons.map(b => Math.round(b.cy)))], [23], 'every top control sits on one row');
       assert.equal(buttons[0].x, 16, 'the left group starts at the left gutter');
       assert.equal(buttons[buttons.length - 1].right, 374, 'the right group ends at the right gutter');
       const gaps = buttons.slice(1).map((b, i) => Math.round(b.x - buttons[i].right));
       assert.equal(gaps.filter(g => g > 8).length, 1, `one wide gap splits the groups, gaps ${gaps}`);
-      assert(gaps[3] > 40, `the gap falls between All pages and Search, gaps ${gaps}`);
+      assert(gaps[3] > 40, `the gap falls between Zen and Search, gaps ${gaps}`);
     },
   },
   {
     id: 'options-tabs',
+    baselineMayPass: RELEASED,
     commit: '417e681 26bdcb5 d1f9a22 9478c87',
     what: 'Options on a phone has tabs All, Look & Pages, Listen & Scroll, Panels at its foot; each tab shows exactly its sections',
     async run({ page, assert, touch }) {
@@ -115,6 +118,7 @@ module.exports = [
   },
   {
     id: 'options-tabs-stay-in-view',
+    baselineMayPass: RELEASED,
     commit: 'd1f9a22',
     what: 'scrolling the long All tab by finger leaves the tab strip in view at the foot of Options',
     async run({ page, assert, touch }) {
@@ -133,6 +137,7 @@ module.exports = [
   },
   {
     id: 'options-tab-kept',
+    baselineMayPass: RELEASED,
     commit: '9478c87',
     what: 'the tab last chosen is the one Options opens on, after closing it and after a reload',
     async run({ page, assert, touch, kit }) {
@@ -153,11 +158,15 @@ module.exports = [
   },
   {
     id: 'listen-row',
+    baselineMayPass: RELEASED,
     commit: '417e681 41ca6e5 9bd421e',
     what: 'Listen adds a row under the top bar with five steps, each acting on the speech, and Stop ends Listen',
     async run({ page, assert, touch }) {
       const stageTop = (await page.locator('#stage').boundingBox()).y;
-      await startListen(page, touch, assert);
+      await tapOn(page, touch, '#next');
+      await tapOn(page, touch, '#next');
+      await tapOn(page, touch, '#listenBtn');
+      assert.equal(await lastSaid(page, assert, 1), 'Chapter 1. Why pages.', 'Listen starts at the chapter heading on page 3');
       await exists(page, assert, '#tray .tray-listen', 'the top bar has a row for Listen');
       const steps = await visibleButtons(page, '.tray-listen button');
       assert.deepEqual(steps.map(b => b.name), ['Previous paragraph', 'Previous sentence', 'Stop listening', 'Next sentence', 'Next paragraph'], 'the Listen row holds its five steps in order');
@@ -165,7 +174,9 @@ module.exports = [
       assert.equal(new Set(steps.map(b => Math.round(b.cy))).size, 1, 'the steps sit on one row');
       assert(steps[0].y >= listenBtn.y + listenBtn.height, 'the row lies under the top bar\'s controls');
       assert((await page.locator('#stage').boundingBox()).y >= steps[0].bottom && stageTop < steps[0].bottom, 'the page area moves down to make room for the row');
-      const expect = [['#rowSentNext', 'Pages,Piled'], ['#rowSentNext', 'A reader that keeps what you are reading in the middle of the screen.'], ['#rowSentPrev', 'Pages,Piled'], ['#rowParaNext', 'Chapter 1. Why pages.'], ['#rowParaPrev', 'A paged-reading prototype']];
+      const place = 'A scrolling page has no bottom you can feel, and its text never stays still long enough to become a place.';
+      const edges = 'Pages also give reading edges: somewhere to stop, a sense of how much is left, and a number that means the same words to everyone. paged.js brings real pages to ordinary HTML in the browser; this reader is about showing them on a screen.';
+      const expect = [['#rowSentNext', place], ['#rowSentNext', 'A page does.'], ['#rowSentPrev', place], ['#rowParaNext', edges], ['#rowParaPrev', place]];
       for (const [i, [id, text]] of expect.entries()) {
         await tapOn(page, touch, id);
         assert.equal(await lastSaid(page, assert, i + 2), text, `${id} speaks the right sentence`);
@@ -177,6 +188,7 @@ module.exports = [
   },
   {
     id: 'listen-search-row',
+    baselineMayPass: RELEASED,
     commit: '689272a a8e4e6c',
     what: 'the search chip shares the Listen row: either alone sits centred, both together split, chip left and steps right',
     async run({ page, assert, touch }) {
@@ -209,6 +221,7 @@ module.exports = [
   },
   {
     id: 'zen-z', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: '01b28a3',
     what: 'z hides the menus and keeps the page slider; z again brings them back',
     async run({ page, assert }) {
@@ -222,6 +235,7 @@ module.exports = [
   },
   {
     id: 'zen-strip',
+    baselineMayPass: RELEASED,
     commit: '41ca6e5 9bd421e',
     what: 'a tap on the strip at the top of the page tucks the menus and leaves a faint handle; a tap again brings them back',
     async run({ page, assert, touch }) {
@@ -242,6 +256,7 @@ module.exports = [
   {
     id: 'zen-swipes',
     commit: '5bb2988 6ad2255',
+    settings: { slider: 'jump' },   // the slider as it was, so a drag goes to the page under the finger
     what: 'a swipe down on the bottom bar tucks, up brings back, a swipe up on the top bar tucks, a drag on the slider only scrubs',
     async run({ page, assert, touch }) {
       const views = await page.locator('.dock-ctl').boundingBox(), tools = await page.locator('.dock-tools').boundingBox();
@@ -252,14 +267,15 @@ module.exports = [
       await touch.swipe([12, dock.y + dock.height / 2], [12, dock.y - 40]);
       assert.deepEqual(await menus(page), MENUS_SHOWN, 'a swipe up on the bottom bar brings them back');
       const search = await page.locator('#searchBtn').boundingBox();
-      await touch.swipe([search.x - 30, 40], [search.x - 30, 4]);
+      // the strip under the 47 px top bar takes a touch that lands within about 9 px of it
+      await touch.swipe([search.x - 30, 36], [search.x - 30, 4]);
       assert.deepEqual(await menus(page), MENUS_TUCKED, 'a swipe up on the top bar tucks them');
       await tapOn(page, touch, '#menuStrip');
       assert.deepEqual(await menus(page), MENUS_SHOWN, 'the strip brings them back');
       const t = await page.locator('#ticks').boundingBox();
       await touch.swipe([t.x + 0.5 * t.width, t.y + t.height / 2], [t.x + 0.5 * t.width - 20, t.y + t.height / 2 + 45]);
       assert.deepEqual(await menus(page), MENUS_SHOWN, 'a downward drag on the slider leaves the menus alone');
-      assert.equal(await pageNum(page), '8', 'the drag on the slider scrubs to page 8');
+      assert.equal(await pageNum(page), '11', 'the drag on the slider scrubs to page 11');
     },
   },
   {
@@ -274,7 +290,8 @@ module.exports = [
       const row = () => page.evaluate(() => ({ topControls: document.querySelector('#tocBtn').checkVisibility(), steps: [...document.querySelectorAll('.tray-listen button')].filter(b => b.checkVisibility()).length, chip: document.querySelector('#chip').checkVisibility(), views: document.querySelector('.dock-ctl').checkVisibility() }));
       assert.deepEqual(await row(), { topControls: false, steps: 5, chip: false, views: false }, 'Zen hides the menus and keeps the Listen row');
       await tapOn(page, touch, '#rowSentNext');
-      assert.equal(await lastSaid(page, assert, 2), 'Pages,Piled', 'Next sentence works in Zen');
+      await tapOn(page, touch, '#rowSentNext');
+      assert.equal(await lastSaid(page, assert, 3), 'Chapter 1. Why pages.', 'Next sentence works in Zen, past the cover\'s two lines to chapter 1');
       await tapOn(page, touch, '#rowStop');
       assert.deepEqual(await row(), { topControls: false, steps: 0, chip: false, views: false }, 'Stop in Zen takes the row away and the menus stay hidden');
       await page.keyboard.press('/');
@@ -288,7 +305,7 @@ module.exports = [
   {
     id: 'slider-sides',
     commit: '6ada616 9478c87 a45e0c1',
-    what: 'left of the slider peeks at Contents or Topics, whichever was chosen last, and puts it away; right of it opens and closes All pages',
+    what: 'left of the slider peeks at Contents, with its headings if they were chosen last, and puts it away; right of it opens and closes All pages',
     async run({ page, assert, touch }) {
       const panelText = () => page.evaluate(() => { const p = document.querySelector('#tocPanel'); return p.checkVisibility() ? p.innerText.split('\n').slice(0, 3).join(' | ') : null; });
       await tapOn(page, touch, '#statL');
@@ -296,12 +313,16 @@ module.exports = [
       assert.equal(await panelText(), 'Cover | 1 | 1', 'the peek shows Contents');
       await tapOn(page, touch, '#statL');
       assert.deepEqual(await panels(page), NONE_OPEN, 'a tap there again puts the peek away');
-      await tapOn(page, touch, '#ctlToc .seg button[data-value="1"]');
-      assert.equal(await panelText(), 'Cover | 1 | Pages give text a place', 'choosing Topics shows Topics');
+      const headings = () => page.evaluate(() => [...document.querySelectorAll('#tocPanel .toc-outline a')].filter(a => a.checkVisibility()).map(a => a.innerText.replace(/\s+/g, ' ')));
+      await tapOn(page, touch, '#statL');
+      await exists(page, assert, '#tocPanel #outlineBtn', 'the contents panel has a Headings switch');
+      await tapOn(page, touch, '#outlineBtn');
+      const all = await headings();
+      assert.deepEqual([all.length, all[0]], [17, '5.1 Two styles 10'], 'Headings in the peek lists the 17 section headings under their chapters');
       await tapOn(page, touch, '#statL');
       assert.equal(await panelText(), null, 'left of the slider puts it away');
       await tapOn(page, touch, '#statL');
-      assert.equal(await panelText(), 'Cover | 1 | Pages give text a place', 'the next peek shows Topics, the one chosen last');
+      assert.deepEqual([await panelText(), (await headings()).length], ['Cover | 1 | 1', 17], 'the next peek shows Contents with its headings, the choice kept');
       await tapOn(page, touch, '#statL');
       await tapOn(page, touch, '#statR');
       assert.deepEqual(await panels(page), { ...NONE_OPEN, allPages: true }, 'a tap right of the slider opens All pages');
@@ -312,6 +333,7 @@ module.exports = [
   },
   {
     id: 'edge-tap-peeks',
+    baselineMayPass: RELEASED,
     commit: '1f55e14 efe5c07',
     what: 'a tap at the left or right edge of the page area peeks at the panel on that side; a tap on the page puts it away and does nothing else',
     async run({ page, assert, touch }) {
@@ -329,6 +351,7 @@ module.exports = [
   },
   {
     id: 'edge-swapped-peeks',
+    baselineMayPass: RELEASED,
     commit: '1f55e14',
     settings: { swap: 1 },
     what: 'with Contents on the right, the left edge peeks at the minimap and the right edge at Contents',
@@ -362,11 +385,12 @@ module.exports = [
       assert.deepEqual([await pageNum(page), await menus(page)], ['2', MENUS_SHOWN], 'the page stays on 2 and the bars as they were');
       await stampedTap(page, link.x + 30, link.y + link.height / 2);
       await until(page, () => document.querySelector('#pageNum').value !== '2');
-      assert.equal(await pageNum(page), '8', 'without a peek the same tap follows the link to Scroll on page 8');
+      assert.equal(await pageNum(page), '10', 'without a peek the same tap follows the link to Scroll on page 10');
     },
   },
   {
     id: 'panel-swipe-away',
+    baselineMayPass: RELEASED,
     commit: '1f55e14',
     what: 'a sideways swipe toward its edge puts away a floating panel or a peek; a swipe the other way leaves it',
     async run({ page, assert, touch }) {
@@ -393,6 +417,7 @@ module.exports = [
   },
   {
     id: 'minimap-swipe-moves-nothing',
+    baselineMayPass: RELEASED,
     commit: '1f55e14',
     what: 'a sideways swipe on the minimap puts it away and does not move the book',
     async run({ page, assert, touch }) {
@@ -410,8 +435,8 @@ module.exports = [
     async run({ page, assert, touch }) {
       await tapOn(page, touch, '#mapBtn');
       const map = await page.locator('#map').boundingBox(), little = await mapPages(page);
-      assert.equal(little.length, 22, 'the minimap shows 22 little pages, one per page');
-      assert.equal(await page.locator('#unitTotal').textContent(), '/ 22', 'the book has 22 pages');
+      assert.equal(little.length, 28, 'the minimap shows 28 little pages, one per page');
+      assert.equal(await page.locator('#unitTotal').textContent(), '/ 28', 'the book has 28 pages');
       assert(little.every(p => p.x === map.x && p.width === map.width), 'each little page fills the minimap\'s width, in one column');
       const gaps = little.slice(1).map((p, i) => Math.round(p.y - little[i].bottom));
       assert.deepEqual([...new Set(gaps)], [6], 'the little pages stand 6px apart, top to bottom');
@@ -424,6 +449,7 @@ module.exports = [
   },
   {
     id: 'minimap-touch',
+    baselineMayPass: RELEASED,
     commit: '6ad2255',
     what: 'a finger scrolls the minimap without moving the book, and a tap on a little page goes to it',
     async run({ page, assert, touch }) {
@@ -444,6 +470,7 @@ module.exports = [
   },
   {
     id: 'minimap-flick',
+    baselineMayPass: RELEASED,
     commit: '4395781',
     what: 'a flick on the minimap keeps the column gliding after the finger lifts, then it stops',
     async run({ page, assert, touch }) {
@@ -467,6 +494,7 @@ module.exports = [
   },
   {
     id: 'peek-full-strength-in-focus',
+    baselineMayPass: RELEASED,
     commit: 'a1a972b',
     what: 'in focus mode a peek shows at full strength while a panel opened on purpose fades',
     async run({ page, assert, touch }) {
@@ -483,6 +511,7 @@ module.exports = [
   },
   {
     id: 'page-word-for-readers',
+    baselineMayPass: RELEASED,
     commit: '4395781',
     profile: kit => kit.landscape('chromium'),
     what: 'the bottom bar draws no word Page beside the page box, and the box keeps Page as its name',
@@ -527,6 +556,7 @@ module.exports = [
   },
   {
     id: 'dock-icons',
+    baselineMayPass: RELEASED,
     commit: 'efe5c07',
     what: 'Expand, Focus and Options draw 16px icons centred on whole pixels',
     async run({ page, assert }) {
@@ -547,6 +577,7 @@ module.exports = [
   },
   {
     id: 'grid-spreads-end', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: '9164fc6',
     what: 'in All pages opened from facing pages, End goes to the last page and Home to the first',
     settings: { facing: 1 },
@@ -565,6 +596,7 @@ module.exports = [
   },
   {
     id: 'peek-focus-holds',
+    baselineMayPass: RELEASED,
     commit: '6ada616 a8e4e6c',
     what: 'a peek stays while focus is inside it, and the wait starts again when focus leaves',
     settings: { toc: 0 },

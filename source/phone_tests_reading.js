@@ -1,6 +1,8 @@
-// Reading and text: the reading zone, the minimap's mark, Listen's keys and stay, search jumps, sections,
+// Reading and text: the minimap's mark, Listen's keys and stay, Listen across a book's parts, search jumps, sections,
 // spreads, the pile, the colophon and the book's own text.
 // A missing or covered control is the evidence a test looks for, so it fails as an assertion, not a script error.
+// The released build, e8eef4e, already has this round's phone features, so a test it passes guards against their loss.
+const RELEASED = 'e8eef4e already has it';
 const assert = require('node:assert');
 const shown = page => page.evaluate(() => [...document.querySelectorAll('#desk .is-current')].map(p => +p.dataset.pageNumber));
 const saying = page => page.evaluate(() => window.testSpeech.current?.text ?? null);
@@ -73,18 +75,6 @@ async function listenFromPage3(page, assert) {
 }
 const settle = page => page.waitForTimeout(700);   // Listen decides where you are 350 ms after you stop moving
 
-const zone = page => page.evaluate(() => {
-  const g = document.querySelector('.guide'), r = g.getBoundingClientRect(), s = document.querySelector('#stage').getBoundingClientRect();
-  return { on: g.checkVisibility(), top: r.top, bottom: r.bottom, height: r.height, stageTop: s.top, stageBottom: s.bottom };
-});
-// The distance between two lines of a long paragraph, as set on screen.
-const linePitch = (page, selector) => page.evaluate(selector => {
-  const p = [...document.querySelectorAll(selector)].find(p => p.textContent.length > 300);
-  const range = document.createRange();
-  range.selectNodeContents(document.createTreeWalker(p, NodeFilter.SHOW_TEXT).nextNode());
-  const tops = [...new Set([...range.getClientRects()].map(r => r.top))];
-  return tops[2] - tops[1];
-}, selector);
 const near = (a, b, within) => Math.abs(a - b) <= within;
 
 const keysChapter = page => page.evaluate(() => {
@@ -100,96 +90,18 @@ const keysChapter = page => page.evaluate(() => {
   };
 });
 
+// A long book saved in this browser through the reader's own store: 30 chapters of about 9,000 characters come to
+// four parts, chapters 1 to 10 in the first. Runs in the page.
+const saveLongBook = () => {
+  const words = ['river', 'stone', 'window', 'harbour', 'letter', 'garden', 'engine', 'bridge', 'candle', 'market'];
+  const chapters = Array.from({ length: 30 }, (_, c) => {
+    const paras = Array.from({ length: 40 }, (_, i) => `In chapter ${c + 1} the ${words[(c + i) % 10]} stood by the lantern for a while. Paragraph ${i + 1} goes on about the ${words[(c * 3 + i) % 10]}, and then about the weather, which was mild. Nothing else happened that day, and nobody minded at all.`);
+    return { title: `Chapter ${c + 1}`, url: `file:///long-test-book/chapter-${c + 1}.md`, markdown: `# Chapter ${c + 1}\n\n${paras.join('\n\n')}` };
+  });
+  return window.bookTools.saveBook({ v: 1, title: 'A long test book', site: 'your files', url: 'file:///long-test-book', from: 'files', at: new Date().toISOString(), chapters });
+};
+
 module.exports = [
-  {
-    id: 'zone-options',
-    commit: 'd63d8ad',
-    what: 'Options: Reading zone Off/On; Zone place from 0% to 100% with a catch at Middle and a readout that recentres; Zone height named Line to Tallest',
-    async run({ page, assert, kit, touch }) {
-      await openOptions(page, touch, 'Listen & Scroll');
-      assert.deepEqual(await optionRows(page, 'Scroll'), ['Glide speed slider 1.2×', 'Reading zone Off/On'], 'Scroll offers Reading zone, with its place and height hidden while it is off');
-      await tap(page, touch, '.seg[data-setting="guide"] button[data-value="1"]', 'Reading zone On');
-      assert.deepEqual(await optionRows(page, 'Scroll'), ['Glide speed slider 1.2×', 'Reading zone Off/On', 'Zone place slider Middle', 'Zone height slider Medium'], 'On shows Zone place at Middle and Zone height at Medium');
-      const place = async (expected, saved, message) => {
-        assert.equal(await readout(page, '#guideAt'), expected, message);
-        assert.equal((await kit.settings(page)).guideAt, saved, `${message}, saved as ${saved}`);
-      };
-      await slide(page, touch, '#guideAt', 'Zone place', 0); await place('0%', 0, 'the left end puts the zone at the top');
-      await slide(page, touch, '#guideAt', 'Zone place', 0.485, 0); await place('Middle', 50, 'a drag that stops a little short of the middle is caught there');
-      await slide(page, touch, '#guideAt', 'Zone place', 1); await place('100%', 100, 'the right end puts the zone at the bottom');
-      await tap(page, touch, '#guideAtOut', 'the Zone place readout');
-      await place('Middle', 50, 'a tap on the readout puts the zone back in the middle');
-      const names = [];
-      for (let v = 0; v <= 5; v++) { await slide(page, touch, '#guideLines', 'Zone height', v / 5); names.push(await readout(page, '#guideLines')); }
-      assert.deepEqual(names, ['Line', 'Thin', 'Short', 'Medium', 'Tall', 'Tallest'], 'Zone height runs Line, Thin, Short, Medium, Tall, Tallest');
-      assert.equal((await kit.settings(page)).guideLines, 5, 'Tallest is saved as five lines');
-    },
-  },
-  {
-    id: 'zone-place-thumb',
-    commit: 'd63d8ad',
-    what: 'a drag that the middle catches leaves the thumb where the finger stopped while the readout says Middle',
-    async run({ page, assert, touch }) {
-      await openOptions(page, touch, 'Listen & Scroll');
-      await tap(page, touch, '.seg[data-setting="guide"] button[data-value="1"]', 'Reading zone On');
-      await slide(page, touch, '#guideAt', 'Zone place', 0.52, 0.2);
-      assert.equal(await readout(page, '#guideAt'), 'Middle', 'the readout says Middle after a drag that ends just past the middle');
-      assert.equal(await page.locator('#guideAt').inputValue(), '50', 'the thumb sits at the middle the readout names');
-    },
-  },
-  {
-    id: 'zone-views',
-    commit: '1f55e14',
-    what: 'the zone shows in plain text and scrolled pages, a hairline or one to five book lines tall, whole at place 0 and 100, and not in All pages or the page views',
-    settings: { guide: 1, view: 'scroll', scrollStyle: 'text' },
-    async run({ page, assert, touch }) {
-      assert.equal((await zone(page)).on, true, 'the zone shows in plain text');
-      const pitch = await linePitch(page, '#article p');
-      assert(near(pitch, 28.56, 0.05), `plain text sets 17 px type at 1.68 leading on a phone, a line every 28.56 px (measured ${pitch})`);
-      await openOptions(page, touch, 'Listen & Scroll');
-      const heights = [];
-      for (let v = 0; v <= 5; v++) { await slide(page, touch, '#guideLines', 'Zone height', v / 5); heights.push((await zone(page)).height); }
-      const expected = [2, ...[1, 2, 3, 4, 5].map(n => n * pitch + 4)];
-      assert(heights.every((h, i) => near(h, expected[i], 0.6)), `Line is a 2 px hairline and the rest one to five lines plus edges: wanted ${expected.map(h => h.toFixed(1))}, got ${heights.map(h => h.toFixed(1))}`);
-      await slide(page, touch, '#guideAt', 'Zone place', 0);
-      let z = await zone(page);
-      assert(near(z.top, z.stageTop, 1.01), `at 0% the zone's top meets the top of the reading area (${z.top} vs ${z.stageTop})`);
-      await slide(page, touch, '#guideAt', 'Zone place', 1);
-      z = await zone(page);
-      assert(near(z.bottom, z.stageBottom, 1.01), `at 100% the zone's bottom meets the bottom of the reading area (${z.bottom} vs ${z.stageBottom})`);
-      await page.keyboard.press('Escape');
-      await tap(page, touch, '.seg[data-setting="mode"] button[data-value="pages"]', 'Scrolled pages');
-      await page.waitForTimeout(400);
-      z = await zone(page);
-      assert.equal(z.on, true, 'the zone shows in scrolled pages');
-      const pagePitch = await linePitch(page, '#desk .pagedjs_page p');
-      assert(near(z.height, 5 * pagePitch + 4, 0.6), `in scrolled pages Tallest is five of the page's own lines (${pagePitch} px each): ${z.height}`);
-      assert(near(z.bottom, z.stageBottom, 1.01), `in scrolled pages the zone at 100% still ends at the bottom of the reading area (${z.bottom} vs ${z.stageBottom})`);
-      await page.locator('#desk').focus();
-      await page.keyboard.press('t');
-      await page.waitForSelector('#app.grid-on');
-      assert.equal((await zone(page)).on, false, 'All pages hides the zone');
-      await page.keyboard.press('Escape');
-      await page.waitForSelector('#grid', { state: 'hidden' });
-      assert.equal((await zone(page)).on, true, 'leaving All pages brings the zone back');
-      await tap(page, touch, '.seg[data-setting="mode"] button[data-value="single"]', 'Single page');
-      await page.waitForTimeout(300);
-      assert.equal((await zone(page)).on, false, 'the page views have no zone');
-    },
-  },
-  {
-    id: 'zone-edge-border', engines: ['chromium', 'firefox', 'webkit'],
-    commit: 'd63d8ad',
-    what: 'at 0% the zone overruns the top of the reading area by its 1 px border',
-    settings: { guide: 1, guideAt: 0, view: 'scroll', scrollStyle: 'text' },
-    async run({ page, assert }) {
-      const z = await zone(page);
-      assert.equal(z.on, true, 'the zone shows in plain text');
-      assert(near(z.top, z.stageTop, 1.01), `at 0% the zone sits at the top of the reading area (${z.top} vs ${z.stageTop})`);
-      const hit = await page.evaluate(y => { const e = document.elementFromPoint(200, y); return e && e.closest('#stage') ? 'stage' : e && (e.id || e.className); }, z.top + 0.5);
-      assert.equal(hit, 'stage', `the zone's top edge (${z.top}) lies in the reading area (from ${z.stageTop}), not under the top bar`);
-    },
-  },
   {
     id: 'map-mark',
     commit: '9164fc6',
@@ -198,21 +110,21 @@ module.exports = [
       assert.equal(await page.locator('#mapPct').count(), 1, 'the minimap has a percentage mark');
       await tap(page, touch, '#mapBtn', 'the minimap button');
       const mark = () => page.evaluate(() => { const m = document.querySelector('#mapPct'); return { text: m.textContent, shown: m.checkVisibility(), opacity: getComputedStyle(m).opacity, read: document.querySelector('#statR').textContent }; });
-      assert.deepEqual(await mark(), { text: '5%', shown: true, opacity: '0.3', read: '5%' }, 'on the cover the mark reads 5%, as the percent read does, at 30% strength');
+      assert.deepEqual(await mark(), { text: '4%', shown: true, opacity: '0.3', read: '4%' }, 'on the cover the mark reads 4%, as the percent read does, at 30% strength');
       await page.locator('#desk').focus();
       await press(page, Array(10).fill('l'));
-      assert.deepEqual(await mark(), { text: '50%', shown: true, opacity: '0.3', read: '50%' }, 'on page 11 of 22 the mark and the percent read both say 50%');
+      assert.deepEqual(await mark(), { text: '39%', shown: true, opacity: '0.3', read: '39%' }, 'on page 11 of 28 the mark and the percent read both say 39%');
       const [band, pct] = [await rect(page, '#mapBand'), await rect(page, '#mapPct')];
       assert(near(band.cy, pct.cy, 1) && pct.top > band.top && pct.bottom < band.bottom, 'the mark sits in the middle of the minimap box');
       await openOptions(page, touch, 'Panels');
-      assert.deepEqual((await optionRows(page, 'Panels')).slice(2, 5), ['Minimap Show/Hide', 'Minimap mark Show/Hide', 'Mark strength slider 30%'], 'Panels offers Minimap mark and Mark strength');
+      assert.deepEqual((await optionRows(page, 'Panels')).slice(4, 8), ['Minimap Show/Hide', 'Minimap sits Side/Top', 'Minimap mark Show/Hide', 'Mark strength slider 30%'], 'Panels offers Minimap mark and Mark strength');
       await slide(page, touch, '#mapMarkOp', 'Mark strength', 1);
       assert.deepEqual([await readout(page, '#mapMarkOp'), (await mark()).opacity], ['100%', '1'], 'full strength draws the mark solid');
       await slide(page, touch, '#mapMarkOp', 'Mark strength', 0);
       assert.deepEqual([await readout(page, '#mapMarkOp'), (await mark()).opacity], ['5%', '0.05'], 'the faintest strength is 5%');
       await tap(page, touch, '.seg[data-setting="mapMark"] button[data-value="0"]', 'Minimap mark Hide');
       assert.equal((await mark()).shown, false, 'Hide takes the mark away');
-      assert.deepEqual((await optionRows(page, 'Panels')).slice(3, 5), ['Minimap mark Show/Hide', 'Chapter and page Left/Right/Off'], 'with the mark hidden its strength is hidden too');
+      assert.deepEqual((await optionRows(page, 'Panels')).slice(6, 8), ['Minimap mark Show/Hide', 'Chapter and page Left/Right/Off'], 'with the mark hidden its strength is hidden too');
       const saved = await kit.settings(page);
       assert.deepEqual([saved.mapMark, saved.mapMarkOp], [0, 5], 'the mark and its strength are saved');
       await tap(page, touch, '.seg[data-setting="mapMark"] button[data-value="1"]', 'Minimap mark Show');
@@ -221,6 +133,7 @@ module.exports = [
   },
   {
     id: 'listen-qw', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: '9164fc6',
     what: 'while Listen reads, q and w step a sentence back and on, Q and W a paragraph; stopped, they do nothing',
     async run({ page, assert }) {
@@ -250,6 +163,7 @@ module.exports = [
   },
   {
     id: 'listen-stay',
+    baselineMayPass: RELEASED,
     commit: '2af2a8a',
     what: 'Listen stays by default: a swipe away leaves the page there while Listen reads on; the back-to-Listen button and r bring the page back',
     async run({ page, assert, touch }) {
@@ -287,16 +201,46 @@ module.exports = [
       await listenFromPage3(page, assert);
       await page.keyboard.press('l');
       await settle(page);
+      // a loaded WebKit can take longer than the settle to mark Listen away; wait by the clock, not by frame
+      await page.waitForFunction(() => document.querySelector('#rowBack')?.checkVisibility(), null, { polling: 100, timeout: 3000 }).catch(() => {});
       assert.deepEqual([await shown(page), await saying(page), await visible(page, '#rowBack')], [[4], 'Chapter 1. Why pages.', true], 'with the old listenStay: 0 saved, Listen still stays and offers the way back');
       await page.keyboard.press('Escape');
       await page.keyboard.press('v');
       await page.waitForTimeout(300);
       const saved = await kit.settings(page);
-      assert.deepEqual(['listenStay' in saved, saved.listenMode, saved.arrange], [false, 'stay', 'pile'], 'the next saved settings have listenMode stay and no listenStay');
+      assert.deepEqual(['listenStay' in saved, saved.listenMode, saved.arrange], [false, 'stay', 'strip'], 'the next saved settings have listenMode stay and no listenStay');
+    },
+  },
+  {
+    id: 'listen-next-part', engines: ['chromium', 'firefox', 'webkit'],
+    commit: '907e6a4',
+    what: 'at the end of a part Listen opens the next part at its first chapter and reads on from its heading',
+    async run({ page, assert, kit }) {
+      assert.equal(await page.evaluate(() => typeof window.bookTools?.saveBook), 'function', 'the reader keeps books opened in this browser');
+      const key = await page.evaluate(saveLongBook);
+      await page.goto(`${kit.ORIGIN}/index.html?opened=${key}#chapter-10`, { timeout: 60000 });
+      await kit.ready(page);
+      const at = await page.evaluate(() => [window.bookInfo.part, window.bookInfo.parts.length, !!document.querySelector('#desk .is-current #chapter-10')]);
+      assert.deepEqual(at, [1, 4, true], 'the book opens in part 1 of 4, on the page where its last chapter, Chapter 10, starts');
+      await page.locator('#desk').focus();
+      await page.keyboard.press('a');
+      await hears(page, assert, 'Chapter 10. Chapter 10.', 'Listen starts at the heading of part 1\'s last chapter');
+      // Chapter 10 is some 120 sentences; each ends when the speech stub says so, until the reader leaves for part 2
+      for (let i = 0; i < 400 && !page.url().includes('part=2'); i++) {
+        await page.waitForFunction(() => window.testSpeech.current, null, { timeout: 5000 }).catch(() => {});
+        await page.evaluate(() => window.testSpeech.current && window.testSpeech.finish()).catch(() => {});
+      }
+      await page.waitForLoadState('load');
+      await kit.ready(page);
+      await page.waitForFunction(() => window.testSpeech.current, null, { timeout: 10000 }).catch(() => {});
+      assert.equal(await page.evaluate(() => location.href), `${kit.ORIGIN}/index.html?opened=${key}&part=2#chapter-11`, 'the reader opened part 2 at its first chapter, and the address no longer asks for Listen');
+      assert.deepEqual(await page.evaluate(() => [window.testSpeech.history.slice(), window.testSpeech.current?.text ?? null]), [['Chapter 11. Chapter 11.'], 'Chapter 11. Chapter 11.'],
+        'in part 2 Listen reads on from the first chapter\'s heading');
     },
   },
   {
     id: 'listen-follow',
+    baselineMayPass: RELEASED,
     commit: '2af2a8a',
     what: 'with When you move away set to Follow, moving away takes Listen to the new page and no back button shows',
     async run({ page, assert, kit, touch }) {
@@ -314,74 +258,71 @@ module.exports = [
     },
   },
   {
-    id: 'search-c6.', engines: ['chromium', 'firefox', 'webkit'],
+    id: 'search-c4.', engines: ['chromium', 'firefox', 'webkit'],
     commit: '9164fc6',
-    what: 'c6. lists chapter 6 and each of its pages; Enter on c6.2 goes to page 13',
+    what: 'c4. lists chapter 4 and each of its pages; Enter on c4.2 goes to page 9',
     async run({ page, assert }) {
-      assert.deepEqual(await search(page, 'c6.'), [
-        'Go to chapter | 6 · Search   ·   pp. 12–13',
-        'c6.1 · p12 | Page 12   ·   Search Press / or Ctrl+f. Matches are listed with a line of…',
-        'c6.2 · p13 | Page 13   ·   Going back After any jump, whether a search, a topic, gg, G or a…',
-      ], 'c6. offers the chapter and its pages');
+      assert.deepEqual(await search(page, 'c4.'), [
+        'Go to chapter | 4 · Strip   ·   pp. 8–9',
+        'c4.1 · p8 | Page 8   ·   Strip Strip lays the pages flat and side by side, full size, in…',
+        'c4.2 · p9 | Page 9   ·   Spread, under Options, sets the gap between the pages here: -…',
+      ], 'c4. offers the chapter and its pages');
       await enterResult(page, 2);
-      assert.deepEqual(await shown(page), [13], 'Enter on c6.2 opens page 13');
-    },
-  },
-  {
-    id: 'search-s4', engines: ['chromium', 'firefox', 'webkit'],
-    commit: '9164fc6',
-    what: 's4 lists chapter 4\'s sections; Enter on 4.4 goes to page 10',
-    async run({ page, assert }) {
-      assert.deepEqual(await search(page, 's4'), [
-        'Go to section | 4.1 · Two styles   ·   c4.1 · p. 8',
-        'Go to section | 4.2 · Gliding   ·   c4.2 · p. 9',
-        'Go to section | 4.3 · Reading zone   ·   c4.2 · p. 9',
-        'Go to section | 4.4 · Keeping your place   ·   c4.3 · p. 10',
-      ], 's4 offers the four sections of chapter 4');
-      await enterResult(page, 3);
-      assert.deepEqual(await shown(page), [10], 'Enter on 4.4 opens page 10');
-    },
-  },
-  {
-    id: 'search-s4.2', engines: ['chromium', 'firefox', 'webkit'],
-    commit: '9164fc6',
-    what: 's4.2 offers section 4.2 and Enter goes to its page',
-    async run({ page, assert }) {
-      assert.deepEqual(await search(page, 's4.2'), ['Go to section | 4.2 · Gliding   ·   c4.2 · p. 9'], 's4.2 offers section 4.2 alone');
-      await enterResult(page, 0);
-      assert.deepEqual(await shown(page), [9], 'Enter opens page 9, where Gliding starts');
-    },
-  },
-  {
-    id: 'search-4.', engines: ['chromium', 'firefox', 'webkit'],
-    commit: '1f55e14',
-    what: '4. lists chapter 4, its sections and its pages; Enter on c4.3 goes to page 10',
-    async run({ page, assert }) {
-      assert.deepEqual(await search(page, '4.'), [
-        'Go to chapter | 4 · Scroll   ·   pp. 8–10',
-        'Go to section | 4.1 · Two styles   ·   c4.1 · p. 8',
-        'Go to section | 4.2 · Gliding   ·   c4.2 · p. 9',
-        'Go to section | 4.3 · Reading zone   ·   c4.2 · p. 9',
-        'Go to section | 4.4 · Keeping your place   ·   c4.3 · p. 10',
-        'c4.1 · p8 | Page 8   ·   Scroll Pages are not always the best way to read. Many people…',
-        'c4.2 · p9 | Page 9   ·   Pages Text Figure 4. Scroll’s two styles, switched with v: the…',
-        'c4.3 · p10 | Page 10   ·   Keeping your place What Scroll gives up is the book as an…',
-      ], '4. offers the chapter, then its sections, then its pages');
-      await enterResult(page, 7);
-      assert.deepEqual(await shown(page), [10], 'Enter on c4.3 opens page 10');
-    },
-  },
-  {
-    id: 'search-4.2', engines: ['chromium', 'firefox', 'webkit'],
-    commit: '1f55e14',
-    what: '4.2 offers section 4.2 and chapter 4\'s page 2; Enter goes to page 9',
-    async run({ page, assert }) {
-      assert.deepEqual(await search(page, '4.2'), [
-        'Go to section | 4.2 · Gliding   ·   c4.2 · p. 9',
-        'c4.2 · p9 | Chapter 4, page 2   ·   Scroll',
-      ], '4.2 offers section 4.2, then chapter 4\'s second page');
-      await enterResult(page, 1);
       assert.deepEqual(await shown(page), [9], 'Enter on c4.2 opens page 9');
+    },
+  },
+  {
+    id: 'search-s5', engines: ['chromium', 'firefox', 'webkit'],
+    commit: '9164fc6',
+    what: 's5 lists chapter 5\'s sections; Enter on 5.3 goes to page 11',
+    async run({ page, assert }) {
+      assert.deepEqual(await search(page, 's5'), [
+        'Go to section | 5.1 · Two styles   ·   c5.1 · p. 10',
+        'Go to section | 5.2 · Gliding   ·   c5.2 · p. 11',
+        'Go to section | 5.3 · What it gives up   ·   c5.2 · p. 11',
+      ], 's5 offers the three sections of chapter 5');
+      await enterResult(page, 2);
+      assert.deepEqual(await shown(page), [11], 'Enter on 5.3 opens page 11');
+    },
+  },
+  {
+    id: 'search-s5.2', engines: ['chromium', 'firefox', 'webkit'],
+    commit: '9164fc6',
+    what: 's5.2 offers section 5.2 and Enter goes to its page',
+    async run({ page, assert }) {
+      assert.deepEqual(await search(page, 's5.2'), ['Go to section | 5.2 · Gliding   ·   c5.2 · p. 11'], 's5.2 offers section 5.2 alone');
+      await enterResult(page, 0);
+      assert.deepEqual(await shown(page), [11], 'Enter opens page 11, where Gliding starts');
+    },
+  },
+  {
+    id: 'search-5.', engines: ['chromium', 'firefox', 'webkit'],
+    commit: '1f55e14',
+    what: '5. lists chapter 5, its sections and its pages; Enter on c5.2 goes to page 11',
+    async run({ page, assert }) {
+      assert.deepEqual(await search(page, '5.'), [
+        'Go to chapter | 5 · Scroll   ·   pp. 10–11',
+        'Go to section | 5.1 · Two styles   ·   c5.1 · p. 10',
+        'Go to section | 5.2 · Gliding   ·   c5.2 · p. 11',
+        'Go to section | 5.3 · What it gives up   ·   c5.2 · p. 11',
+        'c5.1 · p10 | Page 10   ·   Scroll Pages are not always the best way to read. Many people…',
+        'c5.2 · p11 | Page 11   ·   Pages Text Figure 5. Scroll’s two styles, switched with v: the…',
+      ], '5. offers the chapter, then its sections, then its pages');
+      await enterResult(page, 5);
+      assert.deepEqual(await shown(page), [11], 'Enter on c5.2 opens page 11');
+    },
+  },
+  {
+    id: 'search-5.2', engines: ['chromium', 'firefox', 'webkit'],
+    commit: '1f55e14',
+    what: '5.2 offers section 5.2 and chapter 5\'s page 2; Enter goes to page 11',
+    async run({ page, assert }) {
+      assert.deepEqual(await search(page, '5.2'), [
+        'Go to section | 5.2 · Gliding   ·   c5.2 · p. 11',
+        'c5.2 · p11 | Chapter 5, page 2   ·   Scroll',
+      ], '5.2 offers section 5.2, then chapter 5\'s second page');
+      await enterResult(page, 1);
+      assert.deepEqual(await shown(page), [11], 'Enter on c5.2 opens page 11');
     },
   },
   {
@@ -391,8 +332,9 @@ module.exports = [
     async run({ page, assert, touch }) {
       const numbered = scope => page.evaluate(scope => [...document.querySelectorAll(`${scope} h3`)].filter(h => getComputedStyle(h, '::before').content !== 'none')
         .map(h => `${getComputedStyle(h, '::before').content.replace(/"/g, '')} ${h.textContent.trim()}`), scope);
-      const expected = ['4.1 Two styles', '4.2 Gliding', '4.3 Reading zone', '4.4 Keeping your place', '6.1 What to type', '6.2 Going back',
-        '9.1 The parts', '9.2 Making room', '9.3 Theme and Options', '10.1 Moving', '10.2 Panels and tools', '10.3 Listening', '10.4 Mouse and touch'];
+      const expected = ['5.1 Two styles', '5.2 Gliding', '5.3 What it gives up', '9.1 What to type', '10.1 The highlighter', '10.2 Going back', '10.3 Where you left off',
+        '13.1 The parts', '13.2 Making room', '13.3 Theme and Options', '14.1 Turning pages', '14.2 Jumping', '14.3 Views', '14.4 Panels and screen',
+        '14.5 Search, Listen and the highlighter', '14.6 Stepping through the text', '14.7 Mouse and touch'];
       assert.deepEqual(await numbered('#desk'), expected, 'the pages number each section from its chapter');
       await tap(page, touch, '.seg[data-setting="mode"] button[data-value="text"]', 'Plain text');
       await page.waitForTimeout(300);
@@ -402,17 +344,17 @@ module.exports = [
   {
     id: 'sections-listen', engines: ['chromium', 'firefox', 'webkit'],
     commit: '9164fc6',
-    what: 'Listen announces a section as "Section 4.1. Two styles."',
+    what: 'Listen announces a section as "Section 5.1. Two styles."',
     async run({ page, assert }) {
       await page.locator('#desk').focus();
-      await press(page, Array(7).fill('l'));
-      assert.deepEqual(await shown(page), [8], 'seven page turns reach page 8, where chapter 4 starts');
+      await press(page, Array(9).fill('l'));
+      assert.deepEqual(await shown(page), [10], 'nine page turns reach page 10, where chapter 5 starts');
       await page.keyboard.press('a');
-      await hears(page, assert, 'Chapter 4. Scroll.', 'Listen starts at the chapter heading');
+      await hears(page, assert, 'Chapter 5. Scroll.', 'Listen starts at the chapter heading');
       await page.keyboard.press('}');
       await hears(page, assert, 'Pages are not always the best way to read.', '} goes to the first paragraph');
       await page.keyboard.press('}');
-      await hears(page, assert, 'Section 4.1. Two styles.', 'the next paragraph is the section heading, announced with its number');
+      await hears(page, assert, 'Section 5.1. Two styles.', 'the next paragraph is the section heading, announced with its number');
     },
   },
   {
@@ -428,18 +370,18 @@ module.exports = [
       const cells = () => page.evaluate(() => [...document.querySelector('#gridList').children].map(c => c.classList.contains('spread')
         ? [...c.children].map(t => +t.getAttribute('aria-label').match(/^Page (\d+)/)[1]) : +c.getAttribute('aria-label').match(/^Page (\d+)/)[1]));
       const focused = () => page.evaluate(() => document.activeElement.getAttribute('aria-label'));
-      assert.deepEqual(await cells(), [[1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13], [14, 15], [16, 17], [18, 19], [20, 21], [22]], 'All pages pairs the pages as facing view does');
+      assert.deepEqual(await cells(), [[1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13], [14, 15], [16, 17], [18, 19], [20, 21], [22, 23], [24, 25], [26, 27], [28]], 'All pages pairs the pages as facing view does');
       const cover = await page.evaluate(() => { const s = document.querySelector('#gridList .spread').getBoundingClientRect(), t = document.querySelector('#gridList .spread .thumb-page').getBoundingClientRect(); return { right: Math.round(s.right - t.right), left: Math.round(t.left - s.left), half: Math.round(s.width / 2) }; });
       assert(cover.right === 0 && cover.left >= cover.half - 2, `the cover sits alone on the right of its spread (${JSON.stringify(cover)})`);
       assert.equal(await focused(), 'Page 1, Cover', 'All pages opens on the cover');
-      const moves = [['ArrowRight', 'Page 2, Contents'], ['ArrowRight', 'Page 4, One page, two piles'], ['l', 'Page 6, Flow'], ['ArrowLeft', 'Page 4, One page, two piles'], ['ArrowDown', 'Page 8, Scroll']];
+      const moves = [['ArrowRight', 'Page 2, Contents'], ['ArrowRight', 'Page 4, One page, two piles'], ['l', 'Page 6, Flow'], ['ArrowLeft', 'Page 4, One page, two piles'], ['ArrowDown', 'Page 8, Strip']];
       for (const [key, label] of moves) { await page.keyboard.press(key); assert.equal(await focused(), label, `${key} moves a spread at a time, to ${label}`); }
       await page.keyboard.press('f');
-      assert.deepEqual(await cells(), Array.from({ length: 22 }, (_, i) => i + 1), 'f shows single pages');
+      assert.deepEqual(await cells(), Array.from({ length: 28 }, (_, i) => i + 1), 'f shows single pages');
       await page.keyboard.press('ArrowRight');
       assert.equal(await focused(), 'Page 9', 'in single pages ArrowRight moves one page');
       await page.keyboard.press('f');
-      assert.equal((await cells()).length, 12, 'f again goes back to spreads');
+      assert.equal((await cells()).length, 15, 'f again goes back to spreads');
       await page.keyboard.press('Enter');
       await page.waitForSelector('#grid', { state: 'hidden' });
       assert.deepEqual(await shown(page), [8, 9], 'Enter opens pages 8 and 9 facing');
@@ -447,6 +389,7 @@ module.exports = [
   },
   {
     id: 'pile-tilt',
+    baselineMayPass: RELEASED,
     commit: '9164fc6',
     what: 'in Pile the cover sits square and neighbouring sheets tilt within a quarter degree of each other',
     async run({ page, assert, touch }) {
@@ -469,6 +412,7 @@ module.exports = [
   },
   {
     id: 'colophon', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: '9164fc6',
     what: 'the colophon is four lines ending "Imagined by zefenix." with a link to https://zefenix.github.io/',
     async run({ page, assert }) {
@@ -489,6 +433,7 @@ module.exports = [
   },
   {
     id: 'colophon-listen', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: '9164fc6',
     what: 'Listen reads the colophon one line at a time',
     async run({ page, assert }) {
@@ -504,15 +449,17 @@ module.exports = [
   {
     id: 'text-chapters', engines: ['chromium', 'firefox', 'webkit'],
     commit: 'adf4e05',
-    what: 'the book has 12 chapters, Topics its own chapter 7, in the contents and in the pages',
+    what: 'the book has 16 chapters, Strip its own chapter 4 and Your own books 12, in the contents and in the pages',
     async run({ page, assert }) {
-      const titles = ['1 Why pages', '2 One page, two piles', '3 Flow', '4 Scroll', '5 Thumbnails', '6 Search', '7 Topics', '8 Listening', '9 The screen', '10 Keys', '11 How it is built', '12 Open questions'];
-      assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#desk .toc li')].map(li => `${li.querySelector('.n').textContent} ${li.querySelector('.t').textContent}`)), titles, 'the contents page lists 12 chapters with Topics as 7');
-      assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#desk h2[data-n]')].map(h => `${h.dataset.n} ${h.textContent.trim()}`)), titles, 'the pages open the same 12 chapters');
+      const titles = ['1 Why pages', '2 One page, two piles', '3 Flow', '4 Strip', '5 Scroll', '6 Thumbnails', '7 Contents and the outline', '8 The minimap', '9 Search', '10 Keeping your place',
+        '11 Listening', '12 Your own books', '13 The screen', '14 Keys', '15 How it is built', '16 Open questions'];
+      assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#desk .toc li')].map(li => `${li.querySelector('.n').textContent} ${li.querySelector('.t').textContent}`)), titles, 'the contents page lists 16 chapters with Strip as 4');
+      assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#desk h2[data-n]')].map(h => `${h.dataset.n} ${h.textContent.trim()}`)), titles, 'the pages open the same 16 chapters');
     },
   },
   {
     id: 'text-no-absolute-page', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: 'adf4e05',
     what: 'no "absolute page 9" anywhere in the book; the search sentence ends at chapter 4\'s second page',
     async run({ page, assert }) {
@@ -524,21 +471,23 @@ module.exports = [
   {
     id: 'text-keys', engines: ['chromium', 'firefox', 'webkit'],
     commit: 'adf4e05',
-    what: 'the Keys chapter holds the one key list, with z, q w Q W, r back to Listen and f in All pages',
+    what: 'the Keys chapter holds the one key list, with z, q w Q W, r R back to Listen and f in All pages',
     async run({ page, assert }) {
       const k = await keysChapter(page);
-      assert.deepEqual(k.tables, ['keys-table', 'keys-tools', 'keys-listen'], 'Keys holds three tables: moving, panels and tools, listening');
+      assert.deepEqual(k.tables, ['keys-table', 'keys-jump', 'keys-view', 'keys-tools', 'keys-find', 'keys-listen'], 'Keys holds six tables: turning pages, jumping, views, panels and screen, search and Listen, stepping');
       assert.deepEqual(k.elsewhere, ['find-syntax'], 'no other chapter has a key table');
-      assert.deepEqual(k.keys, ['j k', 'h l ← →', '↓ ↑, Page Down, Page Up', 'Home, End', 'd u', 'Space, Shift+Space', 'gg G', 'r', 's', 'f', 'v', 't', '- = 0', 'c', 'C', 'm', 'z', 'F', 'FF', 'e', 'O', 'a', '/ Ctrl+f', 'n N', 'Enter', 'Esc, Ctrl+[', 'q w, ( )', 'Q W, { }', '[[ ]]'], 'the key list names each key once');
-      assert.equal(k.rows.r, 'Return: to Listen’s sentence if you moved away, otherwise to before your last jump; again to come back | Same', 'r returns to Listen first');
+      assert.deepEqual(k.keys, ['j k', 'h l ← →', '↓ ↑, Page Down, Page Up', 'Home, End', 'd u', 'Space, Shift+Space', 'J K', 'gg G', 'gn gp', 'gN gP', 'r R', 's', 'f', 'v', 'V', 't', '- = 0', '_ + )',
+        'c', 'cc', 'C', 'L', 'B o', 'm', 'M', 'z', 'F', 'FF', 'e', 'O', '?', '/ Ctrl+f', 'n N', 'Enter', 'Esc, Ctrl+[', 'a', 'H', '[ ], q w', 'Q W, { }', '[[ ]]'], 'the key list names each key once');
+      assert.equal(k.rows['r R'], 'Return: back through your jumps one at a time, and R forward again; to Listen’s sentence or the highlight first, if you moved away from it | Same', 'r returns to Listen first');
       assert.equal(k.rows.f, 'Facing pages on, off; in All pages, spreads or single pages | Open at facing pages', 'f pairs pages in All pages');
       assert.equal(k.rows.z, 'Zen: hide the menus, keep the page slider', 'z is Zen');
-      assert.equal(k.rows['q w, ( )'], 'Previous, next sentence', 'q w step a sentence');
+      assert.equal(k.rows['[ ], q w'], 'Previous, next sentence', 'q w step a sentence');
       assert.equal(k.rows['Q W, { }'], 'Previous, next paragraph; back goes first to the start of this one', 'Q W step a paragraph');
     },
   },
   {
     id: 'text-keys-complete', engines: ['chromium', 'firefox', 'webkit'],
+    baselineMayPass: RELEASED,
     commit: 'adf4e05',
     what: 'the key list names every key the reader handles, among them ↑ ↓, Page Up, Page Down, Home, End and Enter',
     async run({ page, assert }) {
@@ -547,21 +496,21 @@ module.exports = [
     },
   },
   {
-    id: 'text-figure6',
+    id: 'text-figure7',
     commit: '83532f5',
-    what: 'Figure 6 as the reader is now: numbered marks 1 to 9, the bottom row 6 to 9 on one line left to right, 48%, c3.2, 16 and / 22',
+    what: 'Figure 7, the screen, as the reader is now: numbered marks 1 to 9, the bottom row 6 to 9 on one line left to right, 48%, c3.2, 16 and / 22',
     async run({ page, assert }) {
       const at = await page.evaluate(() => +document.querySelector('#desk #fig-screen').closest('.pagedjs_page').dataset.pageNumber);
       await page.locator('#desk').focus();
       await press(page, Array(at - 1).fill('l'));
-      assert.deepEqual(await shown(page), [at], `the page turns reach Figure 6 on page ${at}`);
+      assert.deepEqual(await shown(page), [at], `the page turns reach Figure 7 on page ${at}`);
       const fig = await page.evaluate(() => {
         const svg = document.querySelector('#desk #fig-screen svg');
         const marks = [...svg.querySelectorAll('.d-num')].map(g => { const r = g.querySelector('circle').getBoundingClientRect(); return { n: g.textContent.trim(), x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
         return { labels: [...svg.querySelectorAll('text')].filter(t => !t.closest('.d-num')).map(t => t.textContent), marks };
       });
-      assert.deepEqual(fig.labels, ['Contents · Topics', 'Pages, Piled · The screen', 'Search · Listen', 'Minimap', '48%', 'c3.2', '48%', '16', '/ 22'], 'Figure 6 labels the bar, the minimap\'s 48% and the bottom bar\'s c3.2, 48%, 16 and / 22');
-      assert.deepEqual(fig.marks.map(m => m.n), ['1', '2', '3', '4', '5', '6', '7', '8', '9'], 'Figure 6 numbers nine parts');
+      assert.deepEqual(fig.labels, ['Contents', 'Pages, Piled · The screen', 'Search · Listen', 'Minimap', '48%', 'c3.2', '48%', '16', '/ 22'], 'Figure 7 labels the bar, the minimap\'s 48% and the bottom bar\'s c3.2, 48%, 16 and / 22');
+      assert.deepEqual(fig.marks.map(m => m.n), ['1', '2', '3', '4', '5', '6', '7', '8', '9'], 'Figure 7 numbers nine parts');
       const row = fig.marks.slice(5);
       assert(row.every(m => Math.abs(m.y - row[0].y) < 0.5) && row.every((m, i) => !i || m.x > row[i - 1].x), `marks 6 to 9 share the bottom row, left to right: ${JSON.stringify(row)}`);
     },
@@ -569,30 +518,38 @@ module.exports = [
   {
     id: 'options-key-note',
     commit: 'a1960dd',
-    what: "on a computer, Options' key note names z for Zen, r's return to Listen, q w for sentences and Q W for paragraphs",
+    what: "on a computer, Options' Keys button opens the keys page, which names z for Zen, r's return to Listen, q w for sentences and Q W for paragraphs",
     profile: kit => kit.desktop(),
     async run({ page, assert }) {
       await page.locator('#optsBtn').click();
-      const note = await page.locator('#options > .note').textContent();
-      for (const part of ['r back to where you were, or to Listen', 'z Zen', 'q w or ( ) sentence', 'Q W or { } paragraph']) assert(note.includes(part), `the key note says "${part}": ${note}`);
+      assert.equal(await page.locator('#options #keysFromOpts').count(), 1, 'Options has a Keys button');
+      await page.locator('#keysFromOpts').click();
+      const rows = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('#keyHelp tbody tr')].filter(r => r.checkVisibility()).map(r => [r.cells[0].textContent.trim(), [...r.cells].slice(1).map(c => c.textContent.trim()).join(' | ')])));
+      assert.deepEqual(['z', 'r R', '[ ], q w', 'Q W, { }'].map(key => rows[key]), [
+        'Zen: hide the menus, keep the page slider',
+        'Return: back through your jumps one at a time, and R forward again; to Listen’s sentence or the highlight first, if you moved away from it | Same',
+        'Previous, next sentence',
+        'Previous, next paragraph; back goes first to the start of this one',
+      ], 'the keys page names z, r R, q w and Q W');
     },
   },
   {
     id: 'text-listen-steps',
     commit: '83532f5',
-    what: 'Listening says where the step buttons are on a phone and on a computer, and on a computer the buttons beside Listen step by sentence',
+    what: 'Listening says where the step buttons are on a phone and on a computer, and on a computer the buttons beside Listen step by sentence and paragraph',
     profile: kit => kit.desktop(),
     async run({ page, assert }) {
       const text = await page.evaluate(() => document.querySelector('#book').content.querySelector('#listen-aloud').textContent.replace(/\s+/g, ' '));
-      assert(text.includes('On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence.'), `Listening says where the steps are: ${text}`);
+      assert(text.includes('On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph.'), `Listening says where the steps are: ${text}`);
       await page.locator('#listenBtn').click();
-      await hears(page, assert, 'A paged-reading prototype', 'Listen starts at the cover');
-      assert.deepEqual(await page.evaluate(() => ['#listenPrev', '#listenNext'].map(s => document.querySelector(s).checkVisibility())), [true, true], 'on a computer the step buttons sit beside Listen');
-      await page.locator('#listenNext').click();
+      await hears(page, assert, 'Pages, Piled.', 'Listen starts at the cover');
+      const beside = await page.evaluate(() => [...document.querySelector('#ctlFind').children].filter(b => b.checkVisibility()).map(b => b.id).slice(0, 6));
+      assert.deepEqual(beside, ['searchBtn', 'rowParaPrev', 'rowSentPrev', 'listenBtn', 'rowSentNext', 'rowParaNext'], 'on a computer two steps sit each side of Listen');
+      await page.locator('#rowSentNext').click();
       const next = await saying(page);
-      await page.locator('#listenPrev').click();
-      await hears(page, assert, 'A paged-reading prototype', 'the step before Listen goes back a sentence');
-      assert.notEqual(next, 'A paged-reading prototype', 'the step after Listen goes on a sentence');
+      await page.locator('#rowSentPrev').click();
+      await hears(page, assert, 'Pages, Piled.', 'the step just before Listen goes back a sentence');
+      assert.notEqual(next, 'Pages, Piled.', 'the step just after Listen goes on a sentence');
     },
   },
 ];
