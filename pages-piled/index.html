@@ -5501,7 +5501,7 @@ window.bookReady = (async () => {
       if (picked.length) order = picked.map(l => ({ ...byUrl.get(l.url), title: l.title }));
     }
     const heading = t => (/^#{1,6}\s+(.+)$/m.exec(t.text) || [])[1];
-    const chapters = order.filter(t => t !== summary).map(t => ({ title: (t.title || heading(t) || t.path.split("/").pop().replace(TEXT, "")).trim().slice(0, 300), url: url(t.path), markdown: t.text }));
+    const chapters = order.filter(t => t !== summary || texts.length === 1).map(t => ({ title: (t.title || heading(t) || t.path.split("/").pop().replace(TEXT, "")).trim().slice(0, 300), url: url(t.path), markdown: t.text }));
     const title = folder || (chapters.length === 1 ? chapters[0].title : `${chapters.length} files`);
     const book = { v: 1, title: title.slice(0, 300), site: "your files", url: url(folder || files[0].path), copyright: "", from: "files", at: new Date().toISOString(), chapters, index: null };
     try {

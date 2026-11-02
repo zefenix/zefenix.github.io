@@ -9,13 +9,13 @@ Live: https://zefenix.github.io/pages-piled/
 
 - **Views:** Flow (pages turned inward, after Cover Flow) and Pile (pages lying flat), as single or facing pages;
   Scroll as a column of pages or as plain web text; and All pages as thumbnails.
-- **Finding your way:** contents with chapter topics, a minimap, a page slider, a page box, search (words, phrases,
+- **Finding your way:** contents with an outline, a minimap, a page slider, a page box, search (words, phrases,
   regular expressions, absolute pages such as `p8`, chapter pages such as `c4.2`, sections such as `s4.2`, and `c4.`
   or `4.` to list what they could become), and `r` to return after a jump.
 - **Listen:** reads aloud with the browser's own voices, a sentence at a time, in any view; `q` `w` step by sentence
   and `Q` `W` by paragraph, and the page stays where you scroll while `r` brings you back to the sentence being read.
-- **Phones:** the same controls in two bars sized for a thumb, Options in tabs, Zen to hide the menus, panels that peek
-  from the screen's edges and swipe away, and a reading zone in Scroll.
+- **Phones:** the same controls in two bars sized for a thumb, Options in tabs, Zen to hide the menus, and panels that
+  peek from the screen's edges and swipe away.
 - **Looks:** system, light or dark; four colour themes (Slate, Sepia, Paper, Gray); six page sizes from Pocket to US
   Letter; Expand, focus mode and full screen for small screens.
 - **Keys:** vim-style throughout (`h` `j` `k` `l`, `gg`, `G`, `/`, `n`), with smooth Surfingkeys-style gliding.
@@ -28,7 +28,7 @@ The book that ships inside it explains each of these, with the keys to try as yo
 
 One HTML file. The text is plain HTML in a `<template>`; [paged.js](https://pagedjs.org) 0.4.3 lays it into pages from
 CSS `@page` rules, and a short script arranges those pages with CSS 3D transforms. The same text also becomes the Scroll
-column, and every block carries a number in both, which is how search, topics, Listen and the minimap agree on where a
+column, and every block carries a number in both, which is how search, Listen and the minimap agree on where a
 sentence is.
 
 No build step and no server code: any static host works. To run it locally, serve the folder (for example
@@ -37,5 +37,5 @@ No build step and no server code: any static host works. To run it locally, serv
 ## License
 
 MIT, copyright (c) 2026 zefenix: see [LICENSE](LICENSE). It covers everything here except
-`pages-piled/paged.min.js`, which is [Paged.js](https://pagedjs.org) 0.4.3, MIT-licensed by the Coko Foundation under
-its own notice.
+three libraries, each under its own notice beside it in `pages-piled/vendor/`: [Paged.js](https://pagedjs.org) 0.4.3
+(`pages-piled/paged.min.js`, MIT), marked (MIT) and DOMPurify (Apache-2.0 or MPL-2.0).

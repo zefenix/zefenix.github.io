@@ -143,6 +143,19 @@ const variants = (base, make) => Object.keys(WIDTHS).map(width => {
 });
 
 module.exports = [
+  ...variants('open-summary-alone', width => ({
+    what: `at ${width} width, a SUMMARY.md picked alone opens as a book of its own text`,
+    async run({ page, evidence, assert }) {
+      const dir = fixture(evidence, { 'SUMMARY.md': '# Summary\n\n- [One](one.md)\n\nThe list of a book whose chapters stayed behind.\n' });
+      try {
+        await openLibrary(page);
+        await pick(page, '#pickFiles', [path.join(dir, 'SUMMARY.md')]);
+        const book = await opened(page);
+        assert.deepEqual(book.chapters, ['Summary'], 'the summary is the one chapter');
+        assert(book.text.includes('The list of a book whose chapters stayed behind.'), 'its text is set in pages');
+      } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    },
+  })),
   ...variants('open-files', width => ({
     what: `at ${width} width, Markdown files picked in the Library open as a book: README first, the rest by name, dotfiles and pictures left out`,
     async run({ page, engine, evidence, site, assert }) {
