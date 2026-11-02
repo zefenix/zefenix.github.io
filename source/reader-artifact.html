@@ -339,6 +339,9 @@ a.toc-item { text-decoration: none; }
 .fig .d-t { font: 500 6.6px var(--f-ui); fill: var(--ink-soft); }
 .fig .d-title { font: italic 400 7.4px var(--f-book); fill: var(--ink); }
 .fig .d-s { font: 500 6px var(--f-ui); fill: var(--ink-soft); }
+.fig .d-key { fill: var(--paper); stroke: var(--line); stroke-width: .7; }
+.fig .d-keyt { font: 500 8px var(--f-mono); fill: var(--ink); text-anchor: middle; }
+.fig .d-tick { stroke: var(--line); stroke-width: 1.2; stroke-linecap: round; }
 .fig .d-num circle { fill: var(--accent); }
 .fig .d-num text { font: 700 7px var(--f-ui); fill: var(--bar); text-anchor: middle; }
 
@@ -1503,11 +1506,22 @@ a.toc-item { text-decoration: none; }
 </figure>
 
 <h2 id="outline" data-n="7">Contents and the outline</h2>
-<p id="outline-what">Contents, the panel on the left, lists the chapters with the page each starts on. Turn on Headings at its foot, or press <code>cc</code>, and each chapter’s headings appear under it, numbered as the book numbers them: that fuller list is the outline. A rail runs down the chapter you are in, and the heading you are reading is tinted, along with every other heading on the pages in view.</p>
-<p id="outline-keys"><code>c</code> peeks at Contents and <code>c</code> again puts it away; <code>C</code> keeps it open or closes it. <code>L</code> moves the keys into it: <code>j</code> and <code>k</code> step through the chapters and headings, <code>g</code> and <code>G</code> go to the first and the last, Enter goes there, and <code>L</code> or Esc gives the keys back to the page.</p>
-<p id="outline-find">To find a heading by name, press <code>/</code> while <code>L</code> has the keys, or tap Find at the foot of Contents. As you type, the outline narrows to the chapters and headings whose names hold your words, each heading under its chapter; ↓ or Enter steps into them. Esc steps back a stage at a time: from what was found to the box, then clears the words, then closes the box. It looks only at names: Search, in chapter 9, looks through the text.</p>
-<p id="outline-library">The Library keeps an outline too, of the book selected, beside its books. The same keys work there, <code>/</code> finds a chapter in it, and while the Library’s find is in use it counts the places found in each chapter.</p>
-<p id="outline-parts">A book that loads in parts lists every chapter in Contents. Those in parts not yet loaded sit back at half strength, and opening one loads its part.</p>
+<p id="outline-what">Contents, the panel on the left, lists the chapters with the page each starts on. Turn on Headings at its foot, or press <code>cc</code>, and each chapter’s headings appear under it: that fuller list is the outline. The heading you are reading is tinted.</p>
+<figure class="fig" id="fig-contents">
+  <svg viewBox="0 0 320 56" role="img" aria-label="The keys of Contents: c peeks, C keeps it open, L takes the keys, slash finds a name.">
+    <rect class="d-key" x="32.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="40" y="24.6">c</text>
+    <text class="fig-label" x="40" y="44" text-anchor="middle">peek</text>
+    <rect class="d-key" x="112.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="120" y="24.6">C</text>
+    <text class="fig-label" x="120" y="44" text-anchor="middle">keep open</text>
+    <rect class="d-key" x="192.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="200" y="24.6">L</text>
+    <text class="fig-label" x="200" y="44" text-anchor="middle">take the keys</text>
+    <rect class="d-key" x="272.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="280" y="24.6">/</text>
+    <text class="fig-label" x="280" y="44" text-anchor="middle">find a name</text>
+  </svg>
+  <figcaption>Figure 7. Contents’ keys. Once L has the keys, j and k move and Enter goes there.</figcaption>
+</figure>
+<p id="outline-find">To find a heading, press <code>/</code> while <code>L</code> has the keys, or tap Find at the foot of Contents, and the outline narrows to the names that hold your words. Search, in chapter 9, looks through the text.</p>
+<p id="outline-library">The Library keeps an outline too, beside its books, and the same keys work there.</p>
 
 <h2 id="minimap" data-n="8">The minimap</h2>
 <p id="map-what">The minimap, on the right, draws the whole book small. In the page views it is a column of little pages; in plain text it is the text itself, shrunk to one narrow column, so headings, code and paragraphs keep their shapes. A box on it marks what is on the screen, and a faint percentage in the box says how far through the book you are.</p>
@@ -1526,8 +1540,8 @@ a.toc-item { text-decoration: none; }
     <tr><td>Piles</td> <td>a capital letter matches case</td></tr>
     <tr><td>4</td> <td>page 4 and chapter 4</td></tr>
     <tr><td>c4</td> <td>chapter 4 and each of its pages</td></tr>
-    <tr><td>s4.2</td> <td>section 4.2</td></tr>
-    <tr><td>c6., s4. or 4.</td> <td>every page or section it could become: c6.1, c6.2, or s4.1, s4.2, or both</td></tr>
+    <tr><td>s5.2</td> <td>section 5.2</td></tr>
+    <tr><td>c4., s5. or 5.</td> <td>every page or section it could become: c4.1, c4.2, or s5.1, s5.2, or both</td></tr>
     <tr><td>p8</td> <td>page 8</td></tr>
     <tr><td>part of a title</td> <td>that chapter</td></tr>
     <tr><td>a typo</td> <td>close spellings</td></tr>
@@ -1541,21 +1555,35 @@ a.toc-item { text-decoration: none; }
 <p id="place-mark">Press <code>H</code>, or turn on Highlighter under Options on a phone, then click or tap a sentence. It stays marked as you read on, turn pages or scroll, until you mark another. <code>q</code> and <code>w</code> move the mark back and forward a sentence at a time, and <code>Q</code> and <code>W</code> switch it between sentences and whole paragraphs. In Strip, a click on a page beside marks it where it lies, without sliding the row.</p>
 <p id="place-listen">The mark and Listen share a place: with the highlighter on, Listen starts from the marked sentence, and when you stop it the mark waits on the last sentence it read.</p>
 <h3 id="going-back">Going back</h3>
-<p id="back">After any jump, whether a search, <code>gg</code>, <code>G</code> or a drag along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes further back. <code>R</code> goes forward again, as a browser’s Forward does. If you have moved away from the mark, or from the sentence Listen is reading, <code>r</code> goes there first. Try <code>G</code> now, then <code>r</code>, then <code>R</code>.</p>
+<p id="back">After any jump, whether a search, <code>gg</code>, <code>G</code> or a jump along the page slider, <code>r</code> returns you to where you were, and <code>r</code> again goes further back. <code>R</code> goes forward again, as a browser’s Forward does. If you have moved away from the mark, or from the sentence Listen is reading, <code>r</code> goes there first. Try <code>G</code> now, then <code>r</code>, then <code>R</code>.</p>
 <h3 id="left-off">Where you left off</h3>
 <p id="place-saved">Each book keeps its place in your browser, so opening it again, after closing the tab or the next day, brings you back to the page you left. The place stays on your device; nothing is sent anywhere.</p>
 
 <h2 id="listen" data-n="11">Listening</h2>
-<p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there, or jump anywhere and it carries on from the new place. While it reads, <code>[</code> and <code>]</code>, or <code>q</code> and <code>w</code>, step by sentence, and <code>Q</code> and <code>W</code> by paragraph. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph. Press <code>a</code> now to hear this paragraph, and Esc to stop. Options sets the voice and a speed from a quarter of normal to three times.</p>
-<p id="listen-stay">You can read elsewhere while Listen carries on: the page stays where you scroll, and <code>r</code> brings you back to the sentence being read. Options can make the page follow Listen instead.</p>
-<p id="listen-parts">In a book that loads in parts, Listen opens the next part when it reaches the end of one, and reads on from its first chapter. Some browsers won’t speak in a newly opened page until you press a key or tap; a note then says so, and <code>a</code> or Listen carries on.</p>
-<p id="listen-voices">Listen uses the speech synthesis built into every current browser, so the voices are whatever the browser offers: Edge its online Natural voices, Chrome its Google voices, Safari and Firefox those of the system. Edge’s own Read Aloud and Immersive Reader can’t reach inside the paged views, which is why the reader has its own. In the plain-text view, where the book is ordinary web text, Read Aloud works as well.</p>
+<p id="listen-aloud">Listen, in the top bar or the <code>a</code> key, reads the book aloud from where you are, a sentence at a time, highlighting each sentence and turning the pages to keep it in view. Select any text to have it read from there. Press <code>a</code> now to hear this paragraph, and Esc to stop.</p>
+<figure class="fig" id="fig-listen">
+  <svg viewBox="0 0 320 56" role="img" aria-label="The keys of Listen: a starts and stops, the square brackets step by sentence, Q and W by paragraph, r comes back.">
+    <rect class="d-key" x="32.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="40" y="24.6">a</text>
+    <text class="fig-label" x="40" y="44" text-anchor="middle">start, stop</text>
+    <rect class="d-key" x="103.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="111" y="24.6">[</text>
+    <rect class="d-key" x="121.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="129" y="24.6">]</text>
+    <text class="fig-label" x="120" y="44" text-anchor="middle">a sentence</text>
+    <rect class="d-key" x="183.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="191" y="24.6">Q</text>
+    <rect class="d-key" x="201.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="209" y="24.6">W</text>
+    <text class="fig-label" x="200" y="44" text-anchor="middle">a paragraph</text>
+    <rect class="d-key" x="272.5" y="14" width="15" height="15" rx="2.5"/><text class="d-keyt" x="280" y="24.6">r</text>
+    <text class="fig-label" x="280" y="44" text-anchor="middle">back to it</text>
+  </svg>
+  <figcaption>Figure 8. Listen’s keys, with q and w for sentences too. On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph.</figcaption>
+</figure>
+<p id="listen-stay">You can read elsewhere while Listen carries on, and <code>r</code> brings you back to the sentence being read. Options sets the voice and speed, and can make the page follow Listen instead.</p>
+<p id="listen-voices">The voices are your browser’s own, so they differ from one browser to the next. Edge’s Read Aloud can’t reach inside the paged views, which is why the reader has its own.</p>
 
 <h2 id="yours" data-n="12">Your own books</h2>
-<p id="yours-open">Pages, Piled reads any Markdown, not only this book. In the Library, <code>o</code> or the Library button at the top left, choose Markdown files or a folder, or drop them on the page. A folder becomes one book: its README first and the rest in order, or in the order its <code>SUMMARY.md</code> gives, as an mdBook’s does. Nothing leaves your browser.</p>
-<p id="yours-bookmarklet">On a computer, the bookmarklet in the Library reads the page you are on. Drag it to your bookmarks bar, open a documentation page, and click it: the page opens here as a book, pictures and all. When the site lists its pages in an <code>llms.txt</code>, the Library offers to read the whole site as one book.</p>
-<p id="yours-parts">A long book is set in parts of about 55 pages, so it opens quickly. Contents lists every chapter, the last page of a part leads on to the next, <code>gn</code> and Listen carry on across them, and the Library’s find searches the whole book.</p>
-<p id="yours-library">The Library keeps the twelve books you opened most recently, in this browser alone. Each has a × to remove it; this book can be hidden instead. Find, at the top, narrows the books by name and lists the places in their text that hold your words. Shelf shows covers and List a row of details: <code>b</code> switches, as does a sideways swipe on a phone. A click picks a book and shows its outline, and a second opens it; Options can make one click open it.</p>
+<p id="yours-open">Pages, Piled reads any Markdown, not only this book. In the Library, <code>o</code> or the button at the top left, choose Markdown files or a folder, or drop them on the page. A folder becomes one book, in the order its <code>SUMMARY.md</code> gives, or else with its README first. Nothing leaves your browser.</p>
+<p id="yours-bookmarklet">On a computer, the bookmarklet in the Library reads the page you are on. Drag it to your bookmarks bar, open a documentation page, and click it. When the site lists its pages in an <code>llms.txt</code>, the Library offers to read the whole site as one book.</p>
+<p id="yours-parts">A long book is set in parts of about 55 pages, so it opens quickly. Contents lists every chapter, and <code>gn</code> and Listen carry on across them.</p>
+<p id="yours-library">The Library keeps the twelve books you opened most recently, in this browser alone. Find, at the top, looks through their names and text. A click picks a book and shows its outline, and a second opens it.</p>
 
 <h2 id="screen" data-n="13">The screen</h2>
 <h3 id="parts">The parts</h3>
@@ -1595,7 +1623,7 @@ a.toc-item { text-decoration: none; }
     <circle class="d-pill" cx="128" cy="191" r="5"/><circle class="d-pill" cx="192" cy="191" r="5"/>
     <text class="d-s" x="121" y="193" text-anchor="end">c3.2</text><text class="d-s" x="198.5" y="193">48%</text>
     <path class="d-ln" d="M136 197v-9M140 197v-6M144 197v-6M148 197v-9M152 197v-6M156 197v-6M160 197v-9M164 197v-6M168 197v-6M172 197v-9M176 197v-6M180 197v-6M184 197v-6"/>
-    <path class="d-now" d="M156 197v-12"/>
+    <path class="d-now" d="M156 197v-6"/>
     <rect class="d-pill" x="228" y="185" width="16" height="12" rx="2"/><text class="d-s" x="236" y="193" text-anchor="middle">16</text>
     <text class="d-s" x="247" y="193">/ 22</text>
     <circle class="d-pill" cx="282" cy="191" r="5"/><circle class="d-pill" cx="296" cy="191" r="5"/><circle class="d-pill" cx="310" cy="191" r="5"/>
@@ -1610,25 +1638,44 @@ a.toc-item { text-decoration: none; }
     <g class="d-num"><circle cx="219.5" cy="191" r="6"/><text x="219.5" y="193.5">8</text></g>
     <g class="d-num"><circle cx="267" cy="191" r="6"/><text x="267" y="193.5">9</text></g>
   </svg>
-  <figcaption>Figure 7. The parts of the reader, numbered as in the list below.</figcaption>
+  <figcaption>Figure 9. The parts of the reader, numbered as in the list below.</figcaption>
 </figure>
 <ol id="screen-parts">
-  <li>Top bar: title and chapter in the middle; Contents, the Library, All pages and Zen on the left; Search, Listen, Full screen, Theme and the minimap on the right. Each panel’s button sits above its panel. On a phone, Listen’s steps and search’s matches drop down as one row beneath the bar.</li>
+  <li>Top bar: title and chapter in the middle; Contents, the Library, All pages and Zen on the left; Search, Listen, Full screen, Theme and the minimap on the right. Each panel’s button sits above its panel.</li>
   <li>Contents, with the outline, in chapter 7: <code>c</code> peeks at it and <code>C</code> shows or hides it.</li>
   <li>The desk: the current page, with the pages in Flow on either side.</li>
-  <li>The minimap, in chapter 8: the book drawn small. Click or drag along it to move; <code>m</code> hides or shows it.</li>
-  <li>The middle of the space just below the current page opens All pages, the <b>t</b>humbnail view, as <code>t</code> does. Try it, then press Esc to come back here.</li>
-  <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip. When the bar runs out of room, each group folds into one button that opens it.</li>
-  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over pages that hold search matches. A tap or a drag goes to the page under it. It can also work as a dial: drag along it and the pages turn from where you are, as on an iPod’s wheel. On a touch screen, a swipe up from just left of it switches between the two, as does Page control under Options; as a dial, your place shows as a small round knob at the foot of its tick. In the scroll views the dial turns a page at a time, or glides with your drag: Dial moves, under Options. Just left of it, a tap peeks at Contents; just right of it, a tap opens All pages and another closes it. On a touch screen, a swipe up from just below the page opens the Library, and so does one from the right of the slider; in Zen, that one first brings the menus back. Over the Library and All pages the slider and arrows move through what they show.</li>
-  <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other. The cover and contents count as chapter 0. Options swaps the sides.</li>
-  <li>The page box, then Expand, Focus and Options. On a narrow phone the page box makes way.</li>
+  <li>The minimap, in chapter 8: the book drawn small.</li>
+  <li>The middle of the space just below the current page opens All pages, as <code>t</code> does. Try it, then press Esc to come back here.</li>
+  <li>How the book is shown: one page, facing pages, scrolled pages or plain text, and beside that Pile, Flow or Strip.</li>
+  <li>The page slider: a tick per page, taller where a chapter starts, with a dot over search matches. Figure 10 shows how it works.</li>
+  <li>Where you are: chapter and page, such as c4.2, on one side of the arrows, and how far through the book on the other.</li>
+  <li>The page box, then Expand, Focus and Options.</li>
 </ol>
+<figure class="fig" id="fig-slider">
+  <svg viewBox="0 0 320 74" role="img" aria-label="The page slider and what lies beside it. Left of it, a tap peeks at Contents and a swipe up switches between slider and dial. Right of it, a tap opens All pages and a swipe up opens the Library.">
+    <rect class="d-bar" x="0" y="0" width="320" height="74"/>
+    <rect class="d-strip" x="14" y="10" width="52" height="24" rx="3"/>
+    <rect class="d-strip" x="254" y="10" width="52" height="24" rx="3"/>
+    <text class="d-s" x="40" y="24" text-anchor="middle">c3.2</text>
+    <text class="d-s" x="280" y="24" text-anchor="middle">48%</text>
+    <path class="d-ln" d="M84 18l-4 4 4 4M236 18l4 4-4 4"/>
+    <path class="d-tick" d="M100 27v-5M108 27v-5M116 27v-9M124 27v-5M132 27v-5M140 27v-5M148 27v-5M156 27v-9M172 27v-5M180 27v-5M188 27v-5M196 27v-9M204 27v-5M212 27v-5M220 27v-5"/>
+    <path class="d-now" d="M164 27v-5"/>
+    <text class="fig-label" x="40" y="50" text-anchor="middle">tap: Contents</text>
+    <text class="fig-label" x="40" y="62" text-anchor="middle">swipe up: switch</text>
+    <text class="fig-label" x="160" y="50" text-anchor="middle">slider: go to the page</text>
+    <text class="fig-label" x="160" y="62" text-anchor="middle">dial: turn from where you are</text>
+    <text class="fig-label" x="280" y="50" text-anchor="middle">tap: All pages</text>
+    <text class="fig-label" x="280" y="62" text-anchor="middle">swipe up: Library</text>
+  </svg>
+  <figcaption>Figure 10. The page slider. Page control, under Options, sets slider or dial; as a dial, your place is a small knob, and in the scroll views it can glide instead.</figcaption>
+</figure>
 <h3 id="room">Making room</h3>
-<p id="expand">Expand, or <code>e</code>, makes the pages as large as the screen allows. Full screen, or <code>FF</code>, also hides the browser, except on iPhones, which keep full screen for video.</p>
-<p id="focus">Focus, or <code>F</code>, fades the bars and panels until you point at them. Zen, or <code>z</code>, hides the menus and keeps only the page slider. On a phone, tap the thin strip at the very top or swipe a bar away; tap the strip or swipe the bottom bar up to bring them back.</p>
-<p id="panel-edges">A put-away panel also peeks from its edge: tap the very left or right edge of the reading area, and tap the page to put it away again. On a touch screen, a swipe toward its edge puts it away too.</p>
+<p id="expand">Expand, or <code>e</code>, makes the pages as large as the screen allows. Full screen, or <code>FF</code>, also hides the browser, where the browser lets it.</p>
+<p id="focus">Focus, or <code>F</code>, fades the bars and panels until you point at them. Zen, or <code>z</code>, hides the menus and keeps only the page slider. On a phone, tap the thin strip at the very top or swipe a bar away, and tap the strip again to bring them back.</p>
+<p id="panel-edges">A put-away panel also peeks from its edge: tap the very left or right edge of the reading area, and tap the page to put it away.</p>
 <h3 id="look-options">Theme and Options</h3>
-<p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, the default; Sepia; Paper, a soft cream; and Gray, after Firefox’s Reader View. On a phone its settings are grouped in tabs: All, Look &amp; Pages, Listen &amp; Scroll, and Panels.</p>
+<p id="look">Theme, beside Full screen, cycles Auto, Light and Dark. Options, or <code>O</code>, holds every other setting, among them four colour themes: Slate, Sepia, Paper and Gray.</p>
 
 <h2 id="keys" data-n="14">Keys</h2>
 <p id="keys-intro">Press <code>?</code> anywhere for these keys on a page of their own, where you can find one by what it does, or, on a computer, set keys of your own. Where a key works differently in Scroll, the tables say how.</p>
@@ -1717,7 +1764,7 @@ a.toc-item { text-decoration: none; }
 <p id="built-markdown">A book of your own comes in as Markdown: marked turns it into HTML, and DOMPurify removes anything that could run, so a page brings its words and pictures and no script. Both are open source and ship with their notices.</p>
 <p id="page-size">Page size, under Options, sets the book again on Pocket, A5, Trade, B5, A4 or US Letter; the margins grow with the sheet and the type a little less, so a bigger page holds longer lines.</p>
 <p id="print">Printing gives those pages alone, in light colours, wherever the reader is the page being printed; a viewer that shows it in a frame prints a picture of the screen instead.</p>
-<p id="site-weight">On a website the cost is mostly paged.js, about 94 KB compressed; the reader adds 83 KB and this book 13 KB, and marked and DOMPurify, 24 KB, load only for a book of your own. Any static host will do.</p>
+<p id="site-weight">On a website the cost is mostly paged.js, about 94 KB compressed; the reader adds 94 KB and this book 13 KB, and marked and DOMPurify, 25 KB, load only for a book of your own. Any static host will do.</p>
 
 <h2 id="open" data-n="16">Open questions</h2>
 <ul id="open-list">

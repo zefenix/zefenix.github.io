@@ -540,7 +540,7 @@ module.exports = [
     what: 'Listening says where the step buttons are on a phone and on a computer, and on a computer the buttons beside Listen step by sentence and paragraph',
     profile: kit => kit.desktop(),
     async run({ page, assert }) {
-      const text = await page.evaluate(() => document.querySelector('#book').content.querySelector('#listen-aloud').textContent.replace(/\s+/g, ' '));
+      const text = await page.evaluate(() => document.querySelector('#book').content.querySelector('#fig-listen figcaption').textContent.replace(/\s+/g, ' '));
       assert(text.includes('On a phone, a row of buttons under the top bar does the same; on a computer, the buttons beside Listen step by sentence and paragraph.'), `Listening says where the steps are: ${text}`);
       await page.locator('#listenBtn').click();
       await hears(page, assert, 'Pages, Piled.', 'Listen starts at the cover');
