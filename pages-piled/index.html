@@ -1942,7 +1942,7 @@ window.bookReady = (async () => {
   function receiveBook() {
     return new Promise((resolve, reject) => {
       const opener = window.opener;
-      if (!opener) { reject(new Error("This tab was not opened by the bookmarklet, so no page can reach it. Click the bookmarklet again on the page you want to read.")); return; }
+      if (!opener) { reject(new Error("The page you came from can’t reach this tab: click the bookmarklet there, or, if you did, that site keeps new tabs apart from it. Save the page as a Markdown file and open it from the Library instead.")); return; }
       let tries = 0;
       const ping = () => { try { opener.postMessage({ type: "pages-piled/ready", v: 1 }, "*"); } catch {} };
       const timer = setInterval(() => {
@@ -4565,8 +4565,6 @@ window.bookReady = (async () => {
     clearTimeout(relisten);
     if (synth) synth.cancel();
     if (hasHL) CSS.highlights.delete("speak");
-    // the place to resume, even if a move marked Listen away while the last sentence stayed on screen
-    if (last >= 0 && listenAway && spokenInView()) { const it = queue[last]; anchor = { b: it.b, f: it.s / Math.max(1, it.am.text.length) }; }
     setAway(false);
     setListenUI(false);
     store.set(ANCHOR, anchor);
@@ -5338,7 +5336,8 @@ window.bookReady = (async () => {
   const refit = () => {
     cancelAnimationFrame(resizeRaf);
     resizeRaf = requestAnimationFrame(() => {
-      const a = textScroll() ? anchor : currentAnchor();
+      // a place more exact than the page's top, such as the sentence Listen stopped at, is kept while it is on screen
+      const a = textScroll() || centerPages().includes(unitAt(pageByBlock, anchor)) ? anchor : currentAnchor();
       applySettings();
       relayoutAll(a, true);
       if (gridOpen) sizeGrid();

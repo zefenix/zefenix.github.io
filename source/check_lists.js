@@ -17,18 +17,6 @@ const url = /^https?:/.test(target) ? new URL(target).href
   : pathToFileURL(path.join(path.resolve(target), 'index.html')).href;
 const failures = [];
 const check = (ok, message) => { if (!ok) { failures.push(message); console.error(`FAIL ${message}`); } };
-// Reader faults this check finds and the reader has not fixed yet print as known faults and fail only with --strict, so
-// the rest of the run still checks the reader; listen-resume shows in some runs only.
-const KNOWN = {
-  'listen-resume': 'after ] and Ctrl+[, a sometimes resumes at the page\'s first sentence, not the last one spoken, though listenStart keeps a precise anchor that is still on screen; the cause is not traced',
-};
-const knownSeen = new Map();
-const known = (ok, id, message) => {
-  if (ok) return;
-  if (args.includes('--strict')) return check(false, `${KNOWN[id]}: ${message}`);
-  knownSeen.set(id, (knownSeen.get(id) || 0) + 1);
-  console.log(`KNOWN FAULT ${id} ${message}`);
-};
 
 async function marker(page, item, reference) {
   const clip = await page.evaluate(({ item, reference }) => {
@@ -664,7 +652,7 @@ async function listenParagraphs(page, browserName, width) {
   await page.keyboard.press('a');
   const resumed = await page.waitForFunction(() => window.testSpeech.current?.text, null, { timeout: 5000 }).then(h => h.jsonValue());
   assert(['Chapter 2. One page, two piles.', 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.'].includes(resumed), `Listen resumes on page 4: ${resumed}`);
-  known(resumed === 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.', 'listen-resume', `resumed at ${resumed}`);
+  check(resumed === 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.', `Listen resumes at the last sentence spoken, not ${resumed}`);
   await steps(() => page.keyboard.press(']'), 'Ctrl+[ leaves no armed page pair after a restart: ] steps a sentence', 1, resumed === 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.' ? 'At a comfortable size and distance, reading from one to the other can mean turning your head.' : 'Two facing pages copy print, but on a monitor they put the empty gutter in the middle of the screen and push each page off to one side.');
   await disarm();
   await startAt('#why-place', 'A page does.'); await spoken('A page does.', 'timing setup');
@@ -935,7 +923,6 @@ const browserEnv = { ...process.env, HOME: home, MOZ_DISABLE_CONTENT_SANDBOX: '1
   const processesAfter = browserProcesses().length;
   console.log(`browser processes before ${processesBefore}, after ${processesAfter}`);
   check(processesAfter <= processesBefore, `${processesAfter - processesBefore} browser processes left open`);
-  for (const [id, times] of knownSeen) console.log(`KNOWN FAULT ${id} seen ${times} times: ${KNOWN[id]}`);
   assert.equal(failures.length, 0, `${failures.length} failures`);
   console.log(args.includes('--tools-only') ? 'PASS tools subset' : args.includes('--listen-only') ? 'PASS Listen subset' : args.includes('--header-only') ? 'PASS header subset' : args.includes('--desktop-only') ? 'PASS desktop subset' : `PASS all list markers${args.includes('--lists-only') ? '' : ' and requested controls'}`);
 })().catch(error => { console.error(error.message); process.exitCode = 1; });

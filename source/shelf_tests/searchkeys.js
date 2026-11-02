@@ -36,7 +36,9 @@ const ok = (name, cond, got) => { if (!cond) fails++; console.log(`${cond ? 'PAS
   await k('Escape');
   // unpin Contents so c really peeks
   if (await p.evaluate(() => !document.getElementById('tocPanel').hidden && !document.getElementById('tocPanel').classList.contains('peek'))) await k('C', 500);
-  await search('lantern'); await k('Enter'); await p.keyboard.press('c'); await p.waitForTimeout(500);
+  // c waits to see whether a second c follows, so the peek comes when that wait is over; WebKit's timers run late
+  await search('lantern'); await k('Enter'); await p.keyboard.press('c');
+  await p.waitForFunction(() => document.getElementById('tocPanel').classList.contains('peek'), null, { timeout: 3000 }).catch(() => {});
   s = await S(); const peeked = s.peek;
   await k('Escape'); s = await S(); ok('with a peek over the highlights, Esc shuts the peek first', peeked && !s.peek && !!s.chip, { peeked, ...s });
   await k('Escape'); s = await S(); ok('then Esc clears the highlights', !s.chip && s.marks === 0, s);
