@@ -16,7 +16,7 @@ icon = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0
         "%3Crect x='14' y='5' width='4' height='22' rx='1' fill='%23eef2f3'/%3E%3Crect x='18' y='8' width='5' height='17' rx='1' fill='%23eef2f3' opacity='.7'/%3E"
         "%3Crect x='24' y='11' width='4' height='12' rx='1' fill='%23eef2f3' opacity='.45'/%3E%3C/svg%3E")
 page = f'''<!doctype html>
-<html lang="en">
+<html lang="en" data-palette="sepia">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -35,4 +35,9 @@ site = os.path.join(out, 'site', 'pages-piled')
 os.makedirs(site, exist_ok=True)
 open(os.path.join(site, 'index.html'), 'w', encoding='utf-8', newline='\n').write(page)
 shutil.copyfile(paged, os.path.join(site, 'paged.min.js'))
+# marked and DOMPurify, loaded only when a book from elsewhere is opened.
+for extra in ('vendor',):
+    folder = os.path.join(os.path.dirname(os.path.abspath(paged)), extra)
+    if os.path.isdir(folder):
+        shutil.copytree(folder, os.path.join(site, extra), dirs_exist_ok=True)
 print('built', os.path.join(site, 'index.html'), len(page))

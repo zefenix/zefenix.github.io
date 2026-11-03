@@ -60,15 +60,19 @@ const openOptions = tab => async page => {
   if (!(await page.locator('#options').isVisible())) await page.locator('#optsBtn').click();
   await page.getByRole('tab', { name: tab, exact: true }).click();
 };
-const search = async page => {
-  await page.locator('#searchBtn').click();
+// Idle headless WebKit can draw no frame while Listen reads, so a click waits forever for the button to hold still
+// and a wait polled by frames never looks: with Listen on, search opens by its own key and the waits poll by time.
+// The sweep still measures the button's reach in every state.
+const search = async (page, { byKey = false } = {}) => {
+  if (byKey) { await page.locator('#desk').focus(); await page.keyboard.press('/'); }
+  else await page.locator('#searchBtn').click();
   await page.locator('#q').fill('page');
-  await page.waitForFunction(() => document.querySelector('#results').children.length > 0);
+  await page.waitForFunction(() => document.querySelector('#results').children.length > 0, null, { polling: 100 });
   await page.locator('#q').press('Enter');
 };
 const listen = async page => {
   await page.locator('#listenBtn').click();
-  await page.waitForFunction(() => window.testSpeech.current);
+  await page.waitForFunction(() => window.testSpeech.current, null, { polling: 100 });
 };
 // A peek comes from a tap just left of the slider, or at the reading area's left edge when that spot is empty.
 const peek = async page => {
@@ -79,6 +83,12 @@ const peek = async page => {
   const panel = await kit.box(page, '#tocPanel');
   await page.mouse.move(panel.cx, panel.y + 4);   // pointing at a peek keeps it, past its 8 s wait
 };
+// A bottom bar that runs out of room folds its views into one button that opens their row.
+const view = value => async page => {
+  const pick = page.locator('#dock .dpick:has([data-setting="mode"]) > .pick');
+  if (await pick.isVisible()) await pick.click();
+  await page.locator(`#dock [data-setting="mode"] [data-value="${value}"]`).click();
+};
 const STATES = [
   { name: 'opening', enter: async () => {}, want: OPENING },
   { name: 'options-all', enter: openOptions('All'), want: { options: true, tab: 'All', sections: ALL } },
@@ -88,10 +98,10 @@ const STATES = [
   { name: 'contents', enter: page => page.locator('#tocBtn').click(), want: { toc: true, peek: false } },
   { name: 'search-chip', enter: search, want: { search: false, chip: true, chipInRow: true, top: true } },
   { name: 'listen', enter: listen, want: { listening: true, listenRow: true } },
-  { name: 'listen-search', enter: async page => { await listen(page); await search(page); }, want: { listening: true, listenRow: true, chip: true, chipInRow: true, search: false } },
+  { name: 'listen-search', enter: async page => { await listen(page); await search(page, { byKey: true }); }, want: { listening: true, listenRow: true, chip: true, chipInRow: true, search: false } },
   { name: 'all-pages', enter: page => page.locator('#thumbsBtn').click(), want: { grid: true } },
-  { name: 'plain-text', enter: page => page.locator('#dock [data-setting="mode"] [data-value="text"]').click(), want: { view: 'scroll' } },
-  { name: 'scrolled-pages', enter: page => page.locator('#dock [data-setting="mode"] [data-value="pages"]').click(), want: { view: 'linear' } },
+  { name: 'plain-text', enter: view('text'), want: { view: 'scroll' } },
+  { name: 'scrolled-pages', enter: view('pages'), want: { view: 'linear' } },
   { name: 'zen', enter: page => page.locator('#menuStrip').click(), want: { tucked: true, top: false, slider: true } },
   { name: 'peek', enter: peek, want: { toc: true, peek: true } },
 ].filter(s => !options.states || options.states.split(',').includes(s.name));
@@ -101,7 +111,7 @@ async function backToOpening(page) {
     const s = await app(page);
     if (s.tucked) await page.locator('#menuStrip').click();
     else if (s.options || s.search || s.grid || s.listening || s.chip || s.toc) await page.keyboard.press('Escape');
-    else if (s.view !== 'paged') await page.locator('#dock [data-setting="mode"] [data-value="single"]').click();
+    else if (s.view !== 'paged') await view('single')(page);
     else break;
     await settle(page);
   }
@@ -241,6 +251,10 @@ async function sweepProfile(browser, engine, width) {
 // A control present at the widest portrait width but gone at a narrower one is unreachable there, unless the
 // reader puts another control in its place.
 const REPLACED = { '#pageNum': { below: 521, why: 'hidden at 520px and below by design; the page slider and the chapter and page beside it stay' } };
+// A folded bottom bar shows one button for its views and one for its styles, each opening its row: where that
+// button is rendered, one control of each name in its row is reachable through it. Keys are compared without
+// their (2) suffix, since a folded row renumbers the same names in Options.
+const FOLDS = { '#dock View': '[mode]', '#dock Arrangement': '[arrange]' };
 // Faults this sweep found in the reader, each with a failing test in source/phone_tests_faults.js. They print as
 // known faults and fail the run only with --strict, so a width passes when nothing else is wrong.
 const KNOWN = [
@@ -248,14 +262,18 @@ const KNOWN = [
     match: f => f.state === 'plain-text' && f.kind === 'sideways' && /^pre scrollWidth/.test(f.detail) },
 ];
 const knownOf = f => KNOWN.find(k => k.match(f))?.id || null;
+const counts = controls => controls.reduce((m, c) => { const k = c.key.replace(/ \(\d+\)$/, ''); return m.set(k, (m.get(k) || 0) + 1); }, new Map());
 function missingControls(records) {
   const portrait = records.filter(r => !r.width.startsWith('landscape'));
   for (const engine of new Set(portrait.map(r => r.engine))) {
     const mine = portrait.filter(r => r.engine === engine), widest = Math.max(...mine.map(r => Number(r.width)));
     for (const ref of mine.filter(r => Number(r.width) === widest && r.controls.length)) {
       for (const r of mine.filter(r => r.state === ref.state && r !== ref && r.controls.length)) {
-        const keys = new Set(r.controls.map(c => c.key));
-        for (const c of ref.controls) if (!keys.has(c.key) && !(Number(r.width) < REPLACED[c.key]?.below)) r.faults.push({ kind: 'missing', control: c.key, detail: `shown at ${widest}, not rendered at ${r.width}` });
+        const have = counts(r.controls), folded = Object.entries(FOLDS).filter(([pick]) => have.has(pick)).map(([, row]) => row);
+        for (const [key, n] of counts(ref.controls)) {
+          const short = n - (have.get(key) || 0) - (folded.includes(key.split(' ')[0]) ? 1 : 0);
+          if (short > 0 && !(Number(r.width) < REPLACED[key]?.below)) r.faults.push({ kind: 'missing', control: key, detail: `shown at ${widest}, not rendered at ${r.width}` });
+        }
       }
     }
   }
