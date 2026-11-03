@@ -397,10 +397,10 @@ async function readerTools(page, browserName, width) {
     assert.equal(await page.locator('html').getAttribute('data-theme'), value === 'system' ? null : value, 'Root follows the saved theme');
     assert.equal(await page.locator('html').evaluate(el => getComputedStyle(el).getPropertyValue('--paper').trim()), paper, 'Visible paper follows the theme');
   };
-  await themeState('system', 'Auto', 'Light', '#fcfcfa');
+  await themeState('system', 'Auto', 'Light', '#fbf6ec');
   await page.locator('#dock').screenshot({ path: path.join(evidence, `${browserName}-${width}-bottom-system.png`) });
   await page.locator('#top').screenshot({ path: path.join(evidence, `${browserName}-${width}-top-system.png`) });
-  for (const [value, current, next, paper] of [['light', 'Light', 'Dark', '#fcfcfa'], ['dark', 'Dark', 'Auto', '#24292d'], ['system', 'Auto', 'Light', '#fcfcfa']]) {
+  for (const [value, current, next, paper] of [['light', 'Light', 'Dark', '#fbf6ec'], ['dark', 'Dark', 'Auto', '#2b251e'], ['system', 'Auto', 'Light', '#fbf6ec']]) {
     await theme.click();
     await themeState(value, current, next, paper);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('piled4:settings')).theme), value, 'Theme choice is saved');
@@ -410,20 +410,20 @@ async function readerTools(page, browserName, width) {
     await themeState(value, current, next, paper);
   }
   await page.emulateMedia({ colorScheme: 'dark' });
-  await themeState('system', 'Auto', 'Light', '#24292d');
+  await themeState('system', 'Auto', 'Light', '#2b251e');
   await page.emulateMedia({ colorScheme: 'light' });
   await page.locator('#optsBtn').click();
   await page.locator('.seg[data-setting="theme"] button[data-value="dark"]').click();
-  await themeState('dark', 'Dark', 'Auto', '#24292d');
+  await themeState('dark', 'Dark', 'Auto', '#2b251e');
   await page.locator('.seg[data-setting="theme"] button[data-value="system"]').click();
-  await themeState('system', 'Auto', 'Light', '#fcfcfa');
+  await themeState('system', 'Auto', 'Light', '#fbf6ec');
   await page.keyboard.press('Escape');
-  await theme.press('Enter'); await themeState('light', 'Light', 'Dark', '#fcfcfa');
+  await theme.press('Enter'); await themeState('light', 'Light', 'Dark', '#fbf6ec');
   await page.emulateMedia({ colorScheme: 'dark' });
-  await themeState('light', 'Light', 'Dark', '#fcfcfa');
-  await theme.press('Space'); await themeState('dark', 'Dark', 'Auto', '#24292d');
+  await themeState('light', 'Light', 'Dark', '#fbf6ec');
+  await theme.press('Space'); await themeState('dark', 'Dark', 'Auto', '#2b251e');
   await page.emulateMedia({ colorScheme: 'light' });
-  await theme.click(); await themeState('system', 'Auto', 'Light', '#fcfcfa');
+  await theme.click(); await themeState('system', 'Auto', 'Light', '#fbf6ec');
   const focus = page.locator('#focusBtn');
   await focus.click(); await page.mouse.move(width / 2, 400);
   await page.waitForFunction(() => getComputedStyle(document.querySelector('#top')).opacity === '0.3');
