@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette="sepia">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -76,7 +76,7 @@ html { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: none; text-size-ad
   --sel: #4a545b; --sel-ink: #eeece6;
   color-scheme: dark;
 }
-/* Colour themes under Options. Slate is the default above; each other theme has a light set and a dark set. Sepia: */
+/* Colour themes under Options. Slate is the set above; each other theme has a light set and a dark set. Sepia, the default: */
 :root[data-palette="sepia"] { --desk: #d9cfbf; --bar: #e6ddcf; --surface: #f1ebe1; --paper: #fbf6ec; --card: #fcf8ef; --ink: #2b241c; --ink-soft: #6b5f50; --accent: #8a5a2b; --line: #ab9e8b; --hair: #d3c8b6; --shade: #3a2e22; --shadow: rgba(40, 28, 14, .3); --cover: #5a3e24; --cover-ink: #f6efe3; --code-bg: #efe6d6; --sel: #8c7d69; --sel-ink: #fffaf2; }
 @media (prefers-color-scheme: dark) { :root[data-palette="sepia"]:not([data-theme="light"]) { --desk: #1f1a15; --bar: #18140f; --surface: #26201a; --paper: #2b251e; --card: #2d2720; --ink: #e6dccb; --ink-soft: #a89a86; --accent: #d2a46f; --line: #574c3f; --hair: #342c23; --shade: #0b0806; --cover: #4b3522; --cover-ink: #f1e7d6; --code-bg: #221c16; --sel: #5a4e40; --sel-ink: #f3ead9; } }
 :root[data-palette="sepia"][data-theme="dark"] { --desk: #1f1a15; --bar: #18140f; --surface: #26201a; --paper: #2b251e; --card: #2d2720; --ink: #e6dccb; --ink-soft: #a89a86; --accent: #d2a46f; --line: #574c3f; --hair: #342c23; --shade: #0b0806; --cover: #4b3522; --cover-ink: #f1e7d6; --code-bg: #221c16; --sel: #5a4e40; --sel-ink: #f3ead9; }
@@ -1565,7 +1565,7 @@ a.toc-item { text-decoration: none; }
 <table id="listen-keys">
   <thead><tr><th>Key</th> <th>What it does</th></tr></thead>
   <tbody>
-    <tr><td><code>a</code></td> <td>Listen <b>a</b>loud, stop</td></tr>
+    <tr><td><code>a</code></td> <td><b>A</b>udio: listen, stop</td></tr>
     <tr><td><code>[</code> <code>]</code>, <code>q</code> <code>w</code></td> <td>Previous, next sentence</td></tr>
     <tr><td><code>Q</code> <code>W</code></td> <td>Previous, next paragraph</td></tr>
     <tr><td><code>r</code></td> <td><b>R</b>eturn to the sentence being read</td></tr>
@@ -1737,7 +1737,7 @@ a.toc-item { text-decoration: none; }
     <tr><td><code>n</code> <code>N</code></td> <td><b>N</b>ext, previous match</td></tr>
     <tr><td>Enter</td> <td>In search, stay at the match; in the page box, go to the page</td></tr>
     <tr><td>Esc, Ctrl+[</td> <td>Close the last thing opened, a peek, search or a menu; then stop Listen; then clear highlights</td></tr>
-    <tr><td><code>a</code></td> <td>Listen, stop <b>a</b>udio</td></tr>
+    <tr><td><code>a</code></td> <td><b>A</b>udio: listen, stop</td></tr>
     <tr><td><code>H</code></td> <td><b>H</b>ighlighter on, off: click or tap a sentence, or a paragraph, to mark it, and it stays as you read; <code>q</code> <code>w</code> step it, <code>Q</code> <code>W</code> switch sentences and paragraphs, <code>r</code> goes back to it</td></tr>
   </tbody>
 </table>
@@ -2407,7 +2407,7 @@ window.bookReady = (async () => {
   const searchBox = $("searchBox"), q = $("q"), qCount = $("qCount"), qNote = $("qNote"), resultsEl = $("results"), chip = $("chip"), chipQ = $("chipQ");
 
   // swap 0: contents on the left, minimap on the right.
-  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", slider: "jump", dialScroll: "page", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "slate", outline: "off", textSize: 100 };
+  const DEFAULTS = { view: "paged", facing: 0, arrange: "flow", stripAt: 0, shade: 100, mapAt: "side", zenExit: "off", libClick: "select", slider: "jump", dialScroll: "page", listenCode: "read", highlighter: "off", pagedSpread: 28, listenMode: "stay", mapMark: 1, mapMarkOp: 30, toc: 1, map: 1, swap: 0, rate: 1, voice: "", scrollStyle: "pages", shadows: 1, paper: "a5", glide: 1.2, stat: "left", pct: 1, expand: 0, theme: "system", palette: "sepia", outline: "off", textSize: 100 };
   const CHOICES = { listenMode: ["stay", "follow"], view: ["paged", "scroll"], arrange: ["pile", "flow", "strip"], mapAt: ["side", "top"], zenExit: ["off", "restore"], libClick: ["select", "open"], slider: ["jump", "dial"], dialScroll: ["page", "glide"], listenCode: ["read", "skip"], highlighter: ["off", "sentence", "paragraph"], scrollStyle: ["text", "pages"], paper: ["pocket", "a5", "trade", "b5", "a4", "letter"], stat: ["left", "right", "off"], theme: ["system", "light", "dark"], palette: ["slate", "sepia", "paper", "gray"], outline: ["on", "off"] };
   // Page sizes in millimetres. The book's type grows with the square root of the width and its margins with the page.
   const PAPER = {
